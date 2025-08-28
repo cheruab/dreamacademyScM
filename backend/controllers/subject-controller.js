@@ -2,25 +2,29 @@ const Subject = require('../models/subjectSchema.js');
 const Teacher = require('../models/teacherSchema.js');
 const Student = require('../models/studentSchema.js');
 
+// Create subjects independently (no class required initially)
 const subjectCreate = async (req, res) => {
     try {
         const subjects = req.body.subjects.map((subject) => ({
             subName: subject.subName,
             subCode: subject.subCode,
             sessions: subject.sessions,
-        }));
+            description: subject.description,
+            videoLink: subject.videoLink,
+        })); 
 
+        // Check for duplicate subCode across all subjects in the school
         const existingSubjectBySubCode = await Subject.findOne({
-            'subjects.subCode': subjects[0].subCode,
+            subCode: { $in: subjects.map(s => s.subCode) },
             school: req.body.adminID,
-        });
-
+        }); 
+  
         if (existingSubjectBySubCode) {
             res.send({ message: 'Sorry this subcode must be unique as it already exists' });
         } else {
             const newSubjects = subjects.map((subject) => ({
                 ...subject,
-                sclassName: req.body.sclassName,
+                sclassName: req.body.sclassName || null, // Optional class assignment
                 school: req.body.adminID,
             }));
 
@@ -32,6 +36,7 @@ const subjectCreate = async (req, res) => {
     }
 };
 
+// Get all subjects for a school (not tied to class)
 const allSubjects = async (req, res) => {
     try {
         let subjects = await Subject.find({ school: req.params.id })
@@ -46,14 +51,132 @@ const allSubjects = async (req, res) => {
     }
 };
 
+// Get subjects for a specific class
+// In your subject-controller.js, replace the classSubjects function with this enhanced version:
+
 const classSubjects = async (req, res) => {
     try {
-        let subjects = await Subject.find({ sclassName: req.params.id })
+        console.log("=== ClassSubjects DEBUG ===");
+        console.log("Requested class ID:", req.params.id);
+        
+        // First, let's see ALL subjects for this class (including inactive ones)
+        const allClassSubjects = await Subject.find({ sclassName: req.params.id });
+        console.log("Total subjects found for this class:", allClassSubjects.length);
+        
+        allClassSubjects.forEach((subject, index) => {
+            console.log(`Subject ${index + 1}:`, {
+                id: subject._id,
+                name: subject.subName,
+                code: subject.subCode,
+                sessions: subject.sessions,
+                isActive: subject.isActive,
+                sclassName: subject.sclassName
+            });
+        });
+        
+        // Now get subjects with population
+        const subjects = await Subject.find({ sclassName: req.params.id })
+            .populate('teacher', 'name')
+            .select('subName subCode sessions description videoLink isActive');
+        
+        console.log("Subjects after population and selection:", subjects.length);
+        
         if (subjects.length > 0) {
-            res.send(subjects)
+            console.log("Returning subjects:", subjects);
+            res.send(subjects);
         } else {
+            console.log("No subjects found, sending message");
             res.send({ message: "No subjects found" });
         }
+    } catch (err) {
+        console.error("Error in classSubjects:", err);
+        res.status(500).json(err);
+    }
+};
+
+// Also, let's create a debug endpoint to check all subjects in the database
+const debugAllSubjects = async (req, res) => {
+    try {
+        console.log("=== DEBUG ALL SUBJECTS ===");
+        const allSubjects = await Subject.find({ school: req.params.id })
+            .populate('sclassName', 'sclassName')
+            .populate('teacher', 'name');
+        
+        console.log("Total subjects in school:", allSubjects.length);
+        
+        const subjectsByClass = {};
+        allSubjects.forEach(subject => {
+            const className = subject.sclassName?.sclassName || 'Unassigned';
+            const classId = subject.sclassName?._id || 'null';
+            
+            if (!subjectsByClass[className]) {
+                subjectsByClass[className] = [];
+            }
+            
+            subjectsByClass[className].push({
+                name: subject.subName,
+                code: subject.subCode,
+                classId: classId,
+                isActive: subject.isActive
+            });
+        });
+        
+        console.log("Subjects grouped by class:", subjectsByClass);
+        
+        res.json({
+            totalSubjects: allSubjects.length,
+            subjectsByClass: subjectsByClass,
+            allSubjects: allSubjects
+        });
+    } catch (err) {
+        console.error("Error in debugAllSubjects:", err);
+        res.status(500).json(err);
+    }
+};
+// Get unassigned subjects (not tied to any class)
+const unassignedSubjects = async (req, res) => {
+    try {
+        let subjects = await Subject.find({ 
+            school: req.params.id,
+            sclassName: null
+        });
+        if (subjects.length > 0) {
+            res.send(subjects);
+        } else {
+            res.send({ message: "No unassigned subjects found" });
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
+// Assign subjects to a class
+const assignSubjectsToClass = async (req, res) => {
+    try {
+        const { subjectIds, classId } = req.body;
+        
+        const result = await Subject.updateMany(
+            { _id: { $in: subjectIds } },
+            { sclassName: classId }
+        );
+        
+        res.send(result);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
+// Remove subjects from a class (make them unassigned)
+const removeSubjectsFromClass = async (req, res) => {
+    try {
+        const { subjectIds } = req.body;
+        
+        const result = await Subject.updateMany(
+            { _id: { $in: subjectIds } },
+            { sclassName: null }
+        );
+        
+        res.send(result);
     } catch (err) {
         res.status(500).json(err);
     }
@@ -160,5 +283,16 @@ const deleteSubjectsByClass = async (req, res) => {
     }
 };
 
-
-module.exports = { subjectCreate, freeSubjectList, classSubjects, getSubjectDetail, deleteSubjectsByClass, deleteSubjects, deleteSubject, allSubjects };
+module.exports = { 
+    subjectCreate, 
+    freeSubjectList, 
+    classSubjects, 
+    getSubjectDetail, 
+    deleteSubjectsByClass, 
+    deleteSubjects, 
+    deleteSubject, 
+    allSubjects,
+    unassignedSubjects,
+    assignSubjectsToClass,
+    removeSubjectsFromClass
+};

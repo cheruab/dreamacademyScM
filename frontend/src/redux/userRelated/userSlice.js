@@ -11,18 +11,29 @@ const initialState = {
     response: null,
     darkMode: true,
 
-    // New state fields for complaints
+    // Complaints
     complains: [],
     loadingComplains: false,
     complainsError: null,
+
+    // Exams
+    exams: [],
+    examLoading: false,
+    examError: null,
 };
 
 const userSlice = createSlice({
     name: 'user',
     initialState,
+    status: 'idle',
+        loading: false,
+        currentUser: null,
+        response: null,
+        error: null,
     reducers: {
-        // Existing reducers...
-
+        // ==========================
+        // Existing reducers
+        // ==========================
         authRequest: (state) => {
             state.status = 'loading';
         },
@@ -60,12 +71,7 @@ const userSlice = createSlice({
             state.currentRole = null;
         },
 
-        doneSuccess: (state, action) => {
-            state.userDetails = action.payload;
-            state.loading = false;
-            state.error = null;
-            state.response = null;
-        },
+       
         getDeleteSuccess: (state) => {
             state.loading = false;
             state.error = null;
@@ -75,20 +81,14 @@ const userSlice = createSlice({
         getRequest: (state) => {
             state.loading = true;
         },
-        getFailed: (state, action) => {
-            state.response = action.payload;
-            state.loading = false;
-            state.error = null;
-        },
-        getError: (state, action) => {
-            state.loading = false;
-            state.error = action.payload;
-        },
+        
         toggleDarkMode: (state) => {
             state.darkMode = !state.darkMode;
         },
 
-        // New reducers for complaints fetching
+        // ==========================
+        // Complaints reducers
+        // ==========================
         complainsRequest: (state) => {
             state.loadingComplains = true;
             state.complainsError = null;
@@ -102,10 +102,56 @@ const userSlice = createSlice({
             state.loadingComplains = false;
             state.complainsError = action.payload;
         },
+        getRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+        doneSuccess: (state, action) => {
+            state.loading = false;
+            state.response = action.payload;
+            state.error = null;
+            state.status = 'success';
+        },
+        getFailed: (state, action) => {
+            state.loading = false;
+            state.response = action.payload;
+            state.error = action.payload;
+            state.status = 'failed';
+        },
+        getError: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.status = 'error';
+        },
+
+        // ==========================
+        // Exams reducers
+        // ==========================
+        examRequest: (state) => {
+            state.examLoading = true;
+            state.examError = null;
+        },
+        examAdded: (state, action) => {
+            state.examLoading = false;
+            state.status = 'examAdded';
+            state.response = action.payload;
+            state.error = null;
+        },
+        examsFetched: (state, action) => {
+            state.examLoading = false;
+            state.status = 'examsFetched';
+            state.exams = action.payload;
+        },
+        examFailed: (state, action) => {
+            state.examLoading = false;
+            state.status = 'examFailed';
+            state.examError = action.payload;
+        },
     },
 });
 
 export const {
+    // Existing
     authRequest,
     underControl,
     stuffAdded,
@@ -120,10 +166,16 @@ export const {
     getError,
     toggleDarkMode,
 
-    // export new actions
+    // Complaints
     complainsRequest,
     complainsSuccess,
     complainsFail,
+
+    // Exams
+    examRequest,
+    examAdded,
+    examsFetched,
+    examFailed,
 } = userSlice.actions;
 
 export const userReducer = userSlice.reducer;

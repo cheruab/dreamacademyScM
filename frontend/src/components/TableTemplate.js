@@ -68,4 +68,4 @@ const TableTemplate = ({ buttonHaver: ButtonHaver, columns, rows }) => {
     )
 }
 
-export default TableTemplate
+export default TableTemplate;

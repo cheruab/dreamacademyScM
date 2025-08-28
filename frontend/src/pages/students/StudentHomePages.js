@@ -1,110 +1,272 @@
 import React from "react";
-import { Grid, Card, CardContent, Typography, Divider } from "@mui/material";
+import { 
+  Grid, 
+  Card, 
+  CardContent, 
+  Typography, 
+  Divider, 
+  Box,
+  Avatar,
+  Chip,
+  Paper
+} from "@mui/material";
 import StudentSubjectss from "./StudentSubjectss";
 import ViewStdAttendances from "./ViewStdAttendances";
 import StudentComplains from "./StudentComplains";
+import PersonIcon from '@mui/icons-material/Person';
+import SchoolIcon from '@mui/icons-material/School';
+import ClassIcon from '@mui/icons-material/Class';
+import BookIcon from '@mui/icons-material/Book';
+import EventIcon from '@mui/icons-material/Event';
+import FeedbackIcon from '@mui/icons-material/Feedback';
 
-const StudentHomePages = ({ child }) => {
+const StudentHomePages = ({ child, parent }) => {
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
+  const getAttendanceStats = () => {
+    if (!child?.attendance || child.attendance.length === 0) {
+      return { total: 0, present: 0, absent: 0, percentage: 0 };
+    }
+
+    const total = child.attendance.length;
+    const present = child.attendance.filter(record => record.status === 'Present').length;
+    const absent = total - present;
+    const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+
+    return { total, present, absent, percentage };
+  };
+
+  const getMarksStats = () => {
+    if (!child?.examResult || child.examResult.length === 0) {
+      return { subjects: 0, totalMarks: 0, averageMarks: 0 };
+    }
+
+    const subjects = child.examResult.length;
+    const totalMarks = child.examResult.reduce((sum, result) => sum + (result.marksObtained || 0), 0);
+    const averageMarks = subjects > 0 ? Math.round(totalMarks / subjects) : 0;
+
+    return { subjects, totalMarks, averageMarks };
+  };
+
+  const attendanceStats = getAttendanceStats();
+  const marksStats = getMarksStats();
+
   return (
     <div
       style={{
-        padding: "30px 15px",
-        backgroundColor: "#f5f6fa",
+        padding: "20px 15px",
+        backgroundColor: "#f8f9fa",
         minHeight: "100vh",
         boxSizing: "border-box",
       }}
     >
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ fontWeight: "bold", color: "#2c3e50", textAlign: "center" }}
-      >
-        Welcome, {child?.name || "Parent"}
-      </Typography>
-      <Typography
-        variant="subtitle1"
-        gutterBottom
-        sx={{ color: "#7f8c8d", mb: 4, maxWidth: 600, margin: "0 auto", textAlign: "center" }}
-      >
-        Here’s a quick overview of your child's academic activity
-      </Typography>
+      {/* Welcome Header */}
+      <Box sx={{ mb: 4 }}>
+        <Paper 
+          elevation={0}
+          sx={{ 
+            p: 4,
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            borderRadius: 3,
+            textAlign: 'center'
+          }}
+        >
+          <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2 }}>
+            {getGreeting()}, {parent?.name || 'Dear Parent'}! 🌟
+          </Typography>
+          <Typography variant="h5" sx={{ opacity: 0.9, mb: 3 }}>
+            Welcome to your child <strong>{child?.name || 'Student'}</strong>'s academic dashboard
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+            <Chip 
+              icon={<SchoolIcon />}
+              label={child?.school?.schoolName || 'School'}
+              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 'bold' }}
+            />
+            <Chip 
+              icon={<ClassIcon />}
+              label={child?.sclassName?.sclassName || 'Class'}
+              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 'bold' }}
+            />
+            <Chip 
+              label={`Roll No: ${child?.rollNum || 'N/A'}`}
+              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 'bold' }}
+            />
+          </Box>
+        </Paper>
+      </Box>
 
+      {/* Quick Stats */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ 
+            borderRadius: 3, 
+            background: 'linear-gradient(135deg, #4caf50 0%, #81c784 100%)',
+            color: 'white',
+            height: '100%'
+          }}>
+            <CardContent sx={{ textAlign: 'center', py: 3 }}>
+              <EventIcon sx={{ fontSize: 48, mb: 2 }} />
+              <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                {attendanceStats.percentage}%
+              </Typography>
+              <Typography variant="body1">
+                Attendance Rate
+              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                {attendanceStats.present} present / {attendanceStats.total} total
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ 
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #2196f3 0%, #64b5f6 100%)',
+            color: 'white',
+            height: '100%'
+          }}>
+            <CardContent sx={{ textAlign: 'center', py: 3 }}>
+              <BookIcon sx={{ fontSize: 48, mb: 2 }} />
+              <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                {marksStats.averageMarks}
+              </Typography>
+              <Typography variant="body1">
+                Average Marks
+              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                Across {marksStats.subjects} subjects
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ 
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)',
+            color: 'white',
+            height: '100%'
+          }}>
+            <CardContent sx={{ textAlign: 'center', py: 3 }}>
+              <FeedbackIcon sx={{ fontSize: 48, mb: 2 }} />
+              <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Active
+              </Typography>
+              <Typography variant="body1">
+                Academic Status
+              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                Enrolled & Learning
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Main Content Sections */}
       <Grid container spacing={4} direction="column">
-        {/* Subjects */}
+        {/* Subjects Section */}
         <Grid item xs={12}>
           <Card
             sx={{
-              borderRadius: "16px",
-              boxShadow: 3,
+              borderRadius: 3,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
               backgroundColor: "#ffffff",
-              width: { xs: "100%", sm: "90%", md: "70%" },
+              width: { xs: "100%", sm: "95%", md: "85%" },
               margin: "0 auto",
+              overflow: 'hidden'
             }}
           >
-            <CardContent>
+            <Box sx={{
+              background: 'linear-gradient(90deg, #2196f3 0%, #21cbf3 100%)',
+              color: 'white',
+              p: 2
+            }}>
               <Typography
-                variant="h6"
-                sx={{ fontWeight: "bold", color: "#2980b9", mb: 1 }}
+                variant="h5"
+                sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center' }}
               >
-                📚 Subjects
+                📚 Academic Subjects
               </Typography>
-              <Divider sx={{ marginY: 2 }} />
+            </Box>
+            <CardContent>
               <StudentSubjectss studentId={child._id} child={child} />
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Attendance */}
+        {/* Attendance Section */}
         <Grid item xs={12}>
           <Card
             sx={{
-              borderRadius: "16px",
-              boxShadow: 3,
+              borderRadius: 3,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
               backgroundColor: "#ffffff",
-              width: { xs: "100%", sm: "90%", md: "70%" },
+              width: { xs: "100%", sm: "95%", md: "85%" },
               margin: "0 auto",
+              overflow: 'hidden'
             }}
           >
-            <CardContent>
+            <Box sx={{
+              background: 'linear-gradient(90deg, #4caf50 0%, #81c784 100%)',
+              color: 'white',
+              p: 2
+            }}>
               <Typography
-                variant="h6"
-                sx={{ fontWeight: "bold", color: "#27ae60", mb: 1 }}
+                variant="h5"
+                sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center' }}
               >
-                📝 Attendance
+                📊 Attendance Overview
               </Typography>
-              <Divider sx={{ marginY: 2 }} />
+            </Box>
+            <CardContent>
               <ViewStdAttendances childData={child} />
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Complaints */}
+        {/* Complaints Section */}
         <Grid item xs={12}>
           <Card
             sx={{
-              borderRadius: "16px",
-              boxShadow: 3,
+              borderRadius: 3,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
               backgroundColor: "#ffffff",
-              width: { xs: "100%", sm: "90%", md: "70%" },
+              width: { xs: "100%", sm: "95%", md: "85%" },
               margin: "0 auto",
+              overflow: 'hidden'
             }}
           >
-            <CardContent>
+            <Box sx={{
+              background: 'linear-gradient(90deg, #f44336 0%, #ef5350 100%)',
+              color: 'white',
+              p: 2
+            }}>
               <Typography
-                variant="h6"
-                sx={{ fontWeight: "bold", color: "#c0392b", mb: 1 }}
+                variant="h5"
+                sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center' }}
               >
-                💬 Complaints
+                💬 Communication Center
               </Typography>
-              <Divider sx={{ marginY: 2 }} />
+            </Box>
+            <CardContent>
               <StudentComplains child={child} />
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+
+      {/* Footer Spacing */}
+      <Box sx={{ height: 100 }} />
     </div>
   );
 };
-
 export default StudentHomePages;
-

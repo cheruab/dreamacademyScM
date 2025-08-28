@@ -40,7 +40,7 @@ const TeacherViewStudent = () => {
             ...prevState,
             [subId]: !prevState[subId],
         }));
-    };
+    }; 
 
     useEffect(() => {
         if (userDetails) {

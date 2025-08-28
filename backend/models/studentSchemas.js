@@ -16,7 +16,7 @@ const studentSchemas = new mongoose.Schema({
     sclassName: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'sclass',
-        required: true,
+        required: false,
     },
     child: {
     type: mongoose.Schema.Types.ObjectId,

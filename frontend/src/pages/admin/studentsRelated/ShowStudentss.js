@@ -21,7 +21,7 @@ const ShowStudentss = () => {
     const { currentUser } = useSelector(state => state.user)
 
     useEffect(() => {
-        dispatch(getAllParents(currentUser._id, "Parent"));
+        dispatch(getAllParents(currentUser._id, "parent"));
     }, [currentUser._id, dispatch]);
 
     if (error) {

@@ -62,11 +62,20 @@ export const getSubjectList = (id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/${address}/${id}`);
+        const result = await axios.get(`${REACT_APP_BASE_URL}/${address}/${id}`, {
+            params: {
+                includeVideos: true  // Add this parameter to ensure video data is included
+            }
+        });
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
-            dispatch(getSubjectsSuccess(result.data));
+            // Ensure videoLink is included in each subject
+            const subjectsWithVideos = result.data.map(subject => ({
+                ...subject,
+                videoLink: subject.videoLink || null
+            }));
+            dispatch(getSubjectsSuccess(subjectsWithVideos));
         }
     } catch (error) {
         dispatch(getError(error));

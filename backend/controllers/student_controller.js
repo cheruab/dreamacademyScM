@@ -1,26 +1,33 @@
 const bcrypt = require('bcrypt');
 const Student = require('../models/studentSchema.js');
 const Subject = require('../models/subjectSchema.js');
+const mongoose = require('mongoose');
 
 const studentRegister = async (req, res) => {
     try {
         const salt = await bcrypt.genSalt(10);
         const hashedPass = await bcrypt.hash(req.body.password, salt);
 
+        // Check for existing student with same roll number in the same school
+        // Remove sclassName from uniqueness check since students won't have classes initially
         const existingStudent = await Student.findOne({
             rollNum: req.body.rollNum,
             school: req.body.adminID,
-            sclassName: req.body.sclassName,
         });
 
         if (existingStudent) {
-            res.send({ message: 'Roll Number already exists' });
+            res.send({ message: 'Roll Number already exists in this school' });
         }
         else {
             const student = new Student({
-                ...req.body,
+                name: req.body.name,
+                rollNum: req.body.rollNum,
+                password: hashedPass,
                 school: req.body.adminID,
-                password: hashedPass
+                role: req.body.role || "Student",
+                attendance: req.body.attendance || [],
+                // Don't set sclassName - it will be null/undefined initially
+                // sclassName will be set when admin creates a class and assigns the student
             });
 
             let result = await student.save();
@@ -40,7 +47,10 @@ const studentLogIn = async (req, res) => {
             const validated = await bcrypt.compare(req.body.password, student.password);
             if (validated) {
                 student = await student.populate("school", "schoolName")
-                student = await student.populate("sclassName", "sclassName")
+                // Populate sclassName only if it exists
+                if (student.sclassName) {
+                    student = await student.populate("sclassName", "sclassName")
+                }
                 student.password = undefined;
                 student.examResult = undefined;
                 student.attendance = undefined;
@@ -71,6 +81,7 @@ const getStudents = async (req, res) => {
         res.status(500).json(err);
     }
 };
+
 const getStudent = async (req, res) => {
     try {
         let student = await Student.findById(req.params.id)
@@ -88,7 +99,6 @@ const getStudent = async (req, res) => {
         res.status(500).json(err);
     }
 };
-
 
 const getStudentDetail = async (req, res) => {
     try {
@@ -111,15 +121,12 @@ const getStudentDetail = async (req, res) => {
     }
 }
 
-
-
-
 const deleteStudent = async (req, res) => {
     try {
         const result = await Student.findByIdAndDelete(req.params.id)
         res.send(result)
     } catch (error) {
-        res.status(500).json(err);
+        res.status(500).json(error);
     }
 }
 
@@ -132,7 +139,7 @@ const deleteStudents = async (req, res) => {
             res.send(result)
         }
     } catch (error) {
-        res.status(500).json(err);
+        res.status(500).json(error);
     }
 }
 
@@ -145,7 +152,7 @@ const deleteStudentsByClass = async (req, res) => {
             res.send(result)
         }
     } catch (error) {
-        res.status(500).json(err);
+        res.status(500).json(error);
     }
 }
 
@@ -153,7 +160,7 @@ const updateStudent = async (req, res) => {
     try {
         if (req.body.password) {
             const salt = await bcrypt.genSalt(10)
-            res.body.password = await bcrypt.hash(res.body.password, salt)
+            req.body.password = await bcrypt.hash(req.body.password, salt)
         }
         let result = await Student.findByIdAndUpdate(req.params.id,
             { $set: req.body },
@@ -278,7 +285,6 @@ const removeStudentAttendanceBySubject = async (req, res) => {
     }
 };
 
-
 const removeStudentAttendance = async (req, res) => {
     const studentId = req.params.id;
 
@@ -311,8 +317,6 @@ const getStudentById = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
-
-
 
 module.exports = {
     studentRegister,

@@ -151,12 +151,18 @@ const getParentDetail = async (req, res) => {
     }
 };
 
+// Replace the getMyChild function in your student_controllers.js with this improved version:
+
+// In student_controllers.js, update the getMyChild function
+// In student_controllers.js, update the getMyChild function:
+
 const getMyChild = async (req, res) => {
     try {
         const parentId = req.params.parentId;
 
         console.log("Fetching child for parentId:", parentId);
 
+        // First, get the parent to find the child ID
         const parent = await Parent.findById(parentId).lean();
 
         if (!parent) {
@@ -169,24 +175,54 @@ const getMyChild = async (req, res) => {
             return res.status(404).send({ message: "No child assigned to this parent" });
         }
 
+        // Then get the child with all necessary population
         const child = await Student.findById(parent.child)
-            .populate('sclassName', 'sclassName')
+            .populate('sclassName', 'sclassName _id') // Make sure to include _id in the select
             .populate('school', 'schoolName')
-            .populate({ path: 'attendance.subName', select: 'subName' })
-            .populate('examResult.subName', 'subName')
+            .populate({
+                path: 'attendance.subName', 
+                select: 'subName subCode'
+            })
+            .populate({
+                path: 'examResult.subName', 
+                select: 'subName subCode'
+            });
 
         if (!child) {
             console.log("Child not found");
             return res.status(404).send({ message: "Child not found" });
         }
 
-        res.send(child);
+        // Remove password from response
+        const childData = child.toObject();
+        delete childData.password;
+
+        // Debug log to see the structure
+        console.log("Child sclassName structure:", {
+            sclassName: childData.sclassName,
+            type: typeof childData.sclassName,
+            isArray: Array.isArray(childData.sclassName)
+        });
+
+        console.log("Successfully fetched child data:", {
+            childId: child._id,
+            childName: child.name,
+            classId: child.sclassName?._id,
+            className: child.sclassName?.sclassName,
+            schoolName: child.school?.schoolName,
+            attendanceCount: child.attendance?.length || 0,
+            examResultCount: child.examResult?.length || 0
+        });
+
+        res.send(childData);
     } catch (err) {
         console.error("getMyChild error:", err);
-        res.status(500).send({ message: "Server error while fetching child" });
+        res.status(500).send({ 
+            message: "Server error while fetching child",
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 };
-
 
 const deleteParent = async (req, res) => {
     try {

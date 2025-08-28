@@ -17,9 +17,12 @@ import StudentProfile from './StudentProfile';
 import StudentSubjects from './StudentSubjects';
 import ViewStdAttendance from './ViewStdAttendance';
 import StudentComplain from './StudentComplain';
+import ExamTaking from './ExamTaking';
+import ExamResultViewer from './ExamResultViewer';
 import Logout from '../Logout'
 import AccountMenu from '../../components/AccountMenu';
 import { AppBar, Drawer } from '../../components/styles';
+import LessonPlanViewer from '../admin/LessonPlanViewer';
 
 const StudentDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -77,8 +80,18 @@ const StudentDashboard = () => {
                         <Route path="/Student/profile" element={<StudentProfile />} />
 
                         <Route path="/Student/subjects" element={<StudentSubjects />} />
+                        <Route path="/Student/exam/:examId" element={<ExamTaking />} />
+                        <Route path="/Student/exam-result/:examId" element={<ExamResultViewer />} />
                         <Route path="/Student/attendance" element={<ViewStdAttendance />} />
                         <Route path="/Student/complain" element={<StudentComplain />} />
+
+                       
+                        <Route path="/Student/lesson-plan/" element={<LessonPlanViewer />} />
+
+
+
+
+                    
 
                         <Route path="/logout" element={<Logout />} />
                     </Routes>

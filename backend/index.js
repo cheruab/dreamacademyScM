@@ -25,8 +25,15 @@ mongoose
     })
     .then(console.log("Connected to MongoDB"))
     .catch((err) => console.log("NOT CONNECTED TO NETWORK", err))
+    // In your Express app
+app.use((req, res, next) => {
+    res.setHeader('Content-Security-Policy', "frame-src https://www.youtube.com");
+    next();
+});
+
 
 app.use('/', Routes);
+
 
 const path = require('path');
 

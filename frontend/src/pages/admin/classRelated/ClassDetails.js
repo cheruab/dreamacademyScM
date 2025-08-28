@@ -4,28 +4,45 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getClassDetails, getClassStudents, getSubjectList } from "../../../redux/sclassRelated/sclassHandle";
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import {
-    Box, Container, Typography, Tab, IconButton
+    Box, Container, Typography, Grid, Paper, Button, 
+    Dialog, DialogTitle, DialogContent, DialogActions,
+    List, ListItem, ListItemText, Checkbox, ListItemButton,
+    Alert, CircularProgress, Card, CardContent, Divider,
+    Chip, Avatar
 } from '@mui/material';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
 import { resetSubjects } from "../../../redux/sclassRelated/sclassSlice";
-import { BlueButton, GreenButton, PurpleButton } from "../../../components/buttonStyles";
+import { BlueButton, GreenButton, PurpleButton, RedButton } from "../../../components/buttonStyles";
 import TableTemplate from "../../../components/TableTemplate";
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import SpeedDialTemplate from "../../../components/SpeedDialTemplate";
-import Popup from "../../../components/Popup";
-import DeleteIcon from "@mui/icons-material/Delete";
 import PostAddIcon from '@mui/icons-material/PostAdd';
+import DeleteIcon from "@mui/icons-material/Delete";
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import QuizIcon from '@mui/icons-material/Quiz';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import GradeIcon from '@mui/icons-material/Grade';
+import TeacherIcon from '@mui/icons-material/School';
+import SchoolIcon from '@mui/icons-material/School';
+import PersonIcon from '@mui/icons-material/Person';
+import BookIcon from '@mui/icons-material/Book';
+import Popup from "../../../components/Popup";
+import styled from 'styled-components';
 
 const ClassDetails = () => {
     const params = useParams()
     const navigate = useNavigate()
     const dispatch = useDispatch();
     const { subjectsList, sclassStudents, sclassDetails, loading, error, response, getresponse } = useSelector((state) => state.sclass);
+    const { currentUser } = useSelector((state) => state.user);
 
     const classID = params.id
+
+    // Assignment dialog states
+    const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+    const [assignDialogType, setAssignDialogType] = useState('');
+    const [availableItems, setAvailableItems] = useState([]);
+    const [selectedItems, setSelectedItems] = useState([]);
+    const [assignLoading, setAssignLoading] = useState(false);
 
     useEffect(() => {
         dispatch(getClassDetails(classID, "Sclass"));
@@ -37,250 +54,401 @@ const ClassDetails = () => {
         console.log(error)
     }
 
-    const [value, setValue] = useState('1');
-
-    const handleChange = (event, newValue) => {
-        setValue(newValue);
-    };
-
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
 
     const deleteHandler = (deleteID, address) => {
-        console.log(deleteID);
-        console.log(address);
         setMessage("Sorry the delete function has been disabled for now.")
         setShowPopup(true)
-        // dispatch(deleteUser(deleteID, address))
-        //     .then(() => {
-        //         dispatch(getClassStudents(classID));
-        //         dispatch(resetSubjects())
-        //         dispatch(getSubjectList(classID, "ClassSubjects"))
-        //     })
     }
 
-    const subjectColumns = [
-        { id: 'name', label: 'Subject Name', minWidth: 170 },
-        { id: 'code', label: 'Subject Code', minWidth: 100 },
-    ]
+    // Fetch available items for assignment
+    const fetchAvailableItems = async (type) => {
+        setAssignLoading(true);
+        try {
+            let url = '';
+            switch (type) {
+                case 'subjects':
+                    url = `http://localhost:5000/AllSchoolSubjects/${currentUser._id}`;
+                    break;
+                case 'teachers':
+                    url = `http://localhost:5000/Teachers/${currentUser._id}`;
+                    break;
+            }
 
-    const subjectRows = subjectsList && subjectsList.length > 0 && subjectsList.map((subject) => {
-        return {
-            name: subject.subName,
-            code: subject.subCode,
-            id: subject._id,
-        };
-    })
-
-    const SubjectsButtonHaver = ({ row }) => {
-        return (
-            <>
-                <IconButton onClick={() => deleteHandler(row.id, "Subject")}>
-                    <DeleteIcon color="error" />
-                </IconButton>
-                <BlueButton
-                    variant="contained"
-                    onClick={() => {
-                        navigate(`/Admin/class/subject/${classID}/${row.id}`)
-                    }}
-                >
-                    View
-                </BlueButton >
-            </>
-        );
-    };
-
-    const subjectActions = [
-        {
-            icon: <PostAddIcon color="primary" />, name: 'Add New Subject',
-            action: () => navigate("/Admin/addsubject/" + classID)
-        },
-        {
-            icon: <DeleteIcon color="error" />, name: 'Delete All Subjects',
-            action: () => deleteHandler(classID, "SubjectsClass")
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (Array.isArray(data)) {
+                setAvailableItems(data);
+            } else {
+                setAvailableItems([]);
+                setMessage(`No ${type} available for assignment`);
+                setShowPopup(true);
+            }
+        } catch (error) {
+            console.error(`Error fetching ${type}:`, error);
+            setMessage(`Error loading ${type}`);
+            setShowPopup(true);
+            setAvailableItems([]);
         }
-    ];
+        setAssignLoading(false);
+    };
 
-    const ClassSubjectsSection = () => {
-        return (
-            <>
-                {response ?
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                        <GreenButton
-                            variant="contained"
-                            onClick={() => navigate("/Admin/addsubject/" + classID)}
-                        >
-                            Add Subjects
-                        </GreenButton>
-                    </Box>
-                    :
-                    <>
-                        <Typography variant="h5" gutterBottom>
-                            Subjects List:
-                        </Typography>
+    // Handle assignment dialog
+    const handleAssignClick = (type) => {
+        setAssignDialogType(type);
+        setSelectedItems([]);
+        setAssignDialogOpen(true);
+        fetchAvailableItems(type);
+    };
 
-                        <TableTemplate buttonHaver={SubjectsButtonHaver} columns={subjectColumns} rows={subjectRows} />
-                        <SpeedDialTemplate actions={subjectActions} />
-                    </>
-                }
-            </>
-        )
-    }
-
-    const studentColumns = [
-        { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
-    ]
-
-    const studentRows = sclassStudents.map((student) => {
-        return {
-            name: student.name,
-            rollNum: student.rollNum,
-            id: student._id,
-        };
-    })
-
-    const StudentsButtonHaver = ({ row }) => {
-        return (
-            <>
-                <IconButton onClick={() => deleteHandler(row.id, "Student")}>
-                    <PersonRemoveIcon color="error" />
-                </IconButton>
-                <BlueButton
-                    variant="contained"
-                    onClick={() => navigate("/Admin/students/student/" + row.id)}
-                >
-                    View
-                </BlueButton>
-                <PurpleButton
-                    variant="contained" 
-                    onClick={() =>
-                        navigate("/Admin/students/student/attendance/" + row.id)
-                    }
-                >
-                    Attendance
-                </PurpleButton>
-            </>
+    // Handle item selection
+    const handleItemToggle = (itemId) => {
+        setSelectedItems(prev => 
+            prev.includes(itemId) 
+                ? prev.filter(id => id !== itemId)
+                : [...prev, itemId]
         );
     };
 
-    const studentActions = [
-        {
-            icon: <PersonAddAlt1Icon color="primary" />, name: 'Add New Student',
-            action: () => navigate("/Admin/class/addstudents/" + classID)
-        },
-        {
-            icon: <PersonRemoveIcon color="error" />, name: 'Delete All Students',
-            action: () => deleteHandler(classID, "StudentsClass")
-        },
-    ];
+    // Handle assignment submission
+    const handleAssignSubmit = async () => {
+        if (selectedItems.length === 0) {
+            setMessage('Please select at least one item');
+            setShowPopup(true);
+            return;
+        }
 
-    const ClassStudentsSection = () => {
-        return (
-            <>
-                {getresponse ? (
-                    <>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                            <GreenButton
-                                variant="contained"
-                                onClick={() => navigate("/Admin/class/addstudents/" + classID)}
-                            >
-                                Add Students
-                            </GreenButton>
-                        </Box>
-                    </>
-                ) : (
-                    <>
-                        <Typography variant="h5" gutterBottom>
-                            Students List:
-                        </Typography>
+        setAssignLoading(true);
+        try {
+            let url = '';
+            let body = {};
+            
+            switch (assignDialogType) {
+                case 'subjects':
+                    url = `http://localhost:5000/AssignSubjectsToClass`;
+                    body = { subjectIds: selectedItems, classId: classID };
+                    break;
+                case 'teachers':
+                    url = `http://localhost:5000/class/assign-teachers/${classID}`;
+                    body = { teacherIds: selectedItems };
+                    break;
+            }
 
-                        <TableTemplate buttonHaver={StudentsButtonHaver} columns={studentColumns} rows={studentRows} />
-                        <SpeedDialTemplate actions={studentActions} />
-                    </>
-                )}
-            </>
-        )
-    }
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body)
+            });
 
-    const ClassTeachersSection = () => {
-        return (
-            <>
-                Teachers
-            </>
-        )
-    }
-
-    const ClassDetailsSection = () => {
-        const numberOfSubjects = subjectsList.length;
-        const numberOfStudents = sclassStudents.length;
-
-        return (
-            <>
-                <Typography variant="h4" align="center" gutterBottom>
-                    Class Details
-                </Typography>
-                <Typography variant="h5" gutterBottom>
-                    This is Class {sclassDetails && sclassDetails.sclassName}
-                </Typography>
-                <Typography variant="h6" gutterBottom>
-                    Number of Subjects: {numberOfSubjects}
-                </Typography>
-                <Typography variant="h6" gutterBottom>
-                    Number of Students: {numberOfStudents}
-                </Typography>
-                {getresponse &&
-                    <GreenButton
-                        variant="contained"
-                        onClick={() => navigate("/Admin/class/addstudents/" + classID)}
-                    >
-                        Add Students
-                    </GreenButton>
+            const result = await response.json();
+            
+            if (response.ok) {
+                setMessage(`${assignDialogType} assigned successfully!`);
+                setShowPopup(true);
+                setAssignDialogOpen(false);
+                
+                // Refresh data
+                if (assignDialogType === 'subjects') {
+                    dispatch(getSubjectList(classID, "ClassSubjects"));
                 }
-                {response &&
-                    <GreenButton
-                        variant="contained"
-                        onClick={() => navigate("/Admin/addsubject/" + classID)}
-                    >
-                        Add Subjects
-                    </GreenButton>
-                }
-            </>
+                // For teachers, we might want to refetch class details if needed
+            } else {
+                setMessage(result.message || `Error assigning ${assignDialogType}`);
+                setShowPopup(true);
+            }
+        } catch (error) {
+            console.error('Assignment error:', error);
+            setMessage(`Error assigning ${assignDialogType}`);
+            setShowPopup(true);
+        }
+        setAssignLoading(false);
+    };
+
+    // Render item list based on type
+    const renderItemList = () => {
+        if (assignLoading) {
+            return (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                    <CircularProgress />
+                </Box>
+            );
+        }
+
+        if (availableItems.length === 0) {
+            return (
+                <Alert severity="info" sx={{ m: 2 }}>
+                    No {assignDialogType} available for assignment
+                </Alert>
+            );
+        }
+
+        return (
+            <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+                {availableItems.map((item) => {
+                    let primaryText = '';
+                    let secondaryText = '';
+                    
+                    switch (assignDialogType) {
+                        case 'subjects':
+                            primaryText = item.subName;
+                            secondaryText = `Code: ${item.subCode} | Sessions: ${item.sessions}${item.sclassName ? ` | Current Class: ${item.sclassName.sclassName}` : ' | Unassigned'}`;
+                            break;
+                        case 'teachers':
+                            primaryText = item.name;
+                            secondaryText = item.email || 'No email';
+                            break;
+                    }
+
+                    return (
+                        <ListItem key={item._id} disablePadding>
+                            <ListItemButton onClick={() => handleItemToggle(item._id)}>
+                                <Checkbox
+                                    checked={selectedItems.includes(item._id)}
+                                    tabIndex={-1}
+                                    disableRipple
+                                />
+                                <ListItemText
+                                    primary={primaryText}
+                                    secondary={secondaryText}
+                                />
+                            </ListItemButton>
+                        </ListItem>
+                    );
+                })}
+            </List>
         );
-    }
+    };
+
+    const numberOfSubjects = subjectsList.length;
+    const numberOfStudents = sclassStudents.length;
+    const studentData = sclassStudents.length > 0 ? sclassStudents[0] : null;
 
     return (
         <>
             {loading ? (
-                <div>Loading...</div>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+                    <CircularProgress size={60} />
+                    <Typography sx={{ ml: 2 }}>Loading class details...</Typography>
+                </Box>
             ) : (
                 <>
-                    <Box sx={{ width: '100%', typography: 'body1', }} >
-                        <TabContext value={value}>
-                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                <TabList onChange={handleChange} sx={{ position: 'fixed', width: '100%', bgcolor: 'background.paper', zIndex: 1 }}>
-                                    <Tab label="Details" value="1" />
-                                    <Tab label="Subjects" value="2" />
-                                    <Tab label="Students" value="3" />
-                                    <Tab label="Teachers" value="4" />
-                                </TabList>
+                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                        <Typography variant="h4" align="center" gutterBottom sx={{ mb: 4 }}>
+                            Class Overview
+                        </Typography>
+                        
+                        {/* Main Stats Cards */}
+                        <Grid container spacing={3} sx={{ mb: 4 }}>
+                            <Grid item xs={12} md={4}>
+                                <StatsCard elevation={3}>
+                                    <Typography variant="h6" color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <SchoolIcon />
+                                        Class Name
+                                    </Typography>
+                                    <Typography variant="h4">
+                                        {sclassDetails && sclassDetails.sclassName}
+                                    </Typography>
+                                </StatsCard>
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <StatsCard elevation={3}>
+                                    <Typography variant="h6" color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <BookIcon />
+                                        Total Subjects
+                                    </Typography>
+                                    <Typography variant="h4" color="success.main">
+                                        {numberOfSubjects}
+                                    </Typography>
+                                </StatsCard>
+                            </Grid>
+                           
+                        </Grid>
+
+                        {/* Student Information Card */}
+                        {studentData && (
+                            <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+                                <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <PersonIcon color="primary" />
+                                    Student Information
+                                </Typography>
+                                <Divider sx={{ mb: 2 }} />
+                                <Grid container spacing={2}>
+                                    <Grid item xs={12} md={6}>
+                                        <Typography variant="body1"><strong>Name:</strong> {studentData.name}</Typography>
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <Typography variant="body1"><strong>Roll Number:</strong> {studentData.rollNum}</Typography>
+                                    </Grid>
+                                </Grid>
+                                <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                    <BlueButton
+                                        variant="contained"
+                                        onClick={() => navigate("/Admin/students/student/" + studentData._id)}
+                                        size="small"
+                                        startIcon={<VisibilityIcon />}
+                                    >
+                                        View Details
+                                    </BlueButton>
+                                    <PurpleButton
+                                        variant="contained" 
+                                        onClick={() => navigate("/Admin/students/student/attendance/" + studentData._id)}
+                                        size="small"
+                                        startIcon={<AssignmentIcon />}
+                                    >
+                                        Attendance
+                                    </PurpleButton>
+                                    <GreenButton
+                                        variant="contained" 
+                                        onClick={() => navigate("/Admin/students/student/marks/" + studentData._id)}
+                                        size="small"
+                                        startIcon={<GradeIcon />}
+                                    >
+                                        Marks
+                                    </GreenButton>
+                                    <GreenButton
+                                        variant="contained" 
+                                        onClick={() => navigate("/Admin/exam-results/" + studentData._id)}
+                                        size="small"
+                                        startIcon={<GradeIcon />}
+                                    >
+                                        Exam Results
+                                    </GreenButton>
+                                </Box>
+                            </Paper>
+                        )}
+
+                        {/* Subjects Section */}
+                        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+                            <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <BookIcon color="secondary" />
+                                Assigned Subjects ({numberOfSubjects})
+                            </Typography>
+                            <Divider sx={{ mb: 2 }} />
+                            
+                            {response ? (
+                                <EmptyState>
+                                    <Typography variant="h6" color="text.secondary">
+                                        No subjects assigned to this class
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Assign subjects to get started
+                                    </Typography>
+                                </EmptyState>
+                            ) : (
+                                <Grid container spacing={2}>
+                                    {subjectsList.map((subject) => (
+                                        <Grid item xs={12} md={6} lg={4} key={subject._id}>
+                                            <Card variant="outlined" sx={{ height: '100%' }}>
+                                                <CardContent>
+                                                    <Typography variant="h6" color="primary" gutterBottom>
+                                                        {subject.subName}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                        Code: {subject.subCode}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                                        Sessions: {subject.sessions}
+                                                    </Typography>
+                                                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                                                        <BlueButton
+                                                            variant="outlined"
+                                                            onClick={() => navigate(`/Admin/class/subject/${classID}/${subject._id}`)}
+                                                            size="small"
+                                                            startIcon={<VisibilityIcon />}
+                                                        >
+                                                            View
+                                                        </BlueButton>
+                                                        <GreenButton
+                                                            variant="outlined"
+                                                            onClick={() => navigate(`/Admin/addexam/${subject._id}`)}
+                                                            size="small"
+                                                            startIcon={<PostAddIcon />}
+                                                        >
+                                                            Add Exam
+                                                        </GreenButton>
+                                                        <PurpleButton
+                                                            variant="outlined"
+                                                            onClick={() => navigate(`/Admin/exams/${subject._id}`)}
+                                                            size="small"
+                                                            startIcon={<QuizIcon />}
+                                                        >
+                                                            Exams
+                                                        </PurpleButton>
+                                                    </Box>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                            )}
+                        </Paper>
+
+                        {/* Quick Actions */}
+                        <Paper elevation={3} sx={{ p: 3 }}>
+                            <Typography variant="h5" gutterBottom>
+                                Quick Actions
+                            </Typography>
+                            <Divider sx={{ mb: 2 }} />
+                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                <PurpleButton
+                                    variant="contained"
+                                    onClick={() => handleAssignClick('subjects')}
+                                    startIcon={<PostAddIcon />}
+                                    disabled={!sclassDetails}
+                                >
+                                    Assign Subjects
+                                </PurpleButton>
+                                <BlueButton
+                                    variant="contained"
+                                    onClick={() => handleAssignClick('teachers')}
+                                    startIcon={<TeacherIcon />}
+                                    disabled={!sclassDetails}
+                                >
+                                    Assign Teachers
+                                </BlueButton>
                             </Box>
-                            <Container sx={{ marginTop: "3rem", marginBottom: "4rem" }}>
-                                <TabPanel value="1">
-                                    <ClassDetailsSection />
-                                </TabPanel>
-                                <TabPanel value="2">
-                                    <ClassSubjectsSection />
-                                </TabPanel>
-                                <TabPanel value="3">
-                                    <ClassStudentsSection />
-                                </TabPanel>
-                                <TabPanel value="4">
-                                    <ClassTeachersSection />
-                                </TabPanel>
-                            </Container>
-                        </TabContext>
-                    </Box>
+                        </Paper>
+                    </Container>
+
+                    {/* Assignment Dialog */}
+                    <Dialog 
+                        open={assignDialogOpen} 
+                        onClose={() => setAssignDialogOpen(false)}
+                        maxWidth="md"
+                        fullWidth
+                    >
+                        <DialogTitle>
+                            Assign {assignDialogType.charAt(0).toUpperCase() + assignDialogType.slice(1)} to Class
+                        </DialogTitle>
+                        <DialogContent>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                Select {assignDialogType} to assign to {sclassDetails?.sclassName}:
+                            </Typography>
+                            {renderItemList()}
+                            {selectedItems.length > 0 && (
+                                <Alert severity="success" sx={{ mt: 2 }}>
+                                    {selectedItems.length} {assignDialogType} selected
+                                </Alert>
+                            )}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setAssignDialogOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleAssignSubmit}
+                                variant="contained"
+                                disabled={assignLoading || selectedItems.length === 0}
+                                startIcon={assignLoading ? <CircularProgress size={20} /> : <AssignmentIcon />}
+                            >
+                                Assign Selected
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </>
             )}
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
@@ -289,3 +457,22 @@ const ClassDetails = () => {
 };
 
 export default ClassDetails;
+
+// Styled Components
+const StatsCard = styled(Paper)`
+    padding: 1.5rem;
+    text-align: center;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+`;
+
+const EmptyState = styled(Box)`
+    text-align: center;
+    padding: 3rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 2px dashed #ddd;
+`;

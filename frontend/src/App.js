@@ -9,6 +9,7 @@ import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import LoginPage from './pages/LoginPage';
 import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import ChooseUser from './pages/ChooseUser';
+import ExamForm from './pages/admin/subjectRelated/ExamForm';
 
 const App = () => {
   const { currentRole } = useSelector(state => state.user);
@@ -28,6 +29,9 @@ const App = () => {
           <Route path="/Teacherlogin" element={<LoginPage role="Teacher" />} />
 
           <Route path="/Adminregister" element={<AdminRegisterPage />} />
+          
+          
+
 
           <Route path='*' element={<Navigate to="/" />} />
         </Routes>}

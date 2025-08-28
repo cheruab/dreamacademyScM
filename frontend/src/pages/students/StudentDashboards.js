@@ -8,10 +8,18 @@ import {
     Typography,
     Divider,
     IconButton,
-    CircularProgress
+    CircularProgress,
+    Card,
+    CardContent,
+    Grid,
+    Avatar,
+    Chip
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import PersonIcon from '@mui/icons-material/Person';
+import SchoolIcon from '@mui/icons-material/School';
+import ClassIcon from '@mui/icons-material/Class';
 import StudentSideBars from './StudentSideBars';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import StudentHomePages from './StudentHomePages';
@@ -27,10 +35,11 @@ import ViewStdAttendances from './ViewStdAttendances';
 const StudentDashboards = () => {
     const [open, setOpen] = useState(true);
     const [childData, setChildData] = useState(null);
+    const [parentData, setParentData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // NEW: State for results
+    // Results state
     const [results, setResults] = useState([]);
     const [resultsLoading, setResultsLoading] = useState(false);
 
@@ -38,8 +47,9 @@ const StudentDashboards = () => {
         setOpen(!open);
     };
 
+    // Fetch parent and child data
     useEffect(() => {
-        const fetchChildData = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true);
                 const parentId = localStorage.getItem('parentId');
@@ -51,20 +61,29 @@ const StudentDashboards = () => {
                     return;
                 }
 
-                const response = await axios.get(`http://localhost:5000/Parents/${parentId}/children`);
-                setChildData(response.data);
+                // Fetch parent details first
+                const parentResponse = await axios.get(`http://localhost:5000/Parent/${parentId}`);
+                console.log("Parent data:", parentResponse.data);
+                setParentData(parentResponse.data);
+
+                // Then fetch child data
+                const childResponse = await axios.get(`http://localhost:5000/parents/${parentId}/children`);
+                console.log("Child data:", childResponse.data);
+                setChildData(childResponse.data);
+                
                 setError('');
             } catch (err) {
-                setError('Failed to fetch child data');
+                setError('Failed to fetch data');
                 console.error('Error details:', err.response?.data || err.message);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchChildData();
+        fetchData();
     }, []);
 
+    // Fetch results
     useEffect(() => {
         const fetchResults = async () => {
             const parentId = localStorage.getItem('parentId');
@@ -91,9 +110,11 @@ const StudentDashboards = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '100vh'
+                height: '100vh',
+                flexDirection: 'column'
             }}>
-                <CircularProgress />
+                <CircularProgress size={50} />
+                <Typography sx={{ mt: 2 }}>Loading dashboard...</Typography>
             </Box>
         );
     }
@@ -123,10 +144,15 @@ const StudentDashboards = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '100vh'
+                height: '100vh',
+                flexDirection: 'column'
             }}>
+                <SchoolIcon sx={{ fontSize: 80, color: 'grey.400', mb: 2 }} />
                 <Typography variant="h6">
                     No child assigned to your account
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Please contact the school administration
                 </Typography>
             </Box>
         );
@@ -157,7 +183,7 @@ const StudentDashboards = () => {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            {childData.name}'s Dashboard
+                            {parentData?.name ? `${parentData.name}'s` : 'Parent'} Dashboard
                         </Typography>
                         <AccountMenu />
                     </Toolbar>
@@ -176,54 +202,152 @@ const StudentDashboards = () => {
                 <Box component="main" sx={styles.boxStyled}>
                     <Toolbar />
 
-                    {/* NEW: Results Section */}
-<Box sx={{ mb: 3, p: 3, background: "#e3f2fd", borderRadius: "12px" }}>
-  <Typography variant="h6" gutterBottom>Uploaded Results</Typography>
+                    {/* Welcome Section */}
+                    <Box sx={{ mb: 3 }}>
+                        <Card sx={{ 
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                            color: 'white',
+                            borderRadius: 3,
+                            p: 1
+                        }}>
+                            <CardContent>
+                                <Grid container alignItems="center" spacing={3}>
+                                    <Grid item>
+                                        <Avatar sx={{ 
+                                            bgcolor: 'rgba(255,255,255,0.2)', 
+                                            width: 70, 
+                                            height: 70 
+                                        }}>
+                                            <PersonIcon sx={{ fontSize: 40 }} />
+                                        </Avatar>
+                                    </Grid>
+                                    <Grid item xs>
+                                        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                            Welcome back, {parentData?.name || 'Dear Parent'}! 👋
+                                        </Typography>
+                                        <Typography variant="h6" sx={{ opacity: 0.9, mb: 2 }}>
+                                            Here's everything about your child <strong>{childData.name}</strong>
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                            <Chip 
+                                                icon={<SchoolIcon />} 
+                                                label={childData.school?.schoolName || 'School'} 
+                                                sx={{ 
+                                                    bgcolor: 'rgba(255,255,255,0.2)', 
+                                                    color: 'white',
+                                                    fontWeight: 'bold'
+                                                }} 
+                                            />
+                                            <Chip 
+                                                icon={<ClassIcon />} 
+                                                label={childData.sclassName?.sclassName || 'Class'} 
+                                                sx={{ 
+                                                    bgcolor: 'rgba(255,255,255,0.2)', 
+                                                    color: 'white',
+                                                    fontWeight: 'bold'
+                                                }} 
+                                            />
+                                            <Chip 
+                                                label={`Roll No: ${childData.rollNum}`} 
+                                                sx={{ 
+                                                    bgcolor: 'rgba(255,255,255,0.2)', 
+                                                    color: 'white',
+                                                    fontWeight: 'bold'
+                                                }} 
+                                            />
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                            </CardContent>
+                        </Card>
+                    </Box>
 
-  {resultsLoading ? (
-    <CircularProgress size={24} />
-  ) : results.length === 0 ? (
-    <Typography>No results uploaded yet.</Typography>
-  ) : (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-      {results.map(result => (
-        <Button
-          key={result._id}
-          variant="contained"
-          href={`http://localhost:5000${result.fileUrl}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          sx={{
-            justifyContent: "space-between",
-            borderRadius: "10px",
-            padding: "12px 20px",
-            textTransform: "none",
-            fontWeight: "bold",
-            fontSize: "0.95rem",
-            backgroundColor: "#4caf50", // green background
-            color: "#fff",
-            "&:hover": {
-              backgroundColor: "#388e3c",
-              boxShadow: "0px 4px 12px rgba(0,0,0,0.2)"
-            }
-          }}
-        >
-          <span>📄 Click here to see the exam result: {result.originalName || "View Result"}</span>
-          <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>
-            {new Date(result.uploadedAt).toLocaleDateString()} {new Date(result.uploadedAt).toLocaleTimeString()}
-          </span>
-        </Button>
-      ))}
-    </Box>
-  )}
-</Box>
+                    {/* Results Section */}
+                    <Box sx={{ mb: 3 }}>
+                        <Card sx={{
+                            borderRadius: 3,
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                        }}>
+                            <CardContent>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                    <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                                        📊 Uploaded Results
+                                    </Typography>
+                                    {resultsLoading && <CircularProgress size={20} sx={{ ml: 2 }} />}
+                                </Box>
 
-
+                                {resultsLoading ? (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                        <CircularProgress size={24} />
+                                        <Typography>Loading results...</Typography>
+                                    </Box>
+                                ) : results.length === 0 ? (
+                                    <Box sx={{ 
+                                        textAlign: 'center', 
+                                        py: 4,
+                                        color: 'text.secondary'
+                                    }}>
+                                        <Typography variant="h6">📄 No results uploaded yet</Typography>
+                                        <Typography>Results will appear here once uploaded by the school</Typography>
+                                    </Box>
+                                ) : (
+                                    <Grid container spacing={2}>
+                                        {results.map((result, index) => (
+                                            <Grid item xs={12} sm={6} md={4} key={result._id}>
+                                                <Card sx={{
+                                                    borderRadius: 2,
+                                                    transition: 'all 0.3s ease',
+                                                    cursor: 'pointer',
+                                                    '&:hover': {
+                                                        transform: 'translateY(-2px)',
+                                                        boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                                                    }
+                                                }}>
+                                                    <CardContent sx={{ p: 2 }}>
+                                                        <Button
+                                                            fullWidth
+                                                            variant="contained"
+                                                            href={`http://localhost:5000${result.fileUrl}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            sx={{
+                                                                borderRadius: 2,
+                                                                py: 2,
+                                                                textTransform: 'none',
+                                                                fontSize: '0.95rem',
+                                                                background: 'linear-gradient(45deg, #4caf50 30%, #81c784 90%)',
+                                                                '&:hover': {
+                                                                    background: 'linear-gradient(45deg, #388e3c 30%, #66bb6a 90%)',
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Box sx={{ textAlign: 'left', width: '100%' }}>
+                                                                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                                                                    📄 {result.originalName || `Result ${index + 1}`}
+                                                                </Typography>
+                                                                <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                                                                    {new Date(result.uploadedAt).toLocaleDateString('en-US', {
+                                                                        year: 'numeric',
+                                                                        month: 'short',
+                                                                        day: 'numeric'
+                                                                    })}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Button>
+                                                    </CardContent>
+                                                </Card>
+                                            </Grid>
+                                        ))}
+                                    </Grid>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </Box>
 
                     <Routes>
-                        <Route path="/" element={<StudentHomePages child={childData} />} />
+                        <Route path="/" element={<StudentHomePages child={childData} parent={parentData} />} />
                         <Route path='*' element={<Navigate to="/" />} />
-                        <Route path="/Parent/dashboard" element={<StudentHomePages child={childData} />} />
+                        <Route path="/Parent/dashboard" element={<StudentHomePages child={childData} parent={parentData} />} />
                         <Route path="/Parent/child-profile" element={<StudentProfiles child={childData} />} />
                         <Route path="/Parent/child-subjects" element={<StudentSubjectss studentId={childData._id} child={childData} />} />
                         <Route path="/Parent/child-attendance" element={<ViewStdAttendances childData={childData} />} />

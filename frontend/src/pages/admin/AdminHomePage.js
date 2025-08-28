@@ -1,4 +1,4 @@
-import { Container, Grid, Paper } from '@mui/material'
+import { Container, Grid, Paper, Typography, Box } from '@mui/material';
 import SeeNotice from '../../components/SeeNotice';
 import Students from "../../assets/img1.png";
 import Classes from "../../assets/img2.png";
@@ -17,10 +17,9 @@ const AdminHomePage = () => {
     const { studentsList } = useSelector((state) => state.student);
     const { sclassesList } = useSelector((state) => state.sclass);
     const { teachersList } = useSelector((state) => state.teacher);
+    const { currentUser } = useSelector(state => state.user);
 
-    const { currentUser } = useSelector(state => state.user)
-
-    const adminID = currentUser._id
+    const adminID = currentUser._id;
 
     useEffect(() => {
         dispatch(getAllStudents(adminID));
@@ -28,78 +27,107 @@ const AdminHomePage = () => {
         dispatch(getAllTeachers(adminID));
     }, [adminID, dispatch]);
 
-    const numberOfStudents = studentsList && studentsList.length;
-    const numberOfClasses = sclassesList && sclassesList.length;
-    const numberOfTeachers = teachersList && teachersList.length;
+    const numberOfStudents = studentsList?.length || 0;
+    const numberOfClasses = sclassesList?.length || 0;
+    const numberOfTeachers = teachersList?.length || 0;
 
     return (
-        <>
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Students} alt="Students" />
-                            <Title>
-                                Total Students
-                            </Title>
-                            <Data start={0} end={numberOfStudents} duration={2.5} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Classes} alt="Classes" />
-                            <Title>
-                                Total Classes
-                            </Title>
-                            <Data start={0} end={numberOfClasses} duration={5} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Teachers} alt="Teachers" />
-                            <Title>
-                                Total Teachers
-                            </Title>
-                            <Data start={0} end={numberOfTeachers} duration={2.5} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Fees} alt="Fees" />
-                            <Title>
-                                Fees Collection
-                            </Title>
-                            <Data start={0} end={23000} duration={2.5} prefix="$" />                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={12} lg={12}>
-                        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                            <SeeNotice />
-                        </Paper>
-                    </Grid>
+        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+            {/* Welcome Banner */}
+            <Box sx={{ mb: 4, textAlign: "center" }}>
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
+                    Welcome back, {currentUser?.name || "Admin"} 👋
+                </Typography>
+                <Typography variant="subtitle1" color="text.secondary">
+                    Here’s a quick overview of your school’s activity today
+                </Typography>
+            </Box>
+
+            <Grid container spacing={4}>
+                {/* Students */}
+                <Grid item xs={12} sm={6} md={3}>
+                    <StyledPaper>
+                        <IconImg src={Students} alt="Students" />
+                        <Title>Total Students</Title>
+                        <Data start={0} end={numberOfStudents} duration={2.5} />
+                    </StyledPaper>
                 </Grid>
-            </Container>
-        </>
+
+                {/* Classes */}
+                <Grid item xs={12} sm={6} md={3}>
+                    <StyledPaper>
+                        <IconImg src={Classes} alt="Classes" />
+                        <Title>Total Classes</Title>
+                        <Data start={0} end={numberOfClasses} duration={2.5} />
+                    </StyledPaper>
+                </Grid>
+
+                {/* Teachers */}
+                <Grid item xs={12} sm={6} md={3}>
+                    <StyledPaper>
+                        <IconImg src={Teachers} alt="Teachers" />
+                        <Title>Total Teachers</Title>
+                        <Data start={0} end={numberOfTeachers} duration={2.5} />
+                    </StyledPaper>
+                </Grid>
+
+                {/* Fees */}
+                <Grid item xs={12} sm={6} md={3}>
+                    <StyledPaper>
+                        <IconImg src={Fees} alt="Fees" />
+                        <Title>Fees Collection</Title>
+                        <Data start={0} end={23000} duration={3} prefix="$" />
+                    </StyledPaper>
+                </Grid>
+
+                {/* Notices */}
+                <Grid item xs={12}>
+                    <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 4 }}>
+                        <Typography variant="h6" fontWeight="bold" mb={2}>
+                            📢 Latest Notices
+                        </Typography>
+                        <SeeNotice />
+                    </Paper>
+                </Grid>
+            </Grid>
+        </Container>
     );
 };
 
-
+// Styled Components
 const StyledPaper = styled(Paper)`
-  padding: 16px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  height: 200px;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
   text-align: center;
+  height: 220px;
+  border-radius: 20px !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  }
+`;
+
+const IconImg = styled.img`
+  width: 60px;
+  margin-bottom: 12px;
 `;
 
 const Title = styled.p`
-  font-size: 1.25rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 6px 0;
 `;
 
 const Data = styled(CountUp)`
-  font-size: calc(1.3rem + .6vw);
-  color: green;
+  font-size: calc(1.5rem + .8vw);
+  font-weight: bold;
+  color: #2e7d32;
 `;
 
-export default AdminHomePage
+export default AdminHomePage;
