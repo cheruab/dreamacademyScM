@@ -40,7 +40,7 @@ const ShowTeachers = () => {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
                 <GreenButton variant="contained" 
-                onClick={() => navigate(`/Admin/addteacher/${currentUser._id}`)}>
+                onClick={() => navigate(`/Admin/teachers/addteacher/${currentUser._id}`)}>
                     Add Teacher
                 </GreenButton>
             </Box>
