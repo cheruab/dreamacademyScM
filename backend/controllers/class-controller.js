@@ -36,21 +36,17 @@ const sclassCreate = async (req, res) => {
             school: adminID,
         });
 
-        const existingSchool = await Sclass.findOne({ school: adminID });
-        if (existingSchool) {
-            const result = await sclass.save();
-            
-            // If studentId is provided, assign student to this class
-            if (studentId) {
-                await Student.findByIdAndUpdate(studentId, {
-                    sclassName: result._id
-                });
-            }
-            
-            res.send(result);
-        } else {
-            res.send({ message: "School not found" });
-        }
+        // Simply save the class without the school validation
+const result = await sclass.save();
+
+// If studentId is provided, assign student to this class
+if (studentId) {
+    await Student.findByIdAndUpdate(studentId, {
+        sclassName: result._id
+    });
+}
+
+res.send(result);
     } catch (err) {
         console.error('Error in sclassCreate:', err);
         res.status(500).json({ message: err.message });

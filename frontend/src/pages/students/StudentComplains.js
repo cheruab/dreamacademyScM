@@ -25,7 +25,7 @@ import SendIcon from '@mui/icons-material/Send';
 const StudentComplains = ({ child }) => {
     const dispatch = useDispatch();
 
-    const { status, currentUser, error, complains, loading } = useSelector(state => state.user);
+    const { status, currentUser, error, complains, loadingComplains } = useSelector(state => state.user);
 
     const user = currentUser._id;
     const school = currentUser.school._id;
@@ -41,7 +41,7 @@ const StudentComplains = ({ child }) => {
     const [message, setMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
 
-    // Fetch complaints of current user (parent) on component mount
+    // Fetch complaints of current user
     useEffect(() => {
         if (user) {
             dispatch(getComplains(user));
@@ -53,6 +53,7 @@ const StudentComplains = ({ child }) => {
         date,
         complaint,
         school,
+        userType: "parent",
     };
 
     const submitHandler = (event) => {
@@ -73,7 +74,7 @@ const StudentComplains = ({ child }) => {
             setMessage("Complaint submitted successfully! We will review it soon.");
             setComplaint("");
             setDate(todayDate);
-            dispatch(getComplains(user)); // Refresh complaints list after adding new
+            dispatch(getComplains(user)); // Refresh complaints list
         }
         else if (error) {
             setLoader(false);
@@ -91,8 +92,7 @@ const StudentComplains = ({ child }) => {
     };
 
     const getComplaintStatus = (complaint) => {
-        // You can add logic here based on complaint properties if you have status field
-        return "Submitted"; // Default status
+        return complaint.status || "Submitted";
     };
 
     return (
@@ -183,10 +183,10 @@ const StudentComplains = ({ child }) => {
                         <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
                             📋 Your Previous Complaints
                         </Typography>
-                        {loading && <CircularProgress size={20} />}
+                        {loadingComplains && <CircularProgress size={20} />}
                     </Box>
 
-                    {loading ? (
+                    {loadingComplains ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
                             <CircularProgress />
                             <Typography sx={{ ml: 2 }}>Loading complaints...</Typography>

@@ -181,7 +181,7 @@ const StudentSubjects = () => {
                 const classId = currentUser.sclassName._id;
                 console.log("Fetching subjects for class:", classId);
                 
-                const response = await axios.get(`http://localhost:5000/ClassSubjects/${classId}`);
+                const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/ClassSubjects/${classId}`);
                 
                 if (response.data && response.data.message) {
                     // Handle case where API returns { message: "No subjects found" }
@@ -264,7 +264,7 @@ const StudentSubjects = () => {
         
         setLoadingLessonPlans(prev => ({ ...prev, [subjectId]: true }));
         try {
-            const response = await axios.get(`http://localhost:5000/lesson-plans/subject/${subjectId}`);
+            const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/lesson-plans/subject/${subjectId}`);
             if (response.data && response.data.success && response.data.lessonPlans) {
                 setSubjectLessonPlans(prev => ({
                     ...prev,

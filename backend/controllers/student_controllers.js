@@ -368,21 +368,27 @@ const getParentResults = async (req, res) => {
 
 
 // ===== New controller function to get complaints by user ID =====
+// In complain-controller.js
 const getComplainsByUser = async (req, res) => {
     try {
-        const userId = req.params.userId;
-
-        // Find complaints submitted by this user (parent)
-        const complains = await Complaint.find({ user: userId }).sort({ date: -1 }); // newest first
-
-        if (complains.length === 0) {
-            return res.status(404).json({ message: 'No complaints found for this user' });
+        console.log('Fetching complaints for user:', req.params.userId);
+        
+        let complains = await Complain.find({ 
+            user: req.params.userId // Filter by user ID
+        })
+        .populate("user", "name")
+        .populate("school", "name");
+        
+        console.log('Found complaints:', complains.length);
+        
+        if (complains.length > 0) {
+            res.send(complains)
+        } else {
+            res.send({ message: "No complains found" });
         }
-
-        res.json(complains);
     } catch (err) {
-        console.error('getComplainsByUser error:', err);
-        res.status(500).json({ message: 'Server error fetching complaints' });
+        console.error('Error fetching complaints:', err);
+        res.status(500).json(err);
     }
 };
 

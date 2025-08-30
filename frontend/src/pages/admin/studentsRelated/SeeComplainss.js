@@ -12,9 +12,12 @@ const SeeComplainss = () => {
   const { complainsList, loading, error, response } = useSelector((state) => state.complain);
   const { currentUser } = useSelector(state => state.user)
 
-  useEffect(() => {
-    dispatch(getAllComplains(currentUser._id, "Complain"));
-  }, [currentUser._id, dispatch]);
+ // In StudentComplains.js
+useEffect(() => {
+    if (school) { // Pass school ID instead of user ID
+        dispatch(getComplains(school));
+    }
+}, [dispatch, school]);
 
   if (error) {
     console.log(error);

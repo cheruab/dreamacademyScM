@@ -92,9 +92,49 @@ const assignSubjectToClass = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+// ✅ Assign Teacher to a Subject in a Class
+const assignTeacherToSubject = async (req, res) => {
+    try {
+        const { teacherId, classId, subjectId } = req.body;
+
+        const teacher = await Teacher.findById(teacherId);
+        const sclass = await Sclass.findById(classId);
+        const subject = await Subject.findById(subjectId);
+
+        if (!teacher || !sclass || !subject) {
+            return res.status(404).json({ message: "Teacher, Class, or Subject not found" });
+        }
+
+        // ✅ Check if subject belongs to this class
+        if (!sclass.subjects.includes(subjectId)) {
+            return res.status(400).json({ message: "This subject is not assigned to the selected class" });
+        }
+
+        // Add subject to teacher (optional: track what subjects they teach)
+        if (!teacher.teachSubjects) teacher.teachSubjects = [];
+        if (!teacher.teachSubjects.includes(subjectId)) {
+            teacher.teachSubjects.push(subjectId);
+            await teacher.save();
+        }
+
+        // Add teacher to subject (new field in subjectSchema)
+        if (!subject.teachers) subject.teachers = [];
+        if (!subject.teachers.includes(teacherId)) {
+            subject.teachers.push(teacherId);
+            await subject.save();
+        }
+
+        res.status(200).json({ message: "Teacher assigned to subject successfully" });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
 
 module.exports = {
     assignStudentToClass,
-    assignTeacherToClass,
-    assignSubjectToClass
+    assignTeacherToClass, // (optional keep if you want whole class assignment)
+    assignSubjectToClass,
+    assignTeacherToSubject
 };
+
+

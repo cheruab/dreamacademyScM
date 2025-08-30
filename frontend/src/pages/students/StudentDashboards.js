@@ -32,6 +32,8 @@ import { AppBar, Drawer } from '../../components/styles';
 import axios from 'axios';
 import ViewStdAttendances from './ViewStdAttendances';
 
+
+
 const StudentDashboards = () => {
     const [open, setOpen] = useState(true);
     const [childData, setChildData] = useState(null);
@@ -62,12 +64,12 @@ const StudentDashboards = () => {
                 }
 
                 // Fetch parent details first
-                const parentResponse = await axios.get(`http://localhost:5000/Parent/${parentId}`);
+                const parentResponse = await axios.get(`${process.env.REACT_APP_BASE_URL}/Parent/${parentId}`);
                 console.log("Parent data:", parentResponse.data);
                 setParentData(parentResponse.data);
 
                 // Then fetch child data
-                const childResponse = await axios.get(`http://localhost:5000/parents/${parentId}/children`);
+                const childResponse = await axios.get(`${process.env.REACT_APP_BASE_URL}/parents/${parentId}/children`);
                 console.log("Child data:", childResponse.data);
                 setChildData(childResponse.data);
                 
@@ -91,7 +93,7 @@ const StudentDashboards = () => {
 
             try {
                 setResultsLoading(true);
-                const res = await axios.get(`http://localhost:5000/api/parent/results/${parentId}`);
+                const res = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/parent/results/${parentId}`);
                 console.log("Results from backend:", res.data);
                 setResults(res.data);
             } catch (err) {
@@ -307,7 +309,7 @@ const StudentDashboards = () => {
                                                         <Button
                                                             fullWidth
                                                             variant="contained"
-                                                            href={`http://localhost:5000${result.fileUrl}`}
+                                                            href={`${process.env.REACT_APP_BASE_URL}${result.fileUrl}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             sx={{

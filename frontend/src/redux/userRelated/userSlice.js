@@ -25,11 +25,6 @@ const initialState = {
 const userSlice = createSlice({
     name: 'user',
     initialState,
-    status: 'idle',
-        loading: false,
-        currentUser: null,
-        response: null,
-        error: null,
     reducers: {
         // ==========================
         // Existing reducers
@@ -71,7 +66,6 @@ const userSlice = createSlice({
             state.currentRole = null;
         },
 
-       
         getDeleteSuccess: (state) => {
             state.loading = false;
             state.error = null;
@@ -80,32 +74,9 @@ const userSlice = createSlice({
 
         getRequest: (state) => {
             state.loading = true;
-        },
-        
-        toggleDarkMode: (state) => {
-            state.darkMode = !state.darkMode;
-        },
-
-        // ==========================
-        // Complaints reducers
-        // ==========================
-        complainsRequest: (state) => {
-            state.loadingComplains = true;
-            state.complainsError = null;
-        },
-        complainsSuccess: (state, action) => {
-            state.loadingComplains = false;
-            state.complains = action.payload;
-            state.complainsError = null;
-        },
-        complainsFail: (state, action) => {
-            state.loadingComplains = false;
-            state.complainsError = action.payload;
-        },
-        getRequest: (state) => {
-            state.loading = true;
             state.error = null;
         },
+        
         doneSuccess: (state, action) => {
             state.loading = false;
             state.response = action.payload;
@@ -122,6 +93,27 @@ const userSlice = createSlice({
             state.loading = false;
             state.error = action.payload;
             state.status = 'error';
+        },
+        
+        toggleDarkMode: (state) => {
+            state.darkMode = !state.darkMode;
+        },
+
+        // ==========================
+        // Complaints reducers - FIXED
+        // ==========================
+        complainsRequest: (state) => {
+            state.loadingComplains = true;
+            state.complainsError = null;
+        },
+        complainsSuccess: (state, action) => {
+            state.loadingComplains = false;
+            state.complains = action.payload;
+            state.complainsError = null;
+        },
+        complainsFail: (state, action) => {
+            state.loadingComplains = false;
+            state.complainsError = action.payload;
         },
 
         // ==========================
@@ -151,7 +143,6 @@ const userSlice = createSlice({
 });
 
 export const {
-    // Existing
     authRequest,
     underControl,
     stuffAdded,

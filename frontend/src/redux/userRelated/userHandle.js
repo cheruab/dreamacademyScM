@@ -11,15 +11,18 @@ import {
     getRequest,
     getFailed,
     getError,
+    complainsRequest, 
+    complainsSuccess, 
+    complainsFail 
 } from './userSlice';
 
-const REACT_APP_BASE_URL = "http://localhost:5000";
+
 
 export const loginUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
-        const result = await axios.post(`${REACT_APP_BASE_URL}/${role}Login`, fields, {
+        const result = await axios.post(`${process.env.REACT_APP_BASE_URL}/${role}Login`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
 
@@ -47,7 +50,7 @@ export const registerUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
-        const result = await axios.post(`${REACT_APP_BASE_URL}/${role}Reg`, fields, {
+        const result = await axios.post(`${process.env.REACT_APP_BASE_URL}/${role}Reg`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
         if (result.data.schoolName) {
@@ -73,7 +76,7 @@ export const getUserDetails = (id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/${address}/${id}`);
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/${address}/${id}`);
         if (result.data) {
             dispatch(doneSuccess(result.data));
         }
@@ -82,32 +85,27 @@ export const getUserDetails = (id, address) => async (dispatch) => {
     }
 }
 
+// In your userHandle.js or wherever getComplains is defined
+// In your userHandle.js or wherever getComplains is defined
+// In your userHandle.js
 export const getComplains = (userId) => async (dispatch) => {
   try {
-    dispatch({ type: 'USER_COMPLAINS_REQUEST' });
+    dispatch(complainsRequest()); // Use complainsRequest instead of USER_COMPLAINS_REQUEST
 
-    const { data } = await axios.get(`${REACT_APP_BASE_URL}/complains/user/${userId}`);
+    const { data } = await axios.get(`${process.env.REACT_APP_BASE_URL}/complains/user/${userId}`);
+    console.log('API response:', data);
 
-    dispatch({
-      type: 'USER_COMPLAINS_SUCCESS',
-      payload: data,
-    });
+    dispatch(complainsSuccess(data)); // Use complainsSuccess instead of USER_COMPLAINS_SUCCESS
   } catch (error) {
-    dispatch({
-      type: 'USER_COMPLAINS_FAIL',
-      payload: error.response && error.response.data.message
-        ? error.response.data.message
-        : error.message,
-    });
+    console.error('Error fetching complaints:', error);
+    dispatch(complainsFail(error.response?.data?.message || error.message)); // Use complainsFail
   }
 };
-
-
 export const updateUser = (fields, id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.put(`${REACT_APP_BASE_URL}/${address}/${id}`, fields, {
+        const result = await axios.put(`${process.env.REACT_APP_BASE_URL}/${address}/${id}`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
         if (result.data.schoolName) {
@@ -125,7 +123,7 @@ export const updateTeacherSubject = (fields) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.put(`${REACT_APP_BASE_URL}/TeacherSubject`, fields, {
+        const result = await axios.put(`${process.env.REACT_APP_BASE_URL}/TeacherSubject`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
         dispatch(doneSuccess(result.data));
@@ -139,7 +137,7 @@ export const updateTeacherSubject = (fields) => async (dispatch) => {
 export const addExam = (fields) => async (dispatch) => {
     dispatch(getRequest());
     try {
-        const res = await axios.post(`${REACT_APP_BASE_URL}/exams/add`, fields, {
+        const res = await axios.post(`${process.env.REACT_APP_BASE_URL}/exams/add`, fields, {
             headers: { "Content-Type": "application/json" },
         });
         
@@ -166,7 +164,7 @@ export const getExams = (subjectId) => async (dispatch) => {
     console.log("getExams called with subjectId:", subjectId); // Debug log
     dispatch(getRequest());
     try {
-        const url = `${REACT_APP_BASE_URL}/exams/subject/${subjectId}`;
+        const url = `${process.env.REACT_APP_BASE_URL}/exams/subject/${subjectId}`;
 
         console.log("Making request to:", url); // Debug log
         
@@ -197,7 +195,7 @@ export const addStuff = (fields, address) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
-        const result = await axios.post(`${REACT_APP_BASE_URL}/${address}Create`, fields, {
+        const result = await axios.post(`${process.env.REACT_APP_BASE_URL}/${address}Create`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
 
@@ -221,7 +219,7 @@ export const getStudentExamResults = (studentId) => async (dispatch) => {
     console.log("getStudentExamResults called with studentId:", studentId);
     dispatch(getRequest());
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/student/${studentId}/exam-results`);
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/student/${studentId}/exam-results`);
         
         console.log("Student exam results response:", result.data);
         
@@ -245,7 +243,7 @@ export const getClassSubjects = (classId) => async (dispatch) => {
     console.log("getClassSubjects called with classId:", classId);
     dispatch(getRequest());
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/ClassSubjects/${classId}`);
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/ClassSubjects/${classId}`);
         
         console.log("Class subjects response:", result.data);
         
@@ -286,7 +284,7 @@ export const getExamById = (examId) => async (dispatch) => {
     dispatch(getRequest()); // Use your existing getRequest action
     
     try {
-        const response = await axios.get(`${REACT_APP_BASE_URL}/exam/${examId}`);
+        const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/exam/${examId}`);
         const data = response.data;
         
         console.log('API Response in Redux:', data);
@@ -356,7 +354,7 @@ export const submitExamResult = (submissionData) => async (dispatch) => {
 export const checkExamCompletion = (studentId, examId) => async (dispatch) => {
     dispatch(getRequest());
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/student/${studentId}/exam/${examId}/status`);
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/student/${studentId}/exam/${examId}/status`);
         
         if (result.data.success) {
             dispatch(doneSuccess({ 
@@ -376,7 +374,7 @@ export const checkExamCompletion = (studentId, examId) => async (dispatch) => {
 export const getExamResult = (examId, studentId) => async (dispatch) => {
     dispatch(getRequest());
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/exam-result/${examId}/${studentId}`);
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/exam-result/${examId}/${studentId}`);
         
         if (result.data.success) {
             dispatch(doneSuccess({ 
@@ -395,7 +393,7 @@ export const getExamResult = (examId, studentId) => async (dispatch) => {
 export const getExamResultById = (resultId) => async (dispatch) => {
     dispatch(getRequest());
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/exam-result/${resultId}`);
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/exam-result/${resultId}`);
         
         if (result.data.success) {
             dispatch(doneSuccess({ 
@@ -415,7 +413,7 @@ export const getExamResultById = (resultId) => async (dispatch) => {
 export const getExamWithQuestions = (examId) => async (dispatch) => {
     dispatch(getRequest());
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/exam/${examId}/details`);
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/exam/${examId}/details`);
         
         if (result.data.success) {
             dispatch(doneSuccess({ 

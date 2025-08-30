@@ -427,7 +427,7 @@ const ComprehensiveStudentView = () => {
                                     <Grid item>
                                         <Chip 
                                             icon={<ClassIcon />}
-                                            label={student.sclassName?.sclassName || 'No Class Assigned'}
+                                            label={student.sclassName?.sclassName || 'Class'}
                                             sx={{ 
                                                 backgroundColor: 'rgba(255,255,255,0.2)',
                                                 color: 'white',

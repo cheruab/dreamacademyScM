@@ -45,7 +45,7 @@ const AddClass = () => {
             
             setLoadingStudents(true);
             try {
-                const response = await axios.get(`http://localhost:5000/UnassignedStudents/${currentUser._id}`);
+                const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/UnassignedStudents/${currentUser._id}`);
                 
                 if (Array.isArray(response.data)) {
                     setAvailableStudents(response.data);
@@ -90,7 +90,7 @@ const AddClass = () => {
                 adminID,
             };
 
-            const classResponse = await axios.post('http://localhost:5000/SclassCreate', classData, {
+            const classResponse = await axios.post(`${process.env.REACT_APP_BASE_URL}/SclassCreate`, classData, {
                 headers: { 'Content-Type': 'application/json' },
             });
 
@@ -104,7 +104,7 @@ const AddClass = () => {
             const newClass = classResponse.data;
 
             // Assign the student to the newly created class
-            await axios.put(`http://localhost:5000/Student/${selectedStudent._id}`, {
+            await axios.put(`${process.env.REACT_APP_BASE_URL}/Student/${selectedStudent._id}`, {
                 sclassName: newClass._id
             }, {
                 headers: { 'Content-Type': 'application/json' },

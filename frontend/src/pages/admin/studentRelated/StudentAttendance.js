@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getUserDetails } from '../../../redux/userRelated/userHandle';
-import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
-import { updateStudentFields } from '../../../redux/studentRelated/studentHandle';
+import axios from 'axios';
 
 import {
     Box, InputLabel,
@@ -14,14 +11,14 @@ import {
 import { PurpleButton } from '../../../components/buttonStyles';
 import Popup from '../../../components/Popup';
 
+const REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
+
 const StudentAttendance = ({ situation }) => {
-    const dispatch = useDispatch();
-    const { currentUser, userDetails, loading } = useSelector((state) => state.user);
-    const { subjectsList } = useSelector((state) => state.sclass);
-    const { response, error, statestatus } = useSelector((state) => state.student);
-    const params = useParams()
+    const params = useParams();
 
     const [studentID, setStudentID] = useState("");
+    const [student, setStudent] = useState(null);
+    const [subjectsList, setSubjectsList] = useState([]);
     const [subjectName, setSubjectName] = useState("");
     const [chosenSubName, setChosenSubName] = useState("");
     const [status, setStatus] = useState('');
@@ -29,169 +26,238 @@ const StudentAttendance = ({ situation }) => {
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
-    const [loader, setLoader] = useState(false)
+    const [loader, setLoader] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
+        let stdID;
+        
         if (situation === "Student") {
-            setStudentID(params.id);
-            const stdID = params.id
-            dispatch(getUserDetails(stdID, "Student"));
-        }
-        else if (situation === "Subject") {
-            const { studentID, subjectID } = params
-            setStudentID(studentID);
-            dispatch(getUserDetails(studentID, "Student"));
+            stdID = params.id;
+        } else if (situation === "Subject") {
+            const { studentID: paramStudentID, subjectID } = params;
+            stdID = paramStudentID;
             setChosenSubName(subjectID);
+        } else {
+            stdID = params.id;
         }
-    }, [situation]);
 
-    useEffect(() => {
-        if (userDetails && userDetails.sclassName && situation === "Student") {
-            dispatch(getSubjectList(userDetails.sclassName._id, "ClassSubjects"));
+        if (stdID) {
+            setStudentID(stdID);
+            fetchStudentData(stdID);
         }
-    }, [dispatch, userDetails]);
+    }, [params, situation]);
+
+    const fetchStudentData = async (stdID) => {
+        try {
+            setLoading(true);
+            setError('');
+            
+            // Fetch student details
+            const studentResponse = await axios.get(`${REACT_APP_BASE_URL}/Student/${stdID}`);
+            const studentData = studentResponse.data;
+            
+            if (!studentData || (!studentData.name && !studentData._id)) {
+                throw new Error('Student not found');
+            }
+            
+            setStudent(studentData);
+            
+            // Fetch subjects if student has a class and we need to show subject selection
+            if (studentData.sclassName?._id && (situation === "Student" || !situation)) {
+                try {
+                    const subjectsResponse = await axios.get(`${REACT_APP_BASE_URL}/ClassSubjects/${studentData.sclassName._id}`);
+                    let subjectsData = [];
+                    
+                    if (subjectsResponse.data.success) {
+                        subjectsData = subjectsResponse.data.subjects || [];
+                    } else if (Array.isArray(subjectsResponse.data)) {
+                        subjectsData = subjectsResponse.data;
+                    }
+                    
+                    setSubjectsList(subjectsData);
+                } catch (subjectsError) {
+                    console.warn('Could not fetch subjects:', subjectsError);
+                    setSubjectsList([]);
+                }
+            }
+            
+        } catch (err) {
+            console.error('Error fetching student data:', err);
+            setError('Failed to load student data. Please check if the student exists.');
+            setStudent(null);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const changeHandler = (event) => {
         const selectedSubject = subjectsList.find(
             (subject) => subject.subName === event.target.value
         );
-        setSubjectName(selectedSubject.subName);
-        setChosenSubName(selectedSubject._id);
+        if (selectedSubject) {
+            setSubjectName(selectedSubject.subName);
+            setChosenSubName(selectedSubject._id);
+        }
+    };
+
+    const submitHandler = async (event) => {
+        event.preventDefault();
+        setLoader(true);
+        
+        try {
+            const attendanceData = {
+                subName: chosenSubName,
+                status,
+                date
+            };
+            
+            const response = await axios.put(
+                `${REACT_APP_BASE_URL}/StudentAttendance/${studentID}`,
+                attendanceData
+            );
+            
+            setShowPopup(true);
+            setMessage("Attendance recorded successfully!");
+            
+            // Reset form
+            setStatus('');
+            setDate('');
+            if (situation === "Student" || !situation) {
+                setSubjectName('');
+                setChosenSubName('');
+            }
+            
+        } catch (error) {
+            console.error('Error submitting attendance:', error);
+            setShowPopup(true);
+            setMessage("Error recording attendance. Please try again.");
+        } finally {
+            setLoader(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+                <CircularProgress />
+                <Typography sx={{ ml: 2 }}>Loading student details...</Typography>
+            </Box>
+        );
     }
 
-    const fields = { subName: chosenSubName, status, date }
-
-    const submitHandler = (event) => {
-        event.preventDefault()
-        setLoader(true)
-        dispatch(updateStudentFields(studentID, fields, "StudentAttendance"))
+    if (error) {
+        return (
+            <Box sx={{ p: 3 }}>
+                <Typography color="error" variant="h6">{error}</Typography>
+            </Box>
+        );
     }
-
-    useEffect(() => {
-        if (response) {
-            setLoader(false)
-            setShowPopup(true)
-            setMessage(response)
-        }
-        else if (error) {
-            setLoader(false)
-            setShowPopup(true)
-            setMessage("error")
-        }
-        else if (statestatus === "added") {
-            setLoader(false)
-            setShowPopup(true)
-            setMessage("Done Successfully")
-        }
-    }, [response, statestatus, error])
 
     return (
         <>
-            {loading
-                ?
-                <>
-                    <div>Loading...</div>
-                </>
-                :
-                <>
-                    <Box
-                        sx={{
-                            flex: '1 1 auto',
-                            alignItems: 'center',
-                            display: 'flex',
-                            justifyContent: 'center'
-                        }}
-                    >
-                        <Box
-                            sx={{
-                                maxWidth: 550,
-                                px: 3,
-                                py: '100px',
-                                width: '100%'
-                            }}
-                        >
-                            <Stack spacing={1} sx={{ mb: 3 }}>
-                                <Typography variant="h4">
-                                    Student Name: {userDetails.name}
-                                </Typography>
-                                {currentUser.teachSubject &&
-                                    <Typography variant="h4">
-                                        Subject Name: {currentUser.teachSubject?.subName}
-                                    </Typography>
-                                }
-                            </Stack>
-                            <form onSubmit={submitHandler}>
-                                <Stack spacing={3}>
-                                    {
-                                        situation === "Student" &&
-                                        <FormControl fullWidth>
-                                            <InputLabel id="demo-simple-select-label">Select Subject</InputLabel>
-                                            <Select
-                                                labelId="demo-simple-select-label"
-                                                id="demo-simple-select"
-                                                value={subjectName}
-                                                label="Choose an option"
-                                                onChange={changeHandler} required
-                                            >
-                                                {subjectsList ?
-                                                    subjectsList.map((subject, index) => (
-                                                        <MenuItem key={index} value={subject.subName}>
-                                                            {subject.subName}
-                                                        </MenuItem>
-                                                    ))
-                                                    :
-                                                    <MenuItem value="Select Subject">
-                                                        Add Subjects For Attendance
-                                                    </MenuItem>
-                                                }
-                                            </Select>
-                                        </FormControl>
-                                    }
-                                    <FormControl fullWidth>
-                                        <InputLabel id="demo-simple-select-label">Attendance Status</InputLabel>
-                                        <Select
-                                            labelId="demo-simple-select-label"
-                                            id="demo-simple-select"
-                                            value={status}
-                                            label="Choose an option"
-                                            onChange={(event) => setStatus(event.target.value)}
-                                            required
-                                        >
-                                            <MenuItem value="Present">Present</MenuItem>
-                                            <MenuItem value="Absent">Absent</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl>
-                                        <TextField
-                                            label="Select Date"
-                                            type="date"
-                                            value={date}
-                                            onChange={(event) => setDate(event.target.value)} required
-                                            InputLabelProps={{
-                                                shrink: true,
-                                            }}
-                                        />
-                                    </FormControl>
-                                </Stack>
+            <Box
+                sx={{
+                    flex: '1 1 auto',
+                    alignItems: 'center',
+                    display: 'flex',
+                    justifyContent: 'center'
+                }}
+            >
+                <Box
+                    sx={{
+                        maxWidth: 550,
+                        px: 3,
+                        py: '100px',
+                        width: '100%'
+                    }}
+                >
+                    <Stack spacing={1} sx={{ mb: 3 }}>
+                        <Typography variant="h4">
+                            Student Name: {student?.name || 'Unknown'}
+                        </Typography>
+                        <Typography variant="body2">
+                            Student ID: {studentID}
+                        </Typography>
+                        <Typography variant="body2">
+                            Class: {student?.sclassName?.sclassName || 'No class assigned'}
+                        </Typography>
+                    </Stack>
 
-                                <PurpleButton
-                                    fullWidth
-                                    size="large"
-                                    sx={{ mt: 3 }}
-                                    variant="contained"
-                                    type="submit"
-                                    disabled={loader}
+                    <form onSubmit={submitHandler}>
+                        <Stack spacing={3}>
+                            {(situation === "Student" || !situation) && (
+                                <FormControl fullWidth>
+                                    <InputLabel id="subject-select-label">Select Subject</InputLabel>
+                                    <Select
+                                        labelId="subject-select-label"
+                                        id="subject-select"
+                                        value={subjectName}
+                                        label="Select Subject"
+                                        onChange={changeHandler} 
+                                        required
+                                    >
+                                        {subjectsList.length > 0 ? (
+                                            subjectsList.map((subject, index) => (
+                                                <MenuItem key={index} value={subject.subName}>
+                                                    {subject.subName}
+                                                </MenuItem>
+                                            ))
+                                        ) : (
+                                            <MenuItem value="" disabled>
+                                                {student?.sclassName ? "No subjects available for this class" : "Student not assigned to any class"}
+                                            </MenuItem>
+                                        )}
+                                    </Select>
+                                </FormControl>
+                            )}
+                            
+                            <FormControl fullWidth>
+                                <InputLabel id="status-select-label">Attendance Status</InputLabel>
+                                <Select
+                                    labelId="status-select-label"
+                                    id="status-select"
+                                    value={status}
+                                    label="Attendance Status"
+                                    onChange={(event) => setStatus(event.target.value)}
+                                    required
                                 >
-                                    {loader ? <CircularProgress size={24} color="inherit" /> : "Submit"}
-                                </PurpleButton>
-                            </form>
-                        </Box>
-                    </Box>
-                    <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-                </>
-            }
-        </>
-    )
-}
+                                    <MenuItem value="Present">Present</MenuItem>
+                                    <MenuItem value="Absent">Absent</MenuItem>
+                                </Select>
+                            </FormControl>
+                            
+                            <FormControl>
+                                <TextField
+                                    label="Select Date"
+                                    type="date"
+                                    value={date}
+                                    onChange={(event) => setDate(event.target.value)} 
+                                    required
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                />
+                            </FormControl>
+                        </Stack>
 
-export default StudentAttendance
+                        <PurpleButton
+                            fullWidth
+                            size="large"
+                            sx={{ mt: 3 }}
+                            variant="contained"
+                            type="submit"
+                            disabled={loader || !student || (subjectsList.length === 0 && (situation === "Student" || !situation))}
+                        >
+                            {loader ? <CircularProgress size={24} color="inherit" /> : "Submit"}
+                        </PurpleButton>
+                    </form>
+                </Box>
+            </Box>
+            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
+        </>
+    );
+};
+
+export default StudentAttendance;

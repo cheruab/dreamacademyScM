@@ -7,13 +7,13 @@ import {
     stuffDone
 } from './parentSlice';
 
-const REACT_APP_BASE_URL = "http://localhost:5000";
+
 
 export const getAllParents = (id, role) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/Parents/${id}?role=${role}`);
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/Parents/${id}?role=${role}`);
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
@@ -33,7 +33,7 @@ export const updateParentFields = (id, fields, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.put(`${REACT_APP_BASE_URL}/${address}/${id}`, fields, {
+        const result = await axios.put(`${process.env.REACT_APP_BASE_URL}/${address}/${id}`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
         if (result.data.message) {
@@ -54,7 +54,7 @@ export const removeParentStuff = (id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.delete(`${REACT_APP_BASE_URL}/${address}/${id}`);
+        const result = await axios.delete(`${process.env.REACT_APP_BASE_URL}/${address}/${id}`);
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
@@ -73,7 +73,7 @@ export const getParentChildren = (parentId) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/Parents/${parentId}/children`);
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/Parents/${parentId}/children`);
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {

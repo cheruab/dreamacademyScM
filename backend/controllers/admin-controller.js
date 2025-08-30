@@ -26,28 +26,25 @@ const upload = multer({ storage });
 // ===== Admin Controllers =====
 const adminRegister = async (req, res) => {
     try {
-        const admin = new Admin({
-            ...req.body
-        });
+        // Step 1: check if any admin already exists
+        const existingAdmin = await Admin.findOne({});
+        if (existingAdmin) {
+            return res.status(400).send({ message: 'You can not register as an admin' });
+        }
 
-        const existingAdminByEmail = await Admin.findOne({ email: req.body.email });
-        const existingSchool = await Admin.findOne({ schoolName: req.body.schoolName });
+        // Step 2: create the very first admin
+        const admin = new Admin({ ...req.body });
+        let result = await admin.save();
+        result.password = undefined;
 
-        if (existingAdminByEmail) {
-            res.send({ message: 'Email already exists' });
-        }
-        else if (existingSchool) {
-            res.send({ message: 'School name already exists' });
-        }
-        else {
-            let result = await admin.save();
-            result.password = undefined;
-            res.send(result);
-        }
+        res.send(result);
+
     } catch (err) {
         res.status(500).json(err);
     }
 };
+
+
 
 const adminLogIn = async (req, res) => {
     if (req.body.email && req.body.password) {

@@ -7,8 +7,7 @@ const upload = require('../middlewares/upload.js');
 const resultController = require('../controllers/resultController.js');
 const { addExam, getExamResultsBySubject, getExamsBySubject,deleteExam, getExamById, updateExam, submitExamResult } = require("../controllers/examController.js");
 
-
-
+const { assignTeacherToSubject } = require('../controllers/classAssignmentController');
 const {
     createLessonPlan,
     getAllLessonPlans,
@@ -46,7 +45,7 @@ const {
 
 } = require('../controllers/class-controller.js');
 
-const { complainCreate, complainList } = require('../controllers/complain-controller.js');
+const { complainCreate, complainList, userComplainsList} = require('../controllers/complain-controller.js');
 
 const { 
     noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice 
@@ -103,7 +102,7 @@ const {
 const { 
     teacherRegister, getStudentDetailForTeacher, teacherLogIn, getTeachers, 
     getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, 
-    updateTeacherSubject, teacherAttendance 
+    updateTeacherSubject,assignTeacher,teacherAttendance 
 } = require('../controllers/teacher-controller.js');
 
 // ================== Admin ==================
@@ -111,6 +110,7 @@ router.post('/AdminReg', adminRegister);
 router.post('/AdminLogin', adminLogIn);
 router.post('/upload', upload.single('resultFile'), resultController.uploadResult);
 router.get("/Admin/:id", getAdminDetail);
+
 
 // ================== Students ==================
 router.post('/StudentReg', studentRegister);
@@ -140,6 +140,10 @@ router.get("/Parent/:id", getParentDetail);
 router.get('/parents/:parentId/children', getMyChild);
 router.get('/complains/user/:userId', getComplainsByUser);
 router.get('/api/parent/results/:parentId', getParentResults);
+
+// ================== Complains ==================
+router.post('/ComplainCreate', complainCreate);
+router.get('/ComplainList/:id', complainList);
 
 // Add these route fixes to your route.js file
 // Fix the parent results route - it should match what the frontend is calling
@@ -188,6 +192,7 @@ router.delete("/Teacher/:id", deleteTeacher);
 router.put("/TeacherSubject", updateTeacherSubject);
 router.post('/TeacherAttendance/:id', teacherAttendance);
 
+router.post('/AssignTeacher', assignTeacher);
 // ================== Notices ==================
 router.post('/NoticeCreate', noticeCreate);
 router.get('/NoticeList/:id', noticeList);
@@ -195,9 +200,7 @@ router.delete("/Notices/:id", deleteNotices);
 router.delete("/Notice/:id", deleteNotice);
 router.put("/Notice/:id", updateNotice);
 
-// ================== Complains ==================
-router.post('/ComplainCreate', complainCreate);
-router.get('/ComplainList/:id', complainList);
+
 
 // ================== Classes ==================
 router.post('/SclassCreate', sclassCreate);
@@ -338,6 +341,8 @@ router.get('/exam/:examId', async (req, res) => {
         });
     }
 });
+// In your routes file
+
 
 // ✅ 7. SUBMIT EXAM RESULT
 router.post('/exam/submit', submitExamResult);
@@ -1129,6 +1134,7 @@ router.get('/AllSchoolSubjects/:id', async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+router.post('/AssignTeacherToSubject', assignTeacherToSubject);
 
 // Assign subjects to a class
 router.post('/AssignSubjectsToClass', async (req, res) => {

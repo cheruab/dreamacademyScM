@@ -11,13 +11,11 @@ const ExamResultViewer = () => {
     const currentUser = { _id: "student123", name: "John Doe" };
     const examId = "exam123"; // This would come from URL params in real app
 
-    // API base URL - replace with your actual backend URL
-    const REACT_APP_BASE_URL = "http://localhost:5000";
 
     // API function to fetch exam details - FIXED
     const fetchExamDetails = async (examId) => {
         try {
-            const response = await fetch(`${REACT_APP_BASE_URL}/exam/${examId}`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/exam/${examId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -44,7 +42,7 @@ const ExamResultViewer = () => {
     // API function to fetch exam result
     const fetchExamResult = async (examId, studentId) => {
         try {
-            const response = await fetch(`${REACT_APP_BASE_URL}/exam-result/${examId}/${studentId}`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/exam-result/${examId}/${studentId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

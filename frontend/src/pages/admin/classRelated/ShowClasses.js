@@ -53,7 +53,7 @@ const ShowClasses = () => {
                 
                 // First, try the specific class students endpoint
                 try {
-                  const studentsResponse = await fetch(`http://localhost:5000/Sclass/Students/${sclass._id}`);
+                  const studentsResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/Sclass/Students/${sclass._id}`);
                   if (studentsResponse.ok) {
                     const studentsData = await studentsResponse.json();
                     students = Array.isArray(studentsData) ? studentsData : [];
@@ -65,7 +65,7 @@ const ShowClasses = () => {
                 // If no students found, try alternative endpoint
                 if (students.length === 0) {
                   try {
-                    const allStudentsResponse = await fetch(`http://localhost:5000/Students/${adminID}`);
+                    const allStudentsResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/Students/${adminID}`);
                     if (allStudentsResponse.ok) {
                       const allStudents = await allStudentsResponse.json();
                       // Filter students that belong to this class
@@ -84,7 +84,7 @@ const ShowClasses = () => {
                 // Fetch subjects for this class
                 let subjects = [];
                 try {
-                  const subjectsResponse = await fetch(`http://localhost:5000/ClassSubjects/${sclass._id}`);
+                  const subjectsResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/ClassSubjects/${sclass._id}`);
                   if (subjectsResponse.ok) {
                     const subjectsData = await subjectsResponse.json();
                     subjects = Array.isArray(subjectsData) ? subjectsData : [];

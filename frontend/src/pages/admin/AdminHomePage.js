@@ -1,9 +1,5 @@
 import { Container, Grid, Paper, Typography, Box } from '@mui/material';
 import SeeNotice from '../../components/SeeNotice';
-import Students from "../../assets/img1.png";
-import Classes from "../../assets/img2.png";
-import Teachers from "../../assets/img3.png";
-import Fees from "../../assets/img4.png";
 import styled from 'styled-components';
 import CountUp from 'react-countup';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,6 +7,7 @@ import { useEffect } from 'react';
 import { getAllSclasses } from '../../redux/sclassRelated/sclassHandle';
 import { getAllStudents } from '../../redux/studentRelated/studentHandle';
 import { getAllTeachers } from '../../redux/teacherRelated/teacherHandle';
+import { School, Class, Groups, Announcement } from '@mui/icons-material';
 
 const AdminHomePage = () => {
     const dispatch = useDispatch();
@@ -43,11 +40,13 @@ const AdminHomePage = () => {
                 </Typography>
             </Box>
 
-            <Grid container spacing={4}>
+            <Grid container spacing={4} justifyContent="center">
                 {/* Students */}
                 <Grid item xs={12} sm={6} md={3}>
-                    <StyledPaper>
-                        <IconImg src={Students} alt="Students" />
+                    <StyledPaper color="#81c784">
+                        <StyledIcon>
+                            <Groups fontSize="large" />
+                        </StyledIcon>
                         <Title>Total Students</Title>
                         <Data start={0} end={numberOfStudents} duration={2.5} />
                     </StyledPaper>
@@ -55,8 +54,10 @@ const AdminHomePage = () => {
 
                 {/* Classes */}
                 <Grid item xs={12} sm={6} md={3}>
-                    <StyledPaper>
-                        <IconImg src={Classes} alt="Classes" />
+                    <StyledPaper color="#64b5f6">
+                        <StyledIcon>
+                            <Class fontSize="large" />
+                        </StyledIcon>
                         <Title>Total Classes</Title>
                         <Data start={0} end={numberOfClasses} duration={2.5} />
                     </StyledPaper>
@@ -64,19 +65,12 @@ const AdminHomePage = () => {
 
                 {/* Teachers */}
                 <Grid item xs={12} sm={6} md={3}>
-                    <StyledPaper>
-                        <IconImg src={Teachers} alt="Teachers" />
+                    <StyledPaper color="#ffb74d">
+                        <StyledIcon>
+                            <School fontSize="large" />
+                        </StyledIcon>
                         <Title>Total Teachers</Title>
                         <Data start={0} end={numberOfTeachers} duration={2.5} />
-                    </StyledPaper>
-                </Grid>
-
-                {/* Fees */}
-                <Grid item xs={12} sm={6} md={3}>
-                    <StyledPaper>
-                        <IconImg src={Fees} alt="Fees" />
-                        <Title>Fees Collection</Title>
-                        <Data start={0} end={23000} duration={3} prefix="$" />
                     </StyledPaper>
                 </Grid>
 
@@ -84,7 +78,7 @@ const AdminHomePage = () => {
                 <Grid item xs={12}>
                     <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 4 }}>
                         <Typography variant="h6" fontWeight="bold" mb={2}>
-                            📢 Latest Notices
+                            <Announcement sx={{ verticalAlign: 'middle', mr: 1 }} /> Latest Notices
                         </Typography>
                         <SeeNotice />
                     </Paper>
@@ -102,32 +96,36 @@ const StyledPaper = styled(Paper)`
   align-items: center;
   justify-content: center;
   text-align: center;
-  height: 220px;
+  height: 180px;
   border-radius: 20px !important;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: ${(props) => props.color || '#f0f0f0'};
+  color: #333;
 
   &:hover {
     transform: translateY(-6px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
   }
 `;
 
-const IconImg = styled.img`
-  width: 60px;
+const StyledIcon = styled.div`
+  font-size: 50px;
   margin-bottom: 12px;
+  color: inherit;
 `;
 
 const Title = styled.p`
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
   margin: 6px 0;
+  font-family: 'Roboto', sans-serif;
 `;
 
 const Data = styled(CountUp)`
-  font-size: calc(1.5rem + .8vw);
+  font-size: 2rem;
   font-weight: bold;
-  color: #2e7d32;
+  color: inherit;
 `;
 
 export default AdminHomePage;

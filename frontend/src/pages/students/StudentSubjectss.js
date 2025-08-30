@@ -100,7 +100,7 @@ const StudentSubjectss = ({ studentId, child }) => {
                     return;
                 }
                 
-                const classSubjectsResponse = await axios.get(`http://localhost:5000/ClassSubjects/${classId}`);
+                const classSubjectsResponse = await axios.get(`${process.env.REACT_APP_BASE_URL}/ClassSubjects/${classId}`);
                 console.log("ClassSubjects response:", classSubjectsResponse.data);
                 
                 if (classSubjectsResponse.data && classSubjectsResponse.data.message) {
@@ -145,7 +145,7 @@ const StudentSubjectss = ({ studentId, child }) => {
                 console.log("Fetching exam results for student:", child._id);
                 
                 // Fetch exam results for the student
-                const examResultsResponse = await axios.get(`http://localhost:5000/student/${child._id}/exam-results`);
+                const examResultsResponse = await axios.get(`${process.env.REACT_APP_BASE_URL}/student/${child._id}/exam-results`);
                 console.log("Exam results response:", examResultsResponse.data);
                 
                 if (examResultsResponse.data.success && examResultsResponse.data.examResults) {

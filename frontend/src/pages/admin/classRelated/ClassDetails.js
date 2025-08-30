@@ -38,11 +38,14 @@ const ClassDetails = () => {
     const classID = params.id
 
     // Assignment dialog states
+    const [step, setStep] = useState(1); // 1=select subject, 2=select teacher
+    const [selectedSubject, setSelectedSubject] = useState(null);
     const [assignDialogOpen, setAssignDialogOpen] = useState(false);
     const [assignDialogType, setAssignDialogType] = useState('');
     const [availableItems, setAvailableItems] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
     const [assignLoading, setAssignLoading] = useState(false);
+    
 
     useEffect(() => {
         dispatch(getClassDetails(classID, "Sclass"));
@@ -69,10 +72,10 @@ const ClassDetails = () => {
             let url = '';
             switch (type) {
                 case 'subjects':
-                    url = `http://localhost:5000/AllSchoolSubjects/${currentUser._id}`;
+                    url = `${process.env.REACT_APP_BASE_URL}/AllSchoolSubjects/${currentUser._id}`;
                     break;
                 case 'teachers':
-                    url = `http://localhost:5000/Teachers/${currentUser._id}`;
+                    url = `${process.env.REACT_APP_BASE_URL}/Teachers/${currentUser._id}`;
                     break;
             }
 
@@ -97,11 +100,19 @@ const ClassDetails = () => {
 
     // Handle assignment dialog
     const handleAssignClick = (type) => {
-        setAssignDialogType(type);
-        setSelectedItems([]);
-        setAssignDialogOpen(true);
+    setAssignDialogType(type);
+    setSelectedItems([]);
+    setAssignDialogOpen(true);
+    setStep(1);
+
+    if (type === 'teachers') {
+        // start with showing subjects first
+        setAvailableItems(subjectsList);
+    } else {
         fetchAvailableItems(type);
-    };
+    }
+};
+
 
     // Handle item selection
     const handleItemToggle = (itemId) => {
@@ -113,115 +124,186 @@ const ClassDetails = () => {
     };
 
     // Handle assignment submission
-    const handleAssignSubmit = async () => {
-        if (selectedItems.length === 0) {
-            setMessage('Please select at least one item');
-            setShowPopup(true);
-            return;
+// Replace the handleAssignSubmit function in your ClassDetails.js with this:
+
+const handleAssignSubmit = async () => {
+    if (selectedItems.length === 0) {
+        setMessage('Please select at least one item');
+        setShowPopup(true);
+        return;
+    }
+
+    setAssignLoading(true);
+    try {
+        let url = '';
+        let body = {};
+        
+        switch (assignDialogType) {
+            case 'subjects':
+                url = `${process.env.REACT_APP_BASE_URL}/AssignSubjectsToClass`;
+                body = { subjectIds: selectedItems, classId: classID };
+                break;
+            case 'teachers':
+                // Use the new /AssignTeacher endpoint
+                url = `${process.env.REACT_APP_BASE_URL}/AssignTeacher`;
+                body = { 
+                    teacherId: selectedItems[0], // Only one teacher can be selected
+                    subjectId: selectedSubject._id, 
+                    classId: classID 
+                };
+                break;
         }
 
-        setAssignLoading(true);
-        try {
-            let url = '';
-            let body = {};
-            
-            switch (assignDialogType) {
-                case 'subjects':
-                    url = `http://localhost:5000/AssignSubjectsToClass`;
-                    body = { subjectIds: selectedItems, classId: classID };
-                    break;
-                case 'teachers':
-                    url = `http://localhost:5000/class/assign-teachers/${classID}`;
-                    body = { teacherIds: selectedItems };
-                    break;
-            }
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body)
+        });
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(body)
-            });
-
-            const result = await response.json();
-            
-            if (response.ok) {
-                setMessage(`${assignDialogType} assigned successfully!`);
-                setShowPopup(true);
-                setAssignDialogOpen(false);
-                
-                // Refresh data
-                if (assignDialogType === 'subjects') {
-                    dispatch(getSubjectList(classID, "ClassSubjects"));
-                }
-                // For teachers, we might want to refetch class details if needed
-            } else {
-                setMessage(result.message || `Error assigning ${assignDialogType}`);
-                setShowPopup(true);
-            }
-        } catch (error) {
-            console.error('Assignment error:', error);
-            setMessage(`Error assigning ${assignDialogType}`);
-            setShowPopup(true);
-        }
-        setAssignLoading(false);
-    };
-
-    // Render item list based on type
-    const renderItemList = () => {
-        if (assignLoading) {
-            return (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                    <CircularProgress />
-                </Box>
-            );
+        // Check if response is ok before parsing JSON
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        if (availableItems.length === 0) {
-            return (
-                <Alert severity="info" sx={{ m: 2 }}>
-                    No {assignDialogType} available for assignment
-                </Alert>
-            );
+        const result = await response.json();
+        
+        setMessage(`${assignDialogType} assigned successfully!`);
+        setShowPopup(true);
+        setAssignDialogOpen(false);
+        setSelectedSubject(null);
+        setStep(1);
+        
+        // Refresh data
+        if (assignDialogType === 'subjects') {
+            dispatch(getSubjectList(classID, "ClassSubjects"));
+        } else if (assignDialogType === 'teachers') {
+            // Optionally refresh subject list to show updated teacher assignments
+            dispatch(getSubjectList(classID, "ClassSubjects"));
         }
 
+    } catch (error) {
+        console.error('Assignment error:', error);
+        setMessage(`Error assigning ${assignDialogType}: ${error.message}`);
+        setShowPopup(true);
+    }
+    setAssignLoading(false);
+};
+
+// Also update the teacher assignment to only allow single selection
+// Replace the renderItemList function's teacher selection part with this:
+
+const renderItemList = () => {
+    if (assignLoading) {
         return (
-            <List sx={{ maxHeight: 400, overflow: 'auto' }}>
-                {availableItems.map((item) => {
-                    let primaryText = '';
-                    let secondaryText = '';
-                    
-                    switch (assignDialogType) {
-                        case 'subjects':
-                            primaryText = item.subName;
-                            secondaryText = `Code: ${item.subCode} | Sessions: ${item.sessions}${item.sclassName ? ` | Current Class: ${item.sclassName.sclassName}` : ' | Unassigned'}`;
-                            break;
-                        case 'teachers':
-                            primaryText = item.name;
-                            secondaryText = item.email || 'No email';
-                            break;
-                    }
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
 
-                    return (
-                        <ListItem key={item._id} disablePadding>
-                            <ListItemButton onClick={() => handleItemToggle(item._id)}>
+    if (availableItems.length === 0) {
+        return (
+            <Alert severity="info" sx={{ m: 2 }}>
+                No {assignDialogType} available
+            </Alert>
+        );
+    }
+
+    // Step 1: Select subject for teacher assignment
+    if (assignDialogType === 'teachers' && step === 1) {
+        return (
+            <List>
+                {availableItems.map((subject) => (
+                    <ListItemButton 
+                        key={subject._id}
+                        onClick={() => {
+                            setSelectedSubject(subject);
+                            setStep(2);
+                            fetchAvailableItems('teachers');
+                        }}
+                    >
+                        <ListItemText 
+                            primary={subject.subName} 
+                            secondary={`Code: ${subject.subCode} | Current Teacher: ${subject.teacher?.name || 'None'}`} 
+                        />
+                    </ListItemButton>
+                ))}
+            </List>
+        );
+    }
+
+    // Step 2: Select teacher (only one can be selected)
+    if (assignDialogType === 'teachers' && step === 2) {
+        return (
+            <div>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                    Assigning teacher to: <strong>{selectedSubject.subName}</strong>
+                    <Button 
+                        size="small" 
+                        onClick={() => setStep(1)}
+                        sx={{ ml: 2 }}
+                    >
+                        Change Subject
+                    </Button>
+                </Alert>
+                <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+                    {availableItems.map((teacher) => (
+                        <ListItem key={teacher._id} disablePadding>
+                            <ListItemButton onClick={() => {
+                                setSelectedItems([teacher._id]); // Only one teacher
+                            }}>
                                 <Checkbox
-                                    checked={selectedItems.includes(item._id)}
+                                    checked={selectedItems.includes(teacher._id)}
                                     tabIndex={-1}
                                     disableRipple
                                 />
                                 <ListItemText
-                                    primary={primaryText}
-                                    secondary={secondaryText}
+                                    primary={teacher.name}
+                                    secondary={
+                                        <div>
+                                            <div>{teacher.email}</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'gray' }}>
+                                                Current Assignment: {
+                                                    teacher.teachSubject?.subName || 'None'
+                                                } | Class: {
+                                                    teacher.teachSclass?.sclassName || 'None'
+                                                }
+                                            </div>
+                                        </div>
+                                    }
                                 />
                             </ListItemButton>
                         </ListItem>
-                    );
-                })}
-            </List>
+                    ))}
+                </List>
+            </div>
         );
-    };
+    }
+
+    // For subjects assignment (multiple selection allowed)
+    return (
+        <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+            {availableItems.map((item) => (
+                <ListItem key={item._id} disablePadding>
+                    <ListItemButton onClick={() => handleItemToggle(item._id)}>
+                        <Checkbox
+                            checked={selectedItems.includes(item._id)}
+                            tabIndex={-1}
+                            disableRipple
+                        />
+                        <ListItemText
+                            primary={item.subName || item.name}
+                            secondary={item.subCode || item.email || 'No additional info'}
+                        />
+                    </ListItemButton>
+                </ListItem>
+            ))}
+        </List>
+    );
+};
+
 
     const numberOfSubjects = subjectsList.length;
     const numberOfStudents = sclassStudents.length;
