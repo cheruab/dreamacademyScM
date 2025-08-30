@@ -137,9 +137,9 @@ const ChooseUser = ({ visitor }) => {
                   <FamilyRestroom />
                 </IconWrapper>
                 <CardContent>
-                  <UserTitle>ወላጅ</UserTitle>
+                  <UserTitle>Parent</UserTitle>
                   <UserDescription>
-                    የልጅዎን የትምህርት ሁኔታ እና ውጤት ይክታተሉ
+                    follow and track your child's education, view results, attendance and academic progress
                   </UserDescription>
                 </CardContent>
                 <CardGlow className="parent-glow" />
