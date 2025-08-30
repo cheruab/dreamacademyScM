@@ -141,10 +141,6 @@ router.get('/parents/:parentId/children', getMyChild);
 router.get('/complains/user/:userId', getComplainsByUser);
 router.get('/api/parent/results/:parentId', getParentResults);
 
-// ================== Complains ==================
-router.post('/ComplainCreate', complainCreate);
-router.get('/ComplainList/:id', complainList);
-
 // Add these route fixes to your route.js file
 // Fix the parent results route - it should match what the frontend is calling
 router.get('/api/parent/results/:parentId', getParentResults);
@@ -155,6 +151,9 @@ router.get('/parents/:parentId/children', getMyChild);
 // Make sure parent details route exists
 router.get('/Parent/:id', getParentDetail);
 
+// ================== Complains ==================
+router.post('/ComplainCreate', complainCreate);
+router.get('/ComplainList/:id', complainList);
 // Add a route to get student with full details including populated fields
 router.get('/student-full/:id', async (req, res) => {
     try {
