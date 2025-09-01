@@ -126,9 +126,18 @@ const ClassDetails = () => {
     // Handle assignment submission
 // Replace the handleAssignSubmit function in your ClassDetails.js with this:
 
+// Replace the handleAssignSubmit function in your ClassDetails.js with this enhanced version:
+
 const handleAssignSubmit = async () => {
     if (selectedItems.length === 0) {
         setMessage('Please select at least one item');
+        setShowPopup(true);
+        return;
+    }
+
+    // Additional validation for teacher assignment
+    if (assignDialogType === 'teachers' && !selectedSubject) {
+        setMessage('Please select a subject first');
         setShowPopup(true);
         return;
     }
@@ -138,21 +147,47 @@ const handleAssignSubmit = async () => {
         let url = '';
         let body = {};
         
+        console.log('=== ASSIGNMENT DEBUG ===');
+        console.log('Dialog Type:', assignDialogType);
+        console.log('Selected Items:', selectedItems);
+        console.log('Selected Subject:', selectedSubject);
+        console.log('Class ID:', classID);
+        
         switch (assignDialogType) {
             case 'subjects':
                 url = `${process.env.REACT_APP_BASE_URL}/AssignSubjectsToClass`;
                 body = { subjectIds: selectedItems, classId: classID };
                 break;
             case 'teachers':
-                // Use the new /AssignTeacher endpoint
+                // Enhanced validation and logging
+                if (selectedItems.length !== 1) {
+                    setMessage('Please select exactly one teacher');
+                    setShowPopup(true);
+                    setAssignLoading(false);
+                    return;
+                }
+                
+                if (!selectedSubject || !selectedSubject._id) {
+                    setMessage('Invalid subject selection. Please try again.');
+                    setShowPopup(true);
+                    setAssignLoading(false);
+                    return;
+                }
+                
                 url = `${process.env.REACT_APP_BASE_URL}/AssignTeacher`;
                 body = { 
-                    teacherId: selectedItems[0], // Only one teacher can be selected
+                    teacherId: selectedItems[0],
                     subjectId: selectedSubject._id, 
                     classId: classID 
                 };
+                
+                console.log('Teacher Assignment Body:', body);
+                console.log('URL:', url);
                 break;
         }
+
+        console.log('Making request to:', url);
+        console.log('Request body:', JSON.stringify(body, null, 2));
 
         const response = await fetch(url, {
             method: 'POST',
@@ -162,12 +197,39 @@ const handleAssignSubmit = async () => {
             body: JSON.stringify(body)
         });
 
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        
+        // Get response text first to see what the server is actually returning
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+
         // Check if response is ok before parsing JSON
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            let errorMessage = `HTTP error! status: ${response.status}`;
+            
+            try {
+                const errorData = JSON.parse(responseText);
+                errorMessage = errorData.message || errorData.error || errorMessage;
+                console.log('Parsed error:', errorData);
+            } catch (parseError) {
+                console.log('Could not parse error response as JSON:', parseError);
+                errorMessage = `${errorMessage} - Response: ${responseText}`;
+            }
+            
+            throw new Error(errorMessage);
         }
 
-        const result = await response.json();
+        // Try to parse as JSON
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (parseError) {
+            console.log('Could not parse success response as JSON:', parseError);
+            result = { message: 'Assignment completed successfully' };
+        }
+        
+        console.log('Parsed result:', result);
         
         setMessage(`${assignDialogType} assigned successfully!`);
         setShowPopup(true);
@@ -179,12 +241,16 @@ const handleAssignSubmit = async () => {
         if (assignDialogType === 'subjects') {
             dispatch(getSubjectList(classID, "ClassSubjects"));
         } else if (assignDialogType === 'teachers') {
-            // Optionally refresh subject list to show updated teacher assignments
+            // Refresh subject list to show updated teacher assignments
             dispatch(getSubjectList(classID, "ClassSubjects"));
         }
 
     } catch (error) {
-        console.error('Assignment error:', error);
+        console.error('=== ASSIGNMENT ERROR ===');
+        console.error('Full error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
         setMessage(`Error assigning ${assignDialogType}: ${error.message}`);
         setShowPopup(true);
     }

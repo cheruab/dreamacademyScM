@@ -40,7 +40,7 @@ const ShowTeachers = () => {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
                 <GreenButton variant="contained" 
-                onClick={() => navigate(`/Admin/addteacher/${currentUser._id}`)}>
+                onClick={() => navigate(`/Admin/teachers/addteacher/${currentUser._id}`)}>
                     Add Teacher
                 </GreenButton>
             </Box>
@@ -98,7 +98,7 @@ const ShowTeachers = () => {
         } else if (details.length === 1) {
             summary = `${details[0].subjects.length} subjects - ${details[0].class}`;
         } else {
-            summary = `${teacher.assignments.length} assignments in ${details.length} classes`;
+            summary = `${teacher.assignments.length} subjects in ${details.length} classes`;
         }
 
         return {
@@ -110,7 +110,7 @@ const ShowTeachers = () => {
 
     const columns = [
         { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'assignments', label: 'Assignments', minWidth: 300 },
+        { id: 'assignments', label: 'Assigned Subjects', minWidth: 300 },
         { id: 'email', label: 'Email', minWidth: 200 },
     ];
 

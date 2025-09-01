@@ -2,10 +2,12 @@ const express = require("express")
 const cors = require("cors")
 const mongoose = require("mongoose")
 const dotenv = require("dotenv")
+const path = require('path');
 // const bodyParser = require("body-parser")
 const app = express()
 const Routes = require("./routes/route.js")
-
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(express.json())
 

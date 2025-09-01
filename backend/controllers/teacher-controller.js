@@ -336,39 +336,150 @@ const teacherAttendance = async (req, res) => {
 
 // Replace the assignTeacher function in your teacher-controller.js with this:
 
+// Replace the assignTeacher function in your teacher-controller.js with this enhanced version:
+
 const assignTeacher = async (req, res) => {
     try {
-        console.log('AssignTeacher request body:', req.body);
+        console.log('=== ASSIGN TEACHER REQUEST ===');
+        console.log('Request body:', JSON.stringify(req.body, null, 2));
+        console.log('Content-Type:', req.headers['content-type']);
+        console.log('Method:', req.method);
         
         const { teacherId, subjectId, classId } = req.body;
 
+        // Enhanced validation with detailed logging
+        console.log('Extracted values:');
+        console.log('- teacherId:', teacherId, typeof teacherId);
+        console.log('- subjectId:', subjectId, typeof subjectId);
+        console.log('- classId:', classId, typeof classId);
+
         if (!teacherId || !subjectId || !classId) {
+            const missingFields = [];
+            if (!teacherId) missingFields.push('teacherId');
+            if (!subjectId) missingFields.push('subjectId');
+            if (!classId) missingFields.push('classId');
+            
+            console.log('❌ Missing required fields:', missingFields);
             return res.status(400).json({ 
-                message: "Teacher ID, Subject ID, and Class ID are required",
+                success: false,
+                message: `Missing required fields: ${missingFields.join(', ')}`,
+                received: { teacherId, subjectId, classId },
+                missingFields
+            });
+        }
+
+        // Validate MongoDB ObjectIds
+        const mongoose = require('mongoose');
+        if (!mongoose.Types.ObjectId.isValid(teacherId)) {
+            console.log('❌ Invalid teacherId format:', teacherId);
+            return res.status(400).json({
+                success: false,
+                message: "Invalid teacher ID format",
                 received: { teacherId, subjectId, classId }
             });
         }
 
-        const teacher = await Teacher.findById(teacherId);
-        const subject = await Subject.findById(subjectId);
-        const sclass = await require('../models/sclassSchema').findById(classId);
-
-        if (!teacher || !subject || !sclass) {
-            return res.status(404).json({ message: "Teacher, Subject, or Class not found" });
-        }
-
-        // Check if subject belongs to this class
-        const subjectInClass = sclass.subjects && sclass.subjects.some(
-            subId => subId.toString() === subjectId.toString()
-        );
-
-        if (!subjectInClass) {
-            return res.status(400).json({ 
-                message: "This subject is not assigned to the selected class"
+        if (!mongoose.Types.ObjectId.isValid(subjectId)) {
+            console.log('❌ Invalid subjectId format:', subjectId);
+            return res.status(400).json({
+                success: false,
+                message: "Invalid subject ID format",
+                received: { teacherId, subjectId, classId }
             });
         }
 
-        // Check if teacher is already assigned to this specific subject-class combination
+        if (!mongoose.Types.ObjectId.isValid(classId)) {
+            console.log('❌ Invalid classId format:', classId);
+            return res.status(400).json({
+                success: false,
+                message: "Invalid class ID format",
+                received: { teacherId, subjectId, classId }
+            });
+        }
+
+        console.log('✅ All IDs are valid MongoDB ObjectIds');
+
+        // Find and validate entities exist
+        console.log('🔍 Finding entities...');
+        
+        const teacher = await Teacher.findById(teacherId);
+        console.log('Teacher found:', !!teacher, teacher ? teacher.name : 'Not found');
+        
+        const subject = await Subject.findById(subjectId);
+        console.log('Subject found:', !!subject, subject ? subject.subName : 'Not found');
+        
+        const sclass = await require('../models/sclassSchema').findById(classId);
+        console.log('Class found:', !!sclass, sclass ? sclass.sclassName : 'Not found');
+
+        if (!teacher || !subject || !sclass) {
+            const notFound = [];
+            if (!teacher) notFound.push('Teacher');
+            if (!subject) notFound.push('Subject');
+            if (!sclass) notFound.push('Class');
+            
+            console.log('❌ Entities not found:', notFound);
+            return res.status(404).json({ 
+                success: false,
+                message: `${notFound.join(', ')} not found`,
+                found: {
+                    teacher: !!teacher,
+                    subject: !!subject,
+                    class: !!sclass
+                }
+            });
+        }
+
+        console.log('✅ All entities found');
+
+        // Check if subject belongs to this class
+        console.log('🔍 Checking if subject belongs to class...');
+        console.log('Subject sclassName:', subject.sclassName);
+        console.log('Requested classId:', classId);
+        console.log('Match:', subject.sclassName?.toString() === classId.toString());
+
+        // More flexible check for subject-class relationship
+        const subjectBelongsToClass = subject.sclassName && 
+            subject.sclassName.toString() === classId.toString();
+
+        if (!subjectBelongsToClass) {
+            console.log('❌ Subject does not belong to this class');
+            console.log('Subject class ID:', subject.sclassName);
+            console.log('Requested class ID:', classId);
+            
+            return res.status(400).json({ 
+                success: false,
+                message: "This subject is not assigned to the selected class",
+                subjectClass: subject.sclassName,
+                requestedClass: classId,
+                subjectName: subject.subName,
+                className: sclass.sclassName
+            });
+        }
+
+        console.log('✅ Subject belongs to class');
+
+        // Check for existing assignment
+        console.log('🔍 Checking for existing assignments...');
+        
+        // Check if teacher is already assigned to this specific subject
+        const existingTeacherSubjectAssignment = await Teacher.findOne({
+            _id: { $ne: teacherId }, // Different teacher
+            teachSubject: subjectId  // Same subject
+        });
+
+        if (existingTeacherSubjectAssignment) {
+            console.log('❌ Subject already has a teacher:', existingTeacherSubjectAssignment.name);
+            return res.status(400).json({
+                success: false,
+                message: `This subject is already assigned to teacher: ${existingTeacherSubjectAssignment.name}`,
+                currentTeacher: {
+                    id: existingTeacherSubjectAssignment._id,
+                    name: existingTeacherSubjectAssignment.name
+                }
+            });
+        }
+
+        // Check if this exact assignment already exists
         const existingAssignment = teacher.assignments && teacher.assignments.find(
             assignment => 
                 assignment.subject.toString() === subjectId.toString() && 
@@ -376,10 +487,17 @@ const assignTeacher = async (req, res) => {
         );
 
         if (existingAssignment) {
+            console.log('❌ Teacher already assigned to this subject-class combination');
             return res.status(400).json({
+                success: false,
                 message: "Teacher is already assigned to this subject in this class"
             });
         }
+
+        console.log('✅ No conflicting assignments found');
+
+        // Perform the assignment
+        console.log('🔄 Assigning teacher to subject...');
 
         // Initialize assignments array if it doesn't exist
         if (!teacher.assignments) {
@@ -393,15 +511,17 @@ const assignTeacher = async (req, res) => {
             assignedDate: new Date()
         });
 
-        // Update single assignment fields for backward compatibility (use the latest assignment)
+        // Update single assignment fields for backward compatibility
         teacher.teachSubject = subjectId;
         teacher.teachSclass = classId;
 
         // Save teacher with new assignment
         await teacher.save();
+        console.log('✅ Teacher updated successfully');
 
         // Update subject to reference this teacher
         await Subject.findByIdAndUpdate(subjectId, { teacher: teacherId });
+        console.log('✅ Subject updated with teacher reference');
 
         // Get updated teacher with populated fields
         const updatedTeacher = await Teacher.findById(teacherId)
@@ -421,18 +541,40 @@ const assignTeacher = async (req, res) => {
         const teacherResponse = updatedTeacher.toObject();
         delete teacherResponse.password;
 
-        console.log('Assignment successful');
+        console.log('🎉 Assignment completed successfully');
+        console.log('Teacher:', teacher.name);
+        console.log('Subject:', subject.subName);
+        console.log('Class:', sclass.sclassName);
 
         res.status(200).json({ 
+            success: true,
             message: "Teacher assigned successfully",
+            assignment: {
+                teacher: {
+                    id: teacher._id,
+                    name: teacher.name
+                },
+                subject: {
+                    id: subject._id,
+                    name: subject.subName,
+                    code: subject.subCode
+                },
+                class: {
+                    id: sclass._id,
+                    name: sclass.sclassName
+                }
+            },
             teacher: teacherResponse 
         });
 
     } catch (error) {
-        console.error('Error in assignTeacher:', error);
+        console.error('💥 Error in assignTeacher:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({ 
+            success: false,
             message: "Internal server error",
-            error: error.message
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 };

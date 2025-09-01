@@ -31,6 +31,7 @@ import AccountMenu from '../../components/AccountMenu';
 import { AppBar, Drawer } from '../../components/styles';
 import axios from 'axios';
 import ViewStdAttendances from './ViewStdAttendances';
+import ParentResultsView from './ParentResultsView';
 
 
 
@@ -292,7 +293,7 @@ const StudentDashboards = () => {
                                         <Typography variant="h6">📄 No results uploaded yet</Typography>
                                         <Typography>Results will appear here once uploaded by the school</Typography>
                                     </Box>
-                                ) : (
+                                ) : ( 
                                     <Grid container spacing={2}>
                                         {results.map((result, index) => (
                                             <Grid item xs={12} sm={6} md={4} key={result._id}>
@@ -354,6 +355,9 @@ const StudentDashboards = () => {
                         <Route path="/Parent/child-subjects" element={<StudentSubjectss studentId={childData._id} child={childData} />} />
                         <Route path="/Parent/child-attendance" element={<ViewStdAttendances childData={childData} />} />
                         <Route path="/Parent/complain" element={<StudentComplains child={childData} />} />
+
+                        <Route path="/Parent/results" element={<ParentResultsView />} />
+
                         <Route path="/logout" element={<Logout />} />
                     </Routes>
                 </Box>

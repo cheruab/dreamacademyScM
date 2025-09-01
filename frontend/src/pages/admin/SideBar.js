@@ -11,6 +11,8 @@ import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
 import ReportIcon from '@mui/icons-material/Report';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 
 const SideBar = () => {
     const location = useLocation();
@@ -50,16 +52,16 @@ const SideBar = () => {
 
                 <ListItemButton component={Link} to="/Admin/parents">
                     <ListItemIcon>
-                        <PersonOutlineIcon color={location.pathname.startsWith("/Admin/parents") ? 'primary' : 'inherit'} />
+                        <FamilyRestroomIcon color={location.pathname.startsWith("/Admin/parents") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Parents" />
                 </ListItemButton>
 
                 <ListItemButton component={Link} to="/Admin/uploadresult">
                     <ListItemIcon>
-                        <PersonOutlineIcon color={location.pathname.startsWith("/Admin/uploadresult") ? 'primary' : 'inherit'} />
+                        <UploadFileIcon color={location.pathname.startsWith("/Admin/uploadresult") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
-                    <ListItemText primary="Upload" />
+                    <ListItemText primary="File Uploads" />
                 </ListItemButton>
 
                 <ListItemButton component={Link} to="/Admin/notices">

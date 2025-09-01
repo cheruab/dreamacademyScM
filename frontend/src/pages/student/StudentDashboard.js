@@ -23,6 +23,8 @@ import Logout from '../Logout'
 import AccountMenu from '../../components/AccountMenu';
 import { AppBar, Drawer } from '../../components/styles';
 import LessonPlanViewer from '../admin/LessonPlanViewer';
+import LessonPlanDashboard from '../admin/lessonPlanDashboard';
+import StudentWorksheetsView from './StudentWorksheetsView';
 
 const StudentDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -86,7 +88,8 @@ const StudentDashboard = () => {
                         <Route path="/Student/complain" element={<StudentComplain />} />
 
                        
-                        <Route path="/Student/lesson-plan/" element={<LessonPlanViewer />} />
+                       <Route path="/Student/worksheets" element={<StudentWorksheetsView />} />
+
 
 
 

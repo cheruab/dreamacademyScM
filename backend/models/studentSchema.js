@@ -89,6 +89,24 @@ studentSchema.pre('save', function(next) {
     }
     next();
 });
+// New field for worksheets and assignments
+    worksheets: [{
+        worksheetId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Worksheet'
+        },
+        filename: String,
+        fileUrl: String,
+        uploadType: {
+            type: String,
+            enum: ['worksheet', 'assignment']
+        },
+        description: String,
+        uploadedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
 
 // ✅ Add index for efficient querying of unassigned students
 studentSchema.index({ school: 1, sclassName: 1 });

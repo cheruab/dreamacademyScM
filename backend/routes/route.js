@@ -28,8 +28,16 @@ const Subject = require('../models/subjectSchema.js'); // Add this for direct DB
 
 // ... (keep all your existing routes - Admin, Students, Parents, Teachers, Notices, Complains, Classes, Subjects)
 
-const { adminRegister, adminLogIn, getAdminDetail } = require('../controllers/admin-controller.js');
-const { getParentResults } = require('../controllers/resultController.js');
+const { adminRegister, 
+    adminLogIn, 
+    getAdminDetail,
+    uploadResult, 
+    uploadWorksheet,
+    uploadResultForParent, 
+    uploadWorksheetForStudent,
+    getStudentWorksheets  } = require('../controllers/admin-controller.js');
+const {uploadResult: uploadResultController, 
+    getParentResults} = require('../controllers/resultController.js');
 
 const { 
     sclassCreate, 
@@ -105,12 +113,17 @@ const {
     updateTeacherSubject,assignTeacher,teacherAttendance 
 } = require('../controllers/teacher-controller.js');
 
+// Add these imports at the top of your existing route.js file (after your existing imports)
+const {
+    uploadWorksheet: uploadWorksheetMiddleware,
+    uploadWorksheetForStudent: uploadWorksheetController,
+    getStudentWorksheets: getWorksheets 
+} = require('../controllers/worksheetController'); // You'll need to create this
+
 // ================== Admin ==================
 router.post('/AdminReg', adminRegister);
 router.post('/AdminLogin', adminLogIn);
-router.post('/upload', upload.single('resultFile'), resultController.uploadResult);
 router.get("/Admin/:id", getAdminDetail);
-
 
 // ================== Students ==================
 router.post('/StudentReg', studentRegister);
@@ -118,6 +131,8 @@ router.post('/StudentLogin', studentLogIn);
 router.get("/Students/:id", getStudents);
 router.get("/Student/:id", getStudentById);
 router.get("/Student/class/:id", getSclassStudents);
+// NEW: Add route to get student worksheets/assignments
+router.get('/student-worksheets/:studentId', getStudentWorksheets);
 
 router.delete("/Students/:id", deleteStudents);
 router.delete("/StudentsClass/:id", deleteStudentsByClass);
@@ -141,6 +156,12 @@ router.get('/parents/:parentId/children', getMyChild);
 router.get('/complains/user/:userId', getComplainsByUser);
 router.get('/api/parent/results/:parentId', getParentResults);
 
+
+router.post('/uploadResult', uploadResult.single('resultFile'), uploadResultForParent);
+router.get('/parent-results/:parentId', getParentResults);
+
+router.post('/upload-worksheet', uploadWorksheet.single('worksheetFile'), uploadWorksheetForStudent);
+router.get('/student-worksheets/:studentId', getStudentWorksheets);
 // Add these route fixes to your route.js file
 // Fix the parent results route - it should match what the frontend is calling
 router.get('/api/parent/results/:parentId', getParentResults);
@@ -154,6 +175,7 @@ router.get('/Parent/:id', getParentDetail);
 // ================== Complains ==================
 router.post('/ComplainCreate', complainCreate);
 router.get('/ComplainList/:id', complainList);
+
 // Add a route to get student with full details including populated fields
 router.get('/student-full/:id', async (req, res) => {
     try {
@@ -192,14 +214,13 @@ router.put("/TeacherSubject", updateTeacherSubject);
 router.post('/TeacherAttendance/:id', teacherAttendance);
 
 router.post('/AssignTeacher', assignTeacher);
+
 // ================== Notices ==================
 router.post('/NoticeCreate', noticeCreate);
 router.get('/NoticeList/:id', noticeList);
 router.delete("/Notices/:id", deleteNotices);
 router.delete("/Notice/:id", deleteNotice);
 router.put("/Notice/:id", updateNotice);
-
-
 
 // ================== Classes ==================
 router.post('/SclassCreate', sclassCreate);
@@ -218,50 +239,49 @@ router.delete("/SubjectsClass/:id", deleteSubjectsByClass);
 
 router.get('/ClassSubjects/:id', async (req, res) => {
     try {
-        console.log("🔍 ClassSubjects route - Class ID:", req.params.id);
+        console.log("ClassSubjects route - Class ID:", req.params.id);
         
         const subjects = await Subject.find({ sclassName: req.params.id })
             .populate('teacher', 'name')
             .select('subName subCode sessions description videoLink isActive');
         
-        console.log("📚 Found subjects:", subjects.length);
+        console.log("Found subjects:", subjects.length);
         
-        // ✅ Always return an array, even if empty
+        // Always return an array, even if empty
         res.json(subjects);
         
     } catch (err) {
-        console.error('💥 Error fetching class subjects:', err);
+        console.error('Error fetching class subjects:', err);
         res.status(500).json({ error: err.message, subjects: [] });
     }
 });
 
+
+
 // ================== EXAM ROUTES - COMPLETE SECTION ==================
-// ================== EXAM ROUTES - COMPLETE FIXED SECTION =================
 
-
-
-// ✅ 1. CREATE NEW EXAM - Uses controller function
+// 1. CREATE NEW EXAM - Uses controller function
 router.post('/exams/add', addExam);
 
-// ✅ 2. GET EXAMS BY SUBJECT ID (for Admin dashboard exam list)
+// 2. GET EXAMS BY SUBJECT ID (for Admin dashboard exam list)
 router.get('/exams/subject/:subjectId', getExamsBySubject);
 
-// ✅ 3. GET SINGLE EXAM BY ID (for editing) - FIXED ROUTE
+// 3. GET SINGLE EXAM BY ID (for editing) - FIXED ROUTE
 router.get('/exams/:examId', getExamById);
 
-// ✅ 4. UPDATE EXISTING EXAM - FIXED ROUTE
+// 4. UPDATE EXISTING EXAM - FIXED ROUTE
 router.put('/exams/:examId', updateExam);
 
-// ✅ 5. DELETE EXAM
+// 5. DELETE EXAM
 router.delete('/exams/:examId', deleteExam);
 
-// ✅ 6. GET EXAM FOR STUDENT (for taking exam) - Enhanced with completion check
+// 6. GET EXAM FOR STUDENT (for taking exam) - Enhanced with completion check
 router.get('/exam/:examId', async (req, res) => {
     try {
         const { examId } = req.params;
         const { studentId } = req.query; // Optional student ID to check completion
         
-        console.log('📖 Student fetching exam for taking:', examId, 'Student:', studentId);
+        console.log('Student fetching exam for taking:', examId, 'Student:', studentId);
 
         if (!mongoose.Types.ObjectId.isValid(examId)) {
             return res.status(400).json({
@@ -333,20 +353,18 @@ router.get('/exam/:examId', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error fetching exam for student:', error);
+        console.error('Error fetching exam for student:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to fetch exam: ' + error.message
         });
     }
 });
-// In your routes file
 
-
-// ✅ 7. SUBMIT EXAM RESULT
+// 7. SUBMIT EXAM RESULT
 router.post('/exam/submit', submitExamResult);
 
-// ✅ 8. CHECK IF EXAM IS COMPLETED BY STUDENT
+// 8. CHECK IF EXAM IS COMPLETED BY STUDENT
 router.get('/exam/:examId/completed/:studentId', async (req, res) => {
     try {
         const { examId, studentId } = req.params;
@@ -370,7 +388,7 @@ router.get('/exam/:examId/completed/:studentId', async (req, res) => {
             result: examResult || null
         });
     } catch (error) {
-        console.error('❌ Error checking exam completion:', error);
+        console.error('Error checking exam completion:', error);
         res.json({
             success: false,
             error: error.message,
@@ -381,17 +399,15 @@ router.get('/exam/:examId/completed/:studentId', async (req, res) => {
 
 // ================== EXAM RESULTS ROUTES - FIXED FOR ADMIN DASHBOARD ==================
 
-// ✅ 9. Get exam results by SUBJECT ID (FIXED - This is what the Results button calls)
-// Add this debug version to your backend route (replace the existing route):
-
+// 9. Get exam results by SUBJECT ID (FIXED - This is what the Results button calls)
 router.get('/exam-results/:subjectId', async (req, res) => {
     try {
         const { subjectId } = req.params;
-        console.log('📊 Admin fetching exam results for subject:', subjectId);
+        console.log('Admin fetching exam results for subject:', subjectId);
 
         // Validate subject ID
         if (!mongoose.Types.ObjectId.isValid(subjectId)) {
-            console.log('❌ Invalid subject ID:', subjectId);
+            console.log('Invalid subject ID:', subjectId);
             return res.status(400).json({
                 success: false,
                 error: 'Invalid subject ID',
@@ -402,7 +418,7 @@ router.get('/exam-results/:subjectId', async (req, res) => {
         // Check if subject exists
         const subject = await Subject.findById(subjectId);
         if (!subject) {
-            console.log('❌ Subject not found:', subjectId);
+            console.log('Subject not found:', subjectId);
             return res.status(404).json({
                 success: false,
                 error: 'Subject not found',
@@ -410,7 +426,7 @@ router.get('/exam-results/:subjectId', async (req, res) => {
             });
         }
 
-        console.log('✅ Found subject:', subject.subName);
+        console.log('Found subject:', subject.subName);
 
         // Get all exams for this subject
         const exams = await Exam.find({ subject: subjectId })
@@ -418,10 +434,10 @@ router.get('/exam-results/:subjectId', async (req, res) => {
             .select('title description totalMarks passingMarks questions')
             .sort({ createdAt: -1 });
 
-        console.log(`📊 Found ${exams.length} exams for subject ${subjectId}`);
+        console.log(`Found ${exams.length} exams for subject ${subjectId}`);
 
         if (exams.length === 0) {
-            console.log('ℹ️ No exams found for this subject');
+            console.log('No exams found for this subject');
             return res.json({
                 success: true,
                 examResults: [],
@@ -434,18 +450,13 @@ router.get('/exam-results/:subjectId', async (req, res) => {
         
         for (const exam of exams) {
             try {
-                console.log(`📊 Processing exam: ${exam.title} (${exam._id})`);
+                console.log(`Processing exam: ${exam.title} (${exam._id})`);
                 
                 const results = await ExamResult.find({ exam: exam._id })
                     .populate('student', 'name rollNum email')
                     .sort({ percentage: -1 });
 
-                console.log(`📊 Found ${results.length} results for exam ${exam.title}`);
-
-                // Debug: Log the first result structure
-                if (results.length > 0) {
-                    console.log('📊 Sample result structure:', JSON.stringify(results[0], null, 2));
-                }
+                console.log(`Found ${results.length} results for exam ${exam.title}`);
 
                 examResults.push({
                     exam: {
@@ -473,21 +484,12 @@ router.get('/exam-results/:subjectId', async (req, res) => {
                     }))
                 });
             } catch (examError) {
-                console.error(`❌ Error processing exam ${exam._id}:`, examError);
+                console.error(`Error processing exam ${exam._id}:`, examError);
             }
         }
 
-        console.log(`📊 Final examResults array length: ${examResults.length}`);
-        console.log('📊 Total submissions across all exams:', examResults.reduce((total, exam) => total + exam.results.length, 0));
+        console.log(`Final examResults array length: ${examResults.length}`);
         
-        // Debug: Log the structure of the response
-        console.log('📊 Response structure preview:', {
-            success: true,
-            examResultsCount: examResults.length,
-            firstExamTitle: examResults[0]?.exam?.title,
-            firstExamResultsCount: examResults[0]?.results?.length
-        });
-
         res.json({
             success: true,
             examResults: examResults,
@@ -500,7 +502,7 @@ router.get('/exam-results/:subjectId', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error fetching exam results by subject:', error);
+        console.error('Error fetching exam results by subject:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to fetch exam results: ' + error.message,
@@ -509,13 +511,11 @@ router.get('/exam-results/:subjectId', async (req, res) => {
     }
 });
 
-// Add this new route to your routes file for individual exam results:
-
 // Get results for a SINGLE exam (not subject)
 router.get('/exam-results/exam/:examId', async (req, res) => {
     try {
         const { examId } = req.params;
-        console.log('📊 Admin fetching results for single exam:', examId);
+        console.log('Admin fetching results for single exam:', examId);
 
         // Validate exam ID
         if (!mongoose.Types.ObjectId.isValid(examId)) {
@@ -539,14 +539,14 @@ router.get('/exam-results/exam/:examId', async (req, res) => {
             });
         }
 
-        console.log('✅ Found exam:', exam.title);
+        console.log('Found exam:', exam.title);
 
         // Get results for this specific exam
         const results = await ExamResult.find({ exam: examId })
             .populate('student', 'name rollNum email')
             .sort({ percentage: -1 });
 
-        console.log(`📊 Found ${results.length} results for exam ${exam.title}`);
+        console.log(`Found ${results.length} results for exam ${exam.title}`);
 
         // Format the response
         const examResult = {
@@ -585,7 +585,7 @@ router.get('/exam-results/exam/:examId', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error fetching single exam results:', error);
+        console.error('Error fetching single exam results:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to fetch exam results: ' + error.message,
@@ -646,11 +646,11 @@ function calculateExamStatistics(results, exam) {
     };
 }
 
-// ✅ 10. Get student exam results (for student profile view)
+// 10. Get student exam results (for student profile view)
 router.get('/student/:studentId/exam-results', async (req, res) => {
     try {
         const { studentId } = req.params;
-        console.log("📊 Fetching exam results for student:", studentId);
+        console.log("Fetching exam results for student:", studentId);
 
         if (!mongoose.Types.ObjectId.isValid(studentId)) {
             return res.status(400).json({
@@ -705,7 +705,7 @@ router.get('/student/:studentId/exam-results', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error fetching student exam results:', error);
+        console.error('Error fetching student exam results:', error);
         res.status(500).json({
             success: false,
             error: error.message,
@@ -714,7 +714,7 @@ router.get('/student/:studentId/exam-results', async (req, res) => {
     }
 });
 
-// ✅ 11. Get specific exam result details (for detailed view)
+// 11. Get specific exam result details (for detailed view)
 router.get('/exam-result/:examId/:studentId', async (req, res) => {
     try {
         const { examId, studentId } = req.params;
@@ -757,7 +757,7 @@ router.get('/exam-result/:examId/:studentId', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error fetching exam result details:', error);
+        console.error('Error fetching exam result details:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to fetch exam result details: ' + error.message
@@ -765,7 +765,7 @@ router.get('/exam-result/:examId/:studentId', async (req, res) => {
     }
 });
 
-// ✅ 12. Route to get exam completion statistics (for admin dashboard analytics)
+// 12. Route to get exam completion statistics (for admin dashboard analytics)
 router.get('/admin/exam-stats/:examId', async (req, res) => {
     try {
         const { examId } = req.params;
