@@ -106,7 +106,7 @@ const getParents = async (req, res) => {
             role: 'Parent'
         })
         .populate("sclassName", "sclassName")
-        .populate("child", "name rollNum");
+        .populate("child", "name rollNum sclassName");
 
         if (parents.length > 0) {
             let modifiedParents = parents.map((parent) => {

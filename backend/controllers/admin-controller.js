@@ -11,6 +11,7 @@ const Subject = require('../models/subjectSchema.js');
 const Notice = require('../models/noticeSchema.js');
 const Complain = require('../models/complainSchema.js');
 const Worksheet = require('../models/worksheetSchema.js');
+const PastExam = require('../models/pastExamSchema.js');
 
 // ===== Multer Storage Config for Results =====
 const resultStorage = multer.diskStorage({
@@ -33,8 +34,36 @@ const worksheetStorage = multer.diskStorage({
     },
 });
 
+// ===== Multer Storage Config for Past Exams =====
+const pastExamStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, "../uploads/pastexams"));
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    },
+});
+
 const uploadResult = multer({ storage: resultStorage });
 const uploadWorksheet = multer({ storage: worksheetStorage });
+const uploadPastExam = multer({ 
+    storage: pastExamStorage,
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|pdf|doc|docx/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only PDF, DOC, DOCX, JPG, and PNG files are allowed'));
+        }
+    },
+    limits: {
+        fileSize: 20 * 1024 * 1024 // 20MB limit
+    }
+});
 
 // ===== Admin Controllers =====
 const adminRegister = async (req, res) => {
@@ -178,6 +207,65 @@ const uploadWorksheetForStudent = async (req, res) => {
     } catch (error) {
         console.error('uploadWorksheetForStudent error:', error);
         res.status(500).json({ message: "Server error uploading file" });
+    }
+};
+
+// ===== Upload Past Exam for Student =====
+const uploadPastExamForStudent = async (req, res) => {
+    try {
+        const { studentId, subject, year, examType, description } = req.body;
+
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        // Verify student exists
+        const student = await Student.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+
+        // Create new past exam record
+        const newPastExam = new PastExam({
+            student: studentId,
+            subject: subject,
+            year: year,
+            examType: examType,
+            filePath: `/uploads/pastexams/${req.file.filename}`,
+            originalName: req.file.originalname,
+            description: description || '',
+            uploadedBy: req.body.adminId || 'admin',
+            mimeType: req.file.mimetype
+        });
+
+        const savedPastExam = await newPastExam.save();
+
+        // Add to student's pastExams array if it doesn't exist
+        if (!student.pastExams) {
+            student.pastExams = [];
+        }
+        
+        student.pastExams.push({
+            pastExamId: savedPastExam._id,
+            subject: subject,
+            year: year,
+            examType: examType,
+            filename: req.file.filename,
+            fileUrl: savedPastExam.filePath,
+            description: description || '',
+            uploadedAt: savedPastExam.uploadDate
+        });
+        
+        await student.save();
+
+        res.status(201).json({
+            message: `Past exam uploaded successfully`,
+            pastExam: savedPastExam
+        });
+
+    } catch (error) {
+        console.error('uploadPastExamForStudent error:', error);
+        res.status(500).json({ message: "Server error uploading past exam file" });
     }
 };
 

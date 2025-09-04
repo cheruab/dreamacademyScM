@@ -23,6 +23,13 @@ import TeacherHomePage from './TeacherHomePage';
 import TeacherProfile from './TeacherProfile';
 import TeacherViewStudent from './TeacherViewStudent';
 import StudentExamMarks from '../admin/studentRelated/StudentExamMarks';
+import TeacherStudentsList from './TeacherStudentsList';
+import ManageAttendTancePage from './ManageAttendancePage';
+import ExamsPage from './ExamsPage';
+import ManageGradesPage from './ManageGradesPage';
+import TeacherAttendanceStudent from './TeacherAttendanceStudent';
+import TeacherGradesStudents from './TeacherGradesStudent';
+
 
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -78,15 +85,18 @@ const TeacherDashboard = () => {
                         <Route path='*' element={<Navigate to="/" />} />
                         <Route path="/Teacher/dashboard" element={<TeacherHomePage />} />
                         <Route path="/Teacher/profile" element={<TeacherProfile />} />
-
                         <Route path="/Teacher/complain" element={<TeacherComplain />} />
-
                         <Route path="/Teacher/class" element={<TeacherClassDetails />} />
                         <Route path="/Teacher/class/student/:id" element={<TeacherViewStudent />} />
-
-                        <Route path="/Teacher/class/student/attendance/:studentID/:subjectID" element={<StudentAttendance situation="Subject" />} />
+                        <Route path="/Teacher/class/student/attendance/:studentID/:subjectID" element={<TeacherViewStudent />} />
                         <Route path="/Teacher/class/student/marks/:studentID/:subjectID" element={<StudentExamMarks situation="Subject" />} />
-
+                       
+                        {/* Add these new routes for the sidebar items */}
+                        <Route path="/Teacher/students/list" element={<TeacherStudentsList />} />
+                        <Route path="/Teacher/students/attendance" element={< ManageAttendTancePage />} />
+                        <Route path="/Teacher/students/grades" element={< ManageGradesPage />} />
+                        <Route path="/Teacher/assessments/exams" element={< ExamsPage />} />
+                        
                         <Route path="/logout" element={<Logout />} />
                     </Routes>
                 </Box>

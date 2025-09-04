@@ -4,7 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { registerUser } from '../../../redux/userRelated/userHandle';
 import Popup from '../../../components/Popup';
 import { underControl } from '../../../redux/userRelated/userSlice';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress,Box,Button } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const AddStudent = ({ situation }) => {
     const dispatch = useDispatch()
@@ -38,6 +39,10 @@ const AddStudent = ({ situation }) => {
         // Remove sclassName from fields
     }
 
+    const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
+
     const submitHandler = (event) => {
         event.preventDefault()
         // Remove class validation since it's no longer required
@@ -64,6 +69,16 @@ const AddStudent = ({ situation }) => {
 
     return (
         <>
+         <Box sx={{ mb: 2 }}>
+                            <Button
+                                startIcon={<ArrowBackIcon />}
+                                onClick={handleBack}
+                                variant="outlined"
+                                sx={{ mb: 2 }}
+                            >
+                                Back to Students
+                            </Button>
+                        </Box>
             <div className="register">
                 <form className="registerForm" onSubmit={submitHandler}>
                     <span className="registerTitle">Add Student</span>

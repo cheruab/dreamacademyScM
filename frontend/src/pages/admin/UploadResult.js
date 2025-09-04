@@ -21,6 +21,7 @@ import { getAllStudents } from '../../redux/studentRelated/studentHandle'; // As
 import PersonIcon from '@mui/icons-material/Person';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import FolderIcon from '@mui/icons-material/Folder';
 
 const UploadResult = ({ onUploadSuccess }) => {
   // Parent upload states 
@@ -30,7 +31,7 @@ const UploadResult = ({ onUploadSuccess }) => {
   const [parentMessage, setParentMessage] = useState('');
   const [parentDescription, setParentDescription] = useState('');
 
-  // Student upload states
+  // Student upload states (worksheets/assignments)
   const [studentId, setStudentId] = useState('');
   const [studentFile, setStudentFile] = useState(null);
   const [studentUploading, setStudentUploading] = useState(false);
@@ -38,9 +39,35 @@ const UploadResult = ({ onUploadSuccess }) => {
   const [studentDescription, setStudentDescription] = useState('');
   const [uploadType, setUploadType] = useState('worksheet'); // 'worksheet' or 'assignment'
 
+  // Past exam upload states
+  const [pastExamStudentId, setPastExamStudentId] = useState('');
+  const [pastExamFile, setPastExamFile] = useState(null);
+  const [pastExamUploading, setPastExamUploading] = useState(false);
+  const [pastExamMessage, setPastExamMessage] = useState('');
+  const [pastExamSubject, setPastExamSubject] = useState('');
+  const [pastExamYear, setPastExamYear] = useState('');
+  const [pastExamType, setPastExamType] = useState('');
+  const [pastExamDescription, setPastExamDescription] = useState('');
+
   const dispatch = useDispatch();
   const { parentsList, loading: parentsLoading } = useSelector(state => state.parent);
   const { studentsList, loading: studentsLoading } = useSelector(state => state.student);
+
+  // Common subjects and exam types
+  const commonSubjects = [
+    'Mathematics', 'English', 'Science', 'Physics', 'Chemistry', 'Biology',
+    'History', 'Geography', 'Computer Science', 'Economics', 'Literature',
+    'Art', 'Music', 'Physical Education', 'Social Studies'
+  ];
+
+  const examTypes = [
+    'Mid-term Exam', 'Final Exam', 'Quiz', 'Unit Test', 'Practice Test',
+    'Mock Exam', 'Sample Paper', 'Previous Year Paper'
+  ];
+
+  // Generate years (current year and 10 years back)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 11 }, (_, i) => (currentYear - i).toString());
 
   useEffect(() => {
     const adminId = localStorage.getItem("userId");
@@ -141,15 +168,66 @@ const UploadResult = ({ onUploadSuccess }) => {
     }
   };
 
+  // Handle past exam file upload
+  const handlePastExamFileChange = e => {
+    setPastExamFile(e.target.files[0]);
+    setPastExamMessage('');
+  };
+
+  const handlePastExamSubmit = async e => {
+    e.preventDefault();
+    if (!pastExamStudentId || !pastExamFile || !pastExamSubject || !pastExamYear || !pastExamType) {
+      setPastExamMessage('Please fill in all required fields and select a file.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('pastExamFile', pastExamFile);
+    formData.append('studentId', pastExamStudentId);
+    formData.append('subject', pastExamSubject);
+    formData.append('year', pastExamYear);
+    formData.append('examType', pastExamType);
+    formData.append('description', pastExamDescription);
+
+    setPastExamUploading(true);
+    setPastExamMessage('');
+
+    try {
+      await axios.post(`${process.env.REACT_APP_BASE_URL}/upload-pastexam`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      setPastExamMessage('Past exam uploaded successfully!');
+      setPastExamFile(null);
+      setPastExamStudentId('');
+      setPastExamSubject('');
+      setPastExamYear('');
+      setPastExamType('');
+      setPastExamDescription('');
+
+      if (onUploadSuccess) {
+        onUploadSuccess();
+      }
+    } catch (error) {
+      console.error(error);
+      setPastExamMessage('Error uploading past exam.');
+    } finally {
+      setPastExamUploading(false);
+    }
+  };
+
   return (
-    <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
+    <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
+      
       <Typography variant="h4" gutterBottom sx={{ mb: 4, textAlign: 'center' }}>
         Upload Management
       </Typography>
       
       <Grid container spacing={4}>
         {/* Parent Upload Section */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} lg={4}>
           <Card sx={{ height: '100%', boxShadow: 3 }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -236,7 +314,7 @@ const UploadResult = ({ onUploadSuccess }) => {
         </Grid>
 
         {/* Student Upload Section */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} lg={4}>
           <Card sx={{ height: '100%', boxShadow: 3 }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -289,7 +367,7 @@ const UploadResult = ({ onUploadSuccess }) => {
                   onChange={e => setStudentDescription(e.target.value)}
                   multiline
                   rows={2}
-                  placeholder="e.g., Math worksheet Chapter 5, Science assignment on photosynthesis..."
+                  placeholder="e.g., Math worksheet Chapter 5, Science assignment..."
                 />
 
                 <Box sx={{ mt: 2, mb: 2 }}>
@@ -329,6 +407,139 @@ const UploadResult = ({ onUploadSuccess }) => {
                   color={studentMessage.includes('successfully') ? 'success.main' : 'error.main'}
                 >
                   {studentMessage}
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Past Exams Upload Section */}
+        <Grid item xs={12} lg={4}>
+          <Card sx={{ height: '100%', boxShadow: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <FolderIcon sx={{ mr: 1, color: 'success.main' }} />
+                <Typography variant="h5" color="success.main">
+                  Upload Past Exams
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Upload past exam papers organized by subject and year
+              </Typography>
+
+              <form onSubmit={handlePastExamSubmit}>
+                <FormControl fullWidth margin="normal" required>
+                  <InputLabel>Select Student</InputLabel>
+                  <Select
+                    value={pastExamStudentId}
+                    onChange={e => setPastExamStudentId(e.target.value)}
+                    label="Select Student"
+                  >
+                    {studentsLoading ? (
+                      <MenuItem disabled>Loading students...</MenuItem>
+                    ) : (
+                      studentsList?.map(student => (
+                        <MenuItem key={student._id} value={student._id}>
+                          {student.name} - {student.rollNum} ({student.sclassName?.sclassName})
+                        </MenuItem>
+                      ))
+                    )}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth margin="normal" required>
+                  <InputLabel>Subject</InputLabel>
+                  <Select
+                    value={pastExamSubject}
+                    onChange={e => setPastExamSubject(e.target.value)}
+                    label="Subject"
+                  >
+                    {commonSubjects.map(subject => (
+                      <MenuItem key={subject} value={subject}>
+                        {subject}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth margin="normal" required>
+                  <InputLabel>Year</InputLabel>
+                  <Select
+                    value={pastExamYear}
+                    onChange={e => setPastExamYear(e.target.value)}
+                    label="Year"
+                  >
+                    {years.map(year => (
+                      <MenuItem key={year} value={year}>
+                        {year}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth margin="normal" required>
+                  <InputLabel>Exam Type</InputLabel>
+                  <Select
+                    value={pastExamType}
+                    onChange={e => setPastExamType(e.target.value)}
+                    label="Exam Type"
+                  >
+                    {examTypes.map(type => (
+                      <MenuItem key={type} value={type}>
+                        {type}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Description (Optional)"
+                  value={pastExamDescription}
+                  onChange={e => setPastExamDescription(e.target.value)}
+                  multiline
+                  rows={2}
+                  placeholder="e.g., Chapter 1-5, Advanced level..."
+                />
+
+                <Box sx={{ mt: 2, mb: 2 }}>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    Upload File (PDF, DOC, DOCX, JPG, PNG)
+                  </Typography>
+                  <input
+                    type="file"
+                    onChange={handlePastExamFileChange}
+                    accept=".pdf,.doc,.docx,.jpg,.png"
+                    style={{ 
+                      width: '100%',
+                      padding: '10px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px'
+                    }}
+                    required
+                  />
+                </Box>
+
+                <Button 
+                  type="submit" 
+                  variant="contained" 
+                  color="success"
+                  fullWidth
+                  disabled={pastExamUploading}
+                  startIcon={<UploadFileIcon />}
+                  sx={{ mt: 2 }}
+                >
+                  {pastExamUploading ? <CircularProgress size={24} /> : 'Upload Past Exam'}
+                </Button>
+              </form>
+
+              {pastExamMessage && (
+                <Typography 
+                  sx={{ mt: 2 }} 
+                  color={pastExamMessage.includes('successfully') ? 'success.main' : 'error.main'}
+                >
+                  {pastExamMessage}
                 </Typography>
               )}
             </CardContent>

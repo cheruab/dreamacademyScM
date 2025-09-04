@@ -8,8 +8,10 @@ import {
     Box, InputLabel,
     MenuItem, Select,
     Typography, Stack,
-    TextField, CircularProgress, FormControl
+    TextField, CircularProgress, FormControl,Button
 } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate } from 'react-router-dom';
 
 const REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
@@ -22,6 +24,7 @@ const StudentExamMarks = ({ situation }) => {
     const [subjectName, setSubjectName] = useState("");
     const [chosenSubName, setChosenSubName] = useState("");
     const [marksObtained, setMarksObtained] = useState("");
+    const navigate = useNavigate();
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
@@ -47,6 +50,10 @@ const StudentExamMarks = ({ situation }) => {
             fetchStudentData(stdID);
         }
     }, [params, situation]);
+
+    const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
 
     const fetchStudentData = async (stdID) => {
         try {
@@ -154,6 +161,16 @@ const StudentExamMarks = ({ situation }) => {
 
     return (
         <>
+        <Box sx={{ mb: 2, mt: 2}}>
+                                    <Button
+                                        startIcon={<ArrowBackIcon />}
+                                        onClick={handleBack}
+                                        variant="outlined"
+                                        sx={{ mb: 2 }}
+                                    >
+                                        Back to Students
+                                    </Button>
+                                </Box>
             <Box
                 sx={{
                     flex: '1 1 auto',

@@ -23,6 +23,7 @@ import { BlueButton, GreenButton } from '../../../components/buttonStyles';
 import { underControl } from '../../../redux/userRelated/userSlice';
 import Popup from '../../../components/Popup';
 import styled from 'styled-components';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const SubjectForm = () => {
     const navigate = useNavigate();
@@ -75,6 +76,10 @@ const SubjectForm = () => {
         setSubjects(updatedSubjects);
     };
 
+     const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
+
     const addSubjectField = () => {
         setSubjects([...subjects, { subName: '', subCode: '', sessions: '', description: '', videoLink: '' }]);
     };
@@ -120,8 +125,17 @@ const SubjectForm = () => {
 
     return (
         <Container>
+            
             <StyledPaper elevation={3}>
                 <Typography variant="h4" gutterBottom align="center" color="primary">
+                    <Button
+                    startIcon={<ArrowBackIcon />}
+                    onClick={handleBack}
+                    variant="outlined"
+                    sx={{ mb: 1, mr: 2, ml: 1 }}
+                >
+                Back
+                </Button>
                     {params.id ? 'Add Subjects to Class' : 'Create New Subjects'}
                 </Typography>
 

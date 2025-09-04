@@ -19,6 +19,7 @@ import Popup from "../../../components/Popup";
 import Classroom from "../../../assets/classroom.png";
 import styled from "styled-components";
 import axios from 'axios';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const AddClass = () => {
     const [selectedStudent, setSelectedStudent] = useState(null);
@@ -68,6 +69,9 @@ const AddClass = () => {
 
         fetchUnassignedStudents();
     }, [currentUser]);
+    const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
 
     const submitHandler = async (event) => {
         event.preventDefault();
@@ -124,6 +128,16 @@ const AddClass = () => {
 
     return (
         <>
+                <Box sx={{ mb: 2 }}>
+                                    <Button
+                                        startIcon={<ArrowBackIcon />}
+                                        onClick={handleBack}
+                                        variant="outlined"
+                                        sx={{ mb: 2 }}
+                                    >
+                                        Back to Parents
+                                    </Button>
+                                </Box>
             <StyledContainer>
                 <StyledBox>
                     <Stack sx={{

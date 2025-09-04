@@ -27,6 +27,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import BookIcon from '@mui/icons-material/Book';
 import Popup from "../../../components/Popup";
 import styled from 'styled-components';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const ClassDetails = () => {
     const params = useParams()
@@ -64,6 +65,9 @@ const ClassDetails = () => {
         setMessage("Sorry the delete function has been disabled for now.")
         setShowPopup(true)
     }
+        const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
 
     // Fetch available items for assignment
     const fetchAvailableItems = async (type) => {
@@ -380,11 +384,22 @@ const renderItemList = () => {
             {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
                     <CircularProgress size={60} />
-                    <Typography sx={{ ml: 2 }}>Loading class details...</Typography>
+                    <Typography sx={{ ml: 4 }}>Loading class details...</Typography>
                 </Box>
             ) : (
                 <>
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+
+                         <Box sx={{ mb: 2 }}>
+                            <Button
+                                startIcon={<ArrowBackIcon />}
+                                onClick={handleBack}
+                                variant="outlined"
+                                sx={{ mb: 2 }}
+                            >
+                                Back to Classes
+                            </Button>
+                        </Box>
                         <Typography variant="h4" align="center" gutterBottom sx={{ mb: 4 }}>
                             Class Overview
                         </Typography>
@@ -491,43 +506,40 @@ const renderItemList = () => {
                                     {subjectsList.map((subject) => (
                                         <Grid item xs={12} md={6} lg={4} key={subject._id}>
                                             <Card variant="outlined" sx={{ height: '100%' }}>
-                                                <CardContent>
-                                                    <Typography variant="h6" color="primary" gutterBottom>
-                                                        {subject.subName}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                        Code: {subject.subCode}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                                        Sessions: {subject.sessions}
-                                                    </Typography>
-                                                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                                                        <BlueButton
-                                                            variant="outlined"
-                                                            onClick={() => navigate(`/Admin/class/subject/${classID}/${subject._id}`)}
-                                                            size="small"
-                                                            startIcon={<VisibilityIcon />}
-                                                        >
-                                                            View
-                                                        </BlueButton>
-                                                        <GreenButton
-                                                            variant="outlined"
-                                                            onClick={() => navigate(`/Admin/addexam/${subject._id}`)}
-                                                            size="small"
-                                                            startIcon={<PostAddIcon />}
-                                                        >
-                                                            Add Exam
-                                                        </GreenButton>
-                                                        <PurpleButton
-                                                            variant="outlined"
-                                                            onClick={() => navigate(`/Admin/exams/${subject._id}`)}
-                                                            size="small"
-                                                            startIcon={<QuizIcon />}
-                                                        >
-                                                            Exams
-                                                        </PurpleButton>
-                                                    </Box>
-                                                </CardContent>
+
+<CardContent>
+    <Typography variant="h6" color="primary" gutterBottom>
+        {subject.subName}
+    </Typography>
+    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        Code: {subject.subCode}
+    </Typography>
+    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        Sessions: {subject.sessions}
+    </Typography>
+    {/* Add teacher information here */}
+    <Typography variant="body2" sx={{ mb: 2 }}>
+        Teacher: {subject.teacher ? (
+            <Chip 
+                avatar={<Avatar>{subject.teacher.name.charAt(0)}</Avatar>}
+                label={subject.teacher.name}
+                size="small"
+                color="primary"
+                variant="outlined"
+            />
+        ) : (
+            <Chip 
+                label="Not assigned"
+                size="small"
+                color="default"
+                variant="outlined"
+            />
+        )}
+    </Typography>
+    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+        {/* ... existing buttons ... */}
+    </Box>
+</CardContent>
                                             </Card>
                                         </Grid>
                                     ))}

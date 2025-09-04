@@ -21,8 +21,10 @@ const StudentComplain = () => {
     const [message, setMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
 
+    // Fixed: Include userType field which is required by the schema
     const fields = {
         user,
+        userType: 'student', // Added missing userType field
         date,
         complaint,
         school,
@@ -76,7 +78,8 @@ const StudentComplain = () => {
                                     label="Select Date"
                                     type="date"
                                     value={date}
-                                    onChange={(event) => setDate(event.target.value)} required
+                                    onChange={(event) => setDate(event.target.value)} 
+                                    required
                                     InputLabelProps={{
                                         shrink: true,
                                     }}

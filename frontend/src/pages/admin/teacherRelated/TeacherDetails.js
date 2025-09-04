@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { getTeacherDetails } from '../../../redux/teacherRelated/teacherHandle';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Container, Typography } from '@mui/material';
+import { Box, Button, Container, Typography } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const TeacherDetails = () => {
     const navigate = useNavigate();
@@ -11,6 +12,9 @@ const TeacherDetails = () => {
     const { loading, teacherDetails, error } = useSelector((state) => state.teacher);
 
     const teacherID = params.id;
+     const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
 
     useEffect(() => {
         dispatch(getTeacherDetails(teacherID));
@@ -31,7 +35,17 @@ const TeacherDetails = () => {
             {loading ? (
                 <div>Loading...</div>
             ) : (
-                <Container>
+                <Container >
+                     <Box sx={{ mb: 2 }}>
+                            <Button
+                                startIcon={<ArrowBackIcon />}
+                                onClick={handleBack}
+                                variant="outlined"
+                                sx={{ mb: 2 }}
+                            >
+                                Back to Teachers
+                            </Button>
+                        </Box>
                     <Typography variant="h4" align="center" gutterBottom>
                         Teacher Details
                     </Typography>

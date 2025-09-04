@@ -12,6 +12,7 @@ import {
     CardContent, 
     Divider, 
     Avatar,
+    Button,
     List,
     ListItem,
     ListItemText,
@@ -34,6 +35,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const ViewSubject = () => {
   const navigate = useNavigate()
@@ -51,7 +53,9 @@ const ViewSubject = () => {
   if (error) {
     console.log(error)
   }
-
+  const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
   const SubjectDetailsCard = () => {
     const numberOfStudents = sclassStudents.length;
 
@@ -365,6 +369,16 @@ const ViewSubject = () => {
         </Box>
       ) : (
         <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Box sx={{ mb: 2 }}>
+                            <Button
+                                startIcon={<ArrowBackIcon />}
+                                onClick={handleBack}
+                                variant="outlined"
+                                sx={{ mb: 2 }}
+                            >
+                                Back to Subjects
+                            </Button>
+                        </Box>
           <Box sx={{ mb: 4, textAlign: 'center' }}>
             <Typography 
               variant="h3" 

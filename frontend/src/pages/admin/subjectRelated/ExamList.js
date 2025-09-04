@@ -37,6 +37,7 @@ import {
     Cancel as CancelIcon,
     Refresh as RefreshIcon
 } from "@mui/icons-material";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const ExamList = () => {
     const dispatch = useDispatch();
@@ -217,6 +218,10 @@ const ExamList = () => {
         return `${minutes}m`;
     };
 
+    const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
+
     const getTotalMarks = (exam) => {
         if (!exam.questions || !Array.isArray(exam.questions)) return 0;
         return exam.questions.reduce((sum, q) => sum + (parseInt(q.marks) || 1), 0);
@@ -235,6 +240,16 @@ const ExamList = () => {
 
     return (
         <Box p={3}>
+            <Box sx={{ mb: 2 }}>
+                            <Button
+                                startIcon={<ArrowBackIcon />}
+                                onClick={handleBack}
+                                variant="outlined"
+                                sx={{ mb: 2 }}
+                            >
+                                Back to Subjects
+                            </Button>
+                        </Box>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                 <Typography variant="h4" gutterBottom>
                     Exam Management

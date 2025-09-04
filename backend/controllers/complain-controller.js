@@ -10,12 +10,12 @@ const complainCreate = async (req, res) => {
     }
 };
 
-// In complain-controller.js
+// Fixed: For admin to see all complaints in their school
 const complainList = async (req, res) => {
     try {
         let complains = await Complain.find({ 
-            school: req.params.id,
-            user: req.user.id // Add this to filter by user
+            school: req.params.id, // Only filter by school for admin view
+            // Removed user filter so admin can see all complaints
         }).populate("user", "name");
         
         if (complains.length > 0) {
@@ -27,14 +27,15 @@ const complainList = async (req, res) => {
         res.status(500).json(err);
     }
 };
-// In complain-controller.js
+
+// For specific user's complaints
 const userComplainsList = async (req, res) => {
     try {
         let complains = await Complain.find({ 
             user: req.params.userId // Filter by user ID
         })
         .populate("user", "name")
-        .populate("school", "name");
+        .populate("school", "schoolName");
         
         if (complains.length > 0) {
             res.send(complains)
@@ -45,16 +46,17 @@ const userComplainsList = async (req, res) => {
         res.status(500).json(err);
     }
 };
-// In complain-controller.js
+
+// Fixed: Simplified function to get complaints by user
 const getComplainsByUser = async (req, res) => {
     try {
         console.log('Fetching complaints for user:', req.params.userId);
         
         let complains = await Complain.find({ 
-            user: req.params.userId // Filter by user ID
+            user: req.params.userId 
         })
         .populate("user", "name")
-        .populate("school", "name");
+        .populate("school", "schoolName");
         
         console.log('Found complaints:', complains.length);
         
@@ -69,4 +71,4 @@ const getComplainsByUser = async (req, res) => {
     }
 };
 
-module.exports = { complainCreate,getComplainsByUser, complainList, userComplainsList };
+module.exports = { complainCreate, getComplainsByUser, complainList, userComplainsList };

@@ -376,7 +376,7 @@ const ComprehensiveStudentView = () => {
                     <IconButton 
                         onClick={() => navigate(-1)} 
                         sx={{ mr: 2 }}
-                    >
+                    > Back   
                         <ArrowBackIcon />
                     </IconButton>
                     <Typography variant="h4" sx={{ flexGrow: 1 }}>

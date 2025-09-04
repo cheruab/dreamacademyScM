@@ -4,7 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Popup from '../../../components/Popup';
 import { registerUser } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, Button } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const AddTeacher = () => {
   const params = useParams();
@@ -34,6 +35,10 @@ const AddTeacher = () => {
     dispatch(registerUser(fields, role));
   };
 
+   const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
+
   useEffect(() => {
     if (status === 'added') {
       dispatch(underControl());
@@ -51,6 +56,14 @@ const AddTeacher = () => {
 
   return (
     <div>
+       <Button
+                startIcon={<ArrowBackIcon />}
+                onClick={handleBack}
+                variant="outlined"
+                sx={{ mb: 2 }}
+            >
+                Back
+            </Button>
       <div className="register">
         <form className="registerForm" onSubmit={submitHandler}>
           <span className="registerTitle">Add Teacher</span>

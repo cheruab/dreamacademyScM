@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import {Box, Button} from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 const LessonPlanDashboard = () => {
     const [currentUser, setCurrentUser] = useState(null);
     const [lessonPlans, setLessonPlans] = useState([]);
@@ -13,6 +15,7 @@ const LessonPlanDashboard = () => {
         search: ''
     });
     const [selectedPlan, setSelectedPlan] = useState(null);
+     const navigate = useNavigate();
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
@@ -114,6 +117,10 @@ const LessonPlanDashboard = () => {
         });
     };
 
+     const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
+
     const formatDuration = (minutes) => {
         const hours = Math.floor(minutes / 60);
         const mins = minutes % 60;
@@ -177,6 +184,16 @@ const LessonPlanDashboard = () => {
 
     return (
         <div style={styles.container}>
+                                    <Box sx={{ mb: 2 }}>
+                            <Button
+                                startIcon={<ArrowBackIcon />}
+                                onClick={handleBack}
+                                variant="outlined"
+                                sx={{ mb: 2 }}
+                            >
+                                Back to Subjects
+                            </Button>
+                        </Box>
             <div style={styles.header}>
                 <h1 style={styles.headerTitle}>Lesson Plans Management</h1>
                 <p style={styles.headerSubtitle}>Create and manage lesson plans for your subjects</p>

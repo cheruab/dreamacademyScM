@@ -18,6 +18,7 @@ import {
     Chip
 } from '@mui/material';
 import { Save as SaveIcon, Preview as PreviewIcon, Clear as ClearIcon } from '@mui/icons-material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const ExamForm = () => {
     const { id: subjectId, examId } = useParams();
@@ -68,6 +69,10 @@ const ExamForm = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+       const handleBack = () => {
+        navigate(-1); // Go back to previous page
     };
 
     const fetchExamData = async () => {
@@ -335,7 +340,18 @@ const ExamForm = () => {
     }
 
     return (
+        
         <Box sx={{ p: 3, maxWidth: '1200px', margin: '0 auto' }}>
+            <Box sx={{ mb: 2 }}>
+                                        <Button
+                                            startIcon={<ArrowBackIcon />}
+                                            onClick={handleBack}
+                                            variant="outlined"
+                                            sx={{ mb: 2 }}
+                                        >
+                                            Back to Subjects
+                                        </Button>
+                                    </Box>
             <Typography variant="h4" gutterBottom>
                 {isEditMode ? '✏️ Edit Exam' : '➕ Create New Exam'}
             </Typography>

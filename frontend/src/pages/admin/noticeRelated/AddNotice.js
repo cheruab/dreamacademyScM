@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress,Button } from '@mui/material';
 import Popup from '../../../components/Popup';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const AddNotice = () => {
   const dispatch = useDispatch();
@@ -23,6 +24,10 @@ const AddNotice = () => {
 
   const fields = { title, details, date, adminID };
   const address = "Notice"
+
+   const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
 
   const submitHandler = (event) => {
     event.preventDefault();
@@ -43,6 +48,14 @@ const AddNotice = () => {
 
   return (
     <>
+     <Button
+                        startIcon={<ArrowBackIcon />}
+                        onClick={handleBack}
+                        variant="outlined"
+                        sx={{ mb: 2 }}
+                    >
+                        Back
+                    </Button>
       <div className="register">
         <form className="registerForm" onSubmit={submitHandler}>
           <span className="registerTitle">Add Notice</span>

@@ -16,7 +16,7 @@ const TeacherClassDetails = () => {
     const { currentUser } = useSelector((state) => state.user);
     const classID = currentUser.teachSclass?._id
     const subjectID = currentUser.teachSubject?._id
-
+ 
     useEffect(() => {
         dispatch(getClassStudents(classID));
     }, [dispatch, classID])

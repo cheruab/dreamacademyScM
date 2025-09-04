@@ -25,6 +25,7 @@ import { AppBar, Drawer } from '../../components/styles';
 import LessonPlanViewer from '../admin/LessonPlanViewer';
 import LessonPlanDashboard from '../admin/lessonPlanDashboard';
 import StudentWorksheetsView from './StudentWorksheetsView';
+import StudentExamFolder from './StudentExamFolder';
 
 const StudentDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -89,6 +90,8 @@ const StudentDashboard = () => {
 
                        
                        <Route path="/Student/worksheets" element={<StudentWorksheetsView />} />
+                       <Route path="/Student/examfolder" element={<StudentExamFolder />} />
+
 
 
 
