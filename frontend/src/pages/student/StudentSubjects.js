@@ -760,7 +760,7 @@ const StudentSubjects = () => {
                                                                                         onClick={() => window.open(`/Student/lesson-plan/?planId=${plan._id}`, '_blank')}
                                                                                         sx={{ minWidth: 100 }}
                                                                                     >
-                                                                                        View Plan
+                                                                                        View Lesson Plan
                                                                                     </Button>
                                                                                 </Tooltip>
                                                                             </Box>

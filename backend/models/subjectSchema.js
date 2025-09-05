@@ -20,13 +20,13 @@ const subjectSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
-    // Make class optional - subjects can exist without classes initially
+    // Keep for backward compatibility - represents primary/main class
     sclassName: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'sclass',
-        required: false, // ✅ Changed from true to false
+        required: false,
     },
-    // Add multiple classes support
+    // NEW: Support multiple classes - this is the main field we'll use
     assignedClasses: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'sclass'
@@ -34,18 +34,28 @@ const subjectSchema = new mongoose.Schema({
     school: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin',
-        required: true // ✅ School is still required
+        required: true
     },
+    // NEW: Support multiple teachers for different classes
+    teachers: [{
+        teacherId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'teacher'
+        },
+        classId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'sclass'
+        }
+    }],
+    // Keep for backward compatibility
     teacher: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'teacher',
     },
-    // Add subject level settings
     isActive: {
         type: Boolean,
         default: true
     },
-    // Add exam settings at subject level
     allowExams: {
         type: Boolean,
         default: true
@@ -55,5 +65,9 @@ const subjectSchema = new mongoose.Schema({
         default: 60
     }
 }, { timestamps: true });
+
+// Add indexes for better query performance
+subjectSchema.index({ school: 1, assignedClasses: 1 });
+subjectSchema.index({ school: 1, subCode: 1 }, { unique: true });
 
 module.exports = mongoose.model("subject", subjectSchema);

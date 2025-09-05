@@ -306,9 +306,11 @@ module.exports = {
     adminRegister, 
     adminLogIn, 
     getAdminDetail,
+    uploadPastExamForStudent,
     uploadResult,  // Multer middleware for results
     uploadWorksheet, // Multer middleware for worksheets
     uploadResultForParent,
+    uploadPastExam,
     uploadWorksheetForStudent,
     getStudentWorksheets
 };

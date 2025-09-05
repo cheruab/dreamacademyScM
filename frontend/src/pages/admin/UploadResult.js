@@ -49,16 +49,14 @@ const UploadResult = ({ onUploadSuccess }) => {
   const [pastExamType, setPastExamType] = useState('');
   const [pastExamDescription, setPastExamDescription] = useState('');
 
+  // New state for fetching actual subjects
+  const [availableSubjects, setAvailableSubjects] = useState([]);
+  const [subjectsLoading, setSubjectsLoading] = useState(false);
+
   const dispatch = useDispatch();
   const { parentsList, loading: parentsLoading } = useSelector(state => state.parent);
   const { studentsList, loading: studentsLoading } = useSelector(state => state.student);
-
-  // Common subjects and exam types
-  const commonSubjects = [
-    'Mathematics', 'English', 'Science', 'Physics', 'Chemistry', 'Biology',
-    'History', 'Geography', 'Computer Science', 'Economics', 'Literature',
-    'Art', 'Music', 'Physical Education', 'Social Studies'
-  ];
+  const { currentUser } = useSelector(state => state.user);
 
   const examTypes = [
     'Mid-term Exam', 'Final Exam', 'Quiz', 'Unit Test', 'Practice Test',
@@ -77,6 +75,40 @@ const UploadResult = ({ onUploadSuccess }) => {
       dispatch(getAllStudents(adminId)); // Fetch students for worksheet/assignment uploads
     }
   }, [dispatch]);
+
+  // Fetch actual subjects from database
+  useEffect(() => {
+    fetchAvailableSubjects();
+  }, [currentUser]);
+
+  const fetchAvailableSubjects = async () => {
+    if (!currentUser?._id) return;
+    
+    setSubjectsLoading(true);
+    try {
+      // Try the same endpoint that ClassDetails.js uses for fetching subjects
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/AllSubjects/${currentUser._id}`);
+      const data = await response.json();
+      
+      if (Array.isArray(data)) {
+        // Extract unique subject names from the response
+        const uniqueSubjects = [...new Set(data.map(subject => subject.subName))].sort();
+        setAvailableSubjects(uniqueSubjects);
+      } else {
+        console.log('No subjects found or invalid response:', data);
+        setAvailableSubjects([]);
+      }
+    } catch (error) {
+      console.error('Error fetching subjects:', error);
+      // Fallback: if the API doesn't exist, use some common subjects as backup
+      setAvailableSubjects([
+        'Mathematics', 'English', 'Science', 'Physics', 'Chemistry', 'Biology',
+        'History', 'Geography', 'Computer Science', 'Economics'
+      ]);
+    } finally {
+      setSubjectsLoading(false);
+    }
+  };
 
   // Handle parent file upload (exam results)
   const handleParentFileChange = e => {
@@ -413,7 +445,7 @@ const UploadResult = ({ onUploadSuccess }) => {
           </Card>
         </Grid>
 
-        {/* Past Exams Upload Section */}
+        {/* Past Exams Upload Section - FIXED */}
         <Grid item xs={12} lg={4}>
           <Card sx={{ height: '100%', boxShadow: 3 }}>
             <CardContent>
@@ -447,18 +479,26 @@ const UploadResult = ({ onUploadSuccess }) => {
                   </Select>
                 </FormControl>
 
+                {/* FIXED: Use actual subjects from database instead of hardcoded list */}
                 <FormControl fullWidth margin="normal" required>
                   <InputLabel>Subject</InputLabel>
                   <Select
                     value={pastExamSubject}
                     onChange={e => setPastExamSubject(e.target.value)}
                     label="Subject"
+                    disabled={subjectsLoading}
                   >
-                    {commonSubjects.map(subject => (
-                      <MenuItem key={subject} value={subject}>
-                        {subject}
-                      </MenuItem>
-                    ))}
+                    {subjectsLoading ? (
+                      <MenuItem disabled>Loading subjects...</MenuItem>
+                    ) : availableSubjects.length === 0 ? (
+                      <MenuItem disabled>No subjects available</MenuItem>
+                    ) : (
+                      availableSubjects.map(subject => (
+                        <MenuItem key={subject} value={subject}>
+                          {subject}
+                        </MenuItem>
+                      ))
+                    )}
                   </Select>
                 </FormControl>
 

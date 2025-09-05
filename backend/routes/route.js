@@ -4,8 +4,10 @@ const Teacher = require('../models/teacherSchema.js');
 const router = require('express').Router();
 const express = require('express');
 const upload = require('../middlewares/upload.js');
+const PastExam = require('../models/pastExamSchema.js');
 const resultController = require('../controllers/resultController.js');
 const { addExam, getExamResultsBySubject, getExamsBySubject,deleteExam, getExamById, updateExam, submitExamResult } = require("../controllers/examController.js");
+
 
 const { assignTeacherToSubject } = require('../controllers/classAssignmentController');
 const {
@@ -33,6 +35,8 @@ const { adminRegister,
     getAdminDetail,
     uploadResult, 
     uploadWorksheet,
+    uploadPastExam,
+    uploadPastExamForStudent,
     uploadResultForParent, 
     uploadWorksheetForStudent,
     getStudentWorksheets  } = require('../controllers/admin-controller.js');
@@ -104,7 +108,12 @@ const {
     deleteSubjectsByClass, 
     deleteSubjects, 
     deleteSubject, 
-    allSubjects
+    allSubjects,
+    unassignedSubjects,
+    assignSubjectsToClass,
+    removeSubjectsFromClass,
+    assignTeacherToSubjectClass,
+    debugAllSubjects
 } = require('../controllers/subject-controller.js');
 
 const { 
@@ -118,7 +127,7 @@ const {
     uploadWorksheet: uploadWorksheetMiddleware,
     uploadWorksheetForStudent: uploadWorksheetController,
     getStudentWorksheets: getWorksheets 
-} = require('../controllers/worksheetController'); // You'll need to create this
+} = require('../controllers/worksheetController'); 
 
 // ================== Admin ==================
 router.post('/AdminReg', adminRegister);
@@ -228,22 +237,44 @@ router.get('/SclassList/:id', sclassList);
 router.get("/Sclass/:id", getSclassDetail);
 router.get("/Sclass/Students/:id", getSclassStudents);
 
-// ================== Subjects ==================
-router.post('/SubjectCreate', subjectCreate);
-router.get('/AllSubjects/:id', allSubjects);
-router.get('/FreeSubjectList/:id', freeSubjectList);
-router.get("/Subject/:id", getSubjectDetail);
-router.delete("/Subject/:id", deleteSubject);
-router.delete("/Subjects/:id", deleteSubjects);
-router.delete("/SubjectsClass/:id", deleteSubjectsByClass);
 
+
+// ================== EXISTING ROUTES ==================
+
+// Subject creation (existing)
+router.post('/SubjectCreate', subjectCreate);
+
+// Get all subjects for a school (existing)
+router.get('/AllSubjects/:id', allSubjects);
+
+// Get subjects without teachers assigned (existing)
+router.get('/FreeSubjectList/:id', freeSubjectList);
+
+// Get subject details (existing)
+router.get('/Subject/:id', getSubjectDetail);
+
+// Delete operations (existing)
+router.delete('/Subject/:id', deleteSubject);
+router.delete('/Subjects/:id', deleteSubjects);
+router.delete('/SubjectsClass/:id', deleteSubjectsByClass);
+
+// ================== UPDATED ROUTES ==================
+
+// Get subjects for specific class (updated to support multi-class assignments)
 router.get('/ClassSubjects/:id', async (req, res) => {
     try {
         console.log("ClassSubjects route - Class ID:", req.params.id);
         
-        const subjects = await Subject.find({ sclassName: req.params.id })
-            .populate('teacher', 'name')
-            .select('subName subCode sessions description videoLink isActive');
+        const Subject = require('../models/subjectSchema.js');
+        // Find subjects assigned to this class through either method
+        const subjects = await Subject.find({
+            $or: [
+                { sclassName: req.params.id }, // Legacy single-class assignment
+                { assignedClasses: req.params.id } // New multi-class assignment
+            ]
+        })
+        .populate('teacher', 'name')
+        .select('subName subCode sessions description videoLink isActive assignedClasses');
         
         console.log("Found subjects:", subjects.length);
         
@@ -256,7 +287,257 @@ router.get('/ClassSubjects/:id', async (req, res) => {
     }
 });
 
+// ================== NEW ROUTES ==================
 
+// Alternative endpoint name for all subjects
+router.get('/AllSchoolSubjects/:id', allSubjects);
+
+// Get unassigned subjects (new)
+router.get('/UnassignedSubjects/:id', unassignedSubjects);
+
+// Assign subjects to class (new) - supports multiple classes
+router.post('/AssignSubjectsToClass', assignSubjectsToClass);
+
+// Remove subjects from specific class (new) - doesn't affect other class assignments
+router.post('/RemoveSubjectsFromClass', removeSubjectsFromClass);
+
+// Assign teacher to specific subject-class combination (new)
+router.post('/AssignTeacher', assignTeacherToSubjectClass);
+router.post('/AssignTeacherToSubjectClass', assignTeacherToSubjectClass); // Alternative endpoint name
+
+// Debug endpoint to troubleshoot subject assignments (new)
+router.get('/DebugSubjects/:id', debugAllSubjects);
+
+// Additional useful endpoints for the new system
+
+// Get subjects assigned to multiple classes (new)
+router.get('/MultiClassSubjects/:id', async (req, res) => {
+    try {
+        const Subject = require('../models/subjectSchema.js');
+        const subjects = await Subject.find({
+            school: req.params.id,
+            $expr: { $gt: [{ $size: "$assignedClasses" }, 1] }
+        })
+        .populate('assignedClasses', 'sclassName')
+        .populate({
+            path: 'teachers',
+            populate: [
+                { path: 'teacherId', select: 'name' },
+                { path: 'classId', select: 'sclassName' }
+            ]
+        });
+        
+        if (subjects.length > 0) {
+            res.send(subjects);
+        } else {
+            res.send({ message: "No subjects assigned to multiple classes found" });
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
+// Get detailed class-subject assignments (new)
+router.get('/ClassSubjectAssignments/:schoolId', async (req, res) => {
+    try {
+        const Subject = require('../models/subjectSchema.js');
+        const Sclass = require('../models/sclassSchema.js');
+        
+        // Get all classes for the school
+        const classes = await Sclass.find({ school: req.params.schoolId });
+        
+        // Get detailed assignments for each class
+        const classAssignments = await Promise.all(
+            classes.map(async (classObj) => {
+                const subjects = await Subject.find({
+                    $or: [
+                        { sclassName: classObj._id }, // Legacy assignments
+                        { assignedClasses: classObj._id } // New multi-class assignments
+                    ]
+                })
+                .populate('teacher', 'name')
+                .populate({
+                    path: 'teachers',
+                    match: { classId: classObj._id },
+                    populate: { path: 'teacherId', select: 'name' }
+                });
+                
+                return {
+                    class: {
+                        _id: classObj._id,
+                        name: classObj.sclassName
+                    },
+                    subjects: subjects.map(subject => ({
+                        _id: subject._id,
+                        name: subject.subName,
+                        code: subject.subCode,
+                        sessions: subject.sessions,
+                        teacher: subject.teachers?.find(t => t.classId?.toString() === classObj._id.toString())?.teacherId || subject.teacher,
+                        isActive: subject.isActive
+                    }))
+                };
+            })
+        );
+        
+        res.json(classAssignments);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
+// Bulk assignment operations (new)
+router.post('/BulkAssignSubjects', async (req, res) => {
+    try {
+        const { assignments } = req.body; // [{ subjectIds: [], classId: '' }, ...]
+        
+        const results = await Promise.all(
+            assignments.map(async ({ subjectIds, classId }) => {
+                return await assignSubjectsToClass({ body: { subjectIds, classId } }, {
+                    json: (data) => data,
+                    status: (code) => ({ json: (data) => data })
+                });
+            })
+        );
+        
+        res.json({
+            message: 'Bulk assignment completed',
+            results: results
+        });
+    } catch (err) {
+        res.status(500).json({
+            error: 'Bulk assignment failed',
+            details: err.message
+        });
+    }
+});
+
+// Get subjects with their class assignments summary (new)
+router.get('/SubjectsWithAssignments/:id', async (req, res) => {
+    try {
+        const Subject = require('../models/subjectSchema.js');
+        
+        const subjects = await Subject.find({ school: req.params.id })
+            .populate('assignedClasses', 'sclassName')
+            .populate('sclassName', 'sclassName')
+            .populate({
+                path: 'teachers',
+                populate: [
+                    { path: 'teacherId', select: 'name' },
+                    { path: 'classId', select: 'sclassName' }
+                ]
+            })
+            .select('subName subCode sessions isActive assignedClasses sclassName teachers');
+            
+        const enrichedSubjects = subjects.map(subject => {
+            const allAssignedClasses = [];
+            
+            // Include old assignment method (for backward compatibility)
+            if (subject.sclassName && !subject.assignedClasses?.some(cls => cls._id.toString() === subject.sclassName._id.toString())) {
+                allAssignedClasses.push(subject.sclassName);
+            }
+            
+            // Include new assignment method (supports multiple classes)
+            if (subject.assignedClasses) {
+                allAssignedClasses.push(...subject.assignedClasses);
+            }
+            
+            return {
+                ...subject.toObject(),
+                totalAssignments: allAssignedClasses.length,
+                allAssignedClasses: allAssignedClasses,
+                teacherCount: subject.teachers?.length || (subject.teacher ? 1 : 0)
+            };
+        });
+        
+        res.json(enrichedSubjects);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
+
+
+// Past exam upload route
+// Use the admin controller version (which seems to be your preferred pattern)
+router.post('/upload-pastexam', uploadPastExam.single('pastExamFile'), uploadPastExamForStudent);
+// Add these routes to your route.js file
+
+// Get all past exams for a student (organized by subject and year)
+// Update the student past exams route
+router.get('/student-pastexams/:studentId', async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        console.log('Fetching past exams for student:', studentId);
+
+        if (!mongoose.Types.ObjectId.isValid(studentId)) {
+            return res.status(400).json({ message: 'Invalid student ID' });
+        }
+
+        // Find all past exams for this student
+        const pastExams = await PastExam.find({ student: studentId })
+            .sort({ uploadDate: -1 });
+
+        console.log(`Found ${pastExams.length} past exams for student ${studentId}`);
+
+        // Organize by subject and year and map filePath to fileUrl
+        const organizedData = {};
+        
+        pastExams.forEach(exam => {
+            if (!organizedData[exam.subject]) {
+                organizedData[exam.subject] = {};
+            }
+            if (!organizedData[exam.subject][exam.year]) {
+                organizedData[exam.subject][exam.year] = [];
+            }
+            
+            // Map filePath to fileUrl for frontend compatibility
+            const examWithFileUrl = {
+                ...exam.toObject(),
+                fileUrl: exam.filePath // Map filePath to fileUrl
+            };
+            
+            organizedData[exam.subject][exam.year].push(examWithFileUrl);
+        });
+
+        console.log('Organized past exams:', Object.keys(organizedData));
+        res.json(organizedData);
+
+    } catch (error) {
+        console.error('Error fetching student past exams:', error);
+        res.status(500).json({ message: 'Server error fetching past exams' });
+    }
+});
+
+// Update the specific past exam files route
+router.get('/pastexams/:studentId/:subject/:year', async (req, res) => {
+    try {
+        const { studentId, subject, year } = req.params;
+        console.log(`Fetching past exams for student: ${studentId}, subject: ${subject}, year: ${year}`);
+
+        if (!mongoose.Types.ObjectId.isValid(studentId)) {
+            return res.status(400).json({ message: 'Invalid student ID' });
+        }
+
+        const pastExams = await PastExam.find({
+            student: studentId,
+            subject: subject,
+            year: year
+        }).sort({ uploadDate: -1 });
+
+        // Map filePath to fileUrl for each exam
+        const examsWithFileUrl = pastExams.map(exam => ({
+            ...exam.toObject(),
+            fileUrl: exam.filePath // Map filePath to fileUrl
+        }));
+
+        console.log(`Found ${examsWithFileUrl.length} past exam files`);
+        res.json(examsWithFileUrl);
+
+    } catch (error) {
+        console.error('Error fetching past exam files:', error);
+        res.status(500).json({ message: 'Server error fetching exam files' });
+    }
+});
 
 // ================== EXAM ROUTES - COMPLETE SECTION ==================
 
