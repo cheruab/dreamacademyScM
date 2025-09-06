@@ -35,10 +35,10 @@ const complainSchema = new mongoose.Schema({
         default: 'Medium'
     },
     status: {
-        type: String,
-        enum: ['Pending', 'In Progress', 'Submitted', 'Rejected'],
-        default: 'Submitted'
-    },
+    type: String,
+    enum: ['Pending', 'In Progress', 'Submitted', 'Responded', 'Rejected'],
+    default: 'Submitted'
+},
     assignedTo: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin'

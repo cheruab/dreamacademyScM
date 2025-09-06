@@ -92,6 +92,8 @@ const StudentDashboard = () => {
                        <Route path="/Student/worksheets" element={<StudentWorksheetsView />} />
                        <Route path="/Student/examfolder" element={<StudentExamFolder />} />
 
+                       <Route path="/lesson-plan/" element={<LessonPlanViewer />} />
+
 
 
 

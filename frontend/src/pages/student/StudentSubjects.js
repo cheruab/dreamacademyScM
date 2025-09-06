@@ -148,6 +148,19 @@ const theme = createTheme({
     },
   },
 });
+const lessonPlanStyles = {
+  primaryButton: { 
+    background: '#1976d2', 
+    color: 'white', 
+    border: 'none', 
+    padding: '12px 24px', 
+    borderRadius: '8px', 
+    fontSize: '1rem', 
+    cursor: 'pointer', 
+    fontWeight: '600', 
+    transition: 'all 0.3s ease' 
+  },
+};
 
 const StudentSubjects = () => {
     const dispatch = useDispatch();
@@ -164,6 +177,7 @@ const StudentSubjects = () => {
     const [loadingExams, setLoadingExams] = useState({});
     const [loadingLessonPlans, setLoadingLessonPlans] = useState({});
     const [examResults, setExamResults] = useState([]);
+    const [selectedLessonPlan, setSelectedLessonPlan] = useState(null);
 
     // Fetch subjects directly using axios
     useEffect(() => {
@@ -244,6 +258,10 @@ const StudentSubjects = () => {
 
     }, [response]);
 
+    
+
+
+
     // Function to fetch exams for a specific subject
     const fetchSubjectExams = async (subjectId) => {
         if (subjectExams[subjectId]) return; // Already fetched
@@ -304,14 +322,21 @@ const StudentSubjects = () => {
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+const formatDuration = (minutes) => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours > 0) {
+    return `${hours}h ${mins}m`;
+  }
+  return `${mins}min`;
+};
 
     const formatDateOnly = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -321,15 +346,6 @@ const StudentSubjects = () => {
         });
     };
 
-    // Format duration for lesson plans
-    const formatDuration = (minutes) => {
-        const hours = Math.floor(minutes / 60);
-        const mins = minutes % 60;
-        if (hours > 0) {
-            return `${hours}h ${mins}m`;
-        }
-        return `${mins}m`;
-    };
 
     // Get exam status for a student
     const getExamStatus = (examId) => {
@@ -751,18 +767,18 @@ const StudentSubjects = () => {
                                                                             </Typography>
 
                                                                             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                                                <Tooltip title="View detailed lesson plan">
-                                                                                    <Button
-                                                                                        variant="outlined"
-                                                                                        size="small"
-                                                                                        color="info"
-                                                                                        startIcon={<ArticleIcon />}
-                                                                                        onClick={() => window.open(`/Student/lesson-plan/?planId=${plan._id}`, '_blank')}
-                                                                                        sx={{ minWidth: 100 }}
-                                                                                    >
-                                                                                        View Lesson Plan
-                                                                                    </Button>
-                                                                                </Tooltip>
+                                                                               <Tooltip title="View detailed lesson plan">
+                                                                            <Button
+                                                                            variant="outlined"
+                                                                            size="small"
+                                                                            color="info"
+                                                                            startIcon={<ArticleIcon />}
+                                                                            onClick={() => setSelectedLessonPlan(plan)}
+                                                                            sx={{ minWidth: 100 }}
+                                                                            >
+                                                                            View Lesson Plan
+                                                                            </Button>
+                                                                            </Tooltip>
                                                                             </Box>
                                                                         </Paper>
                                                                     ))}
@@ -1036,6 +1052,135 @@ const StudentSubjects = () => {
                     </Grid>
                 </Paper>
             </Container>
+{selectedLessonPlan && (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    padding: '20px'
+  }}>
+    <div style={{
+      backgroundColor: 'white',
+      padding: '30px',
+      borderRadius: '12px',
+      maxWidth: '800px',
+      width: '100%',
+      maxHeight: '80vh',
+      overflow: 'auto'
+    }}>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+        <h2 style={{color: '#1976d2', margin: 0}}>Lesson Plan Details</h2>
+        <button
+          onClick={() => setSelectedLessonPlan(null)}
+          style={{
+            background: 'none',
+            border: 'none',
+            fontSize: '24px',
+            cursor: 'pointer',
+            color: '#666'
+          }}
+        >
+          ×
+        </button>
+      </div>
+      
+      <div>
+        <h3 style={{color: '#333', marginBottom: '15px'}}>{selectedLessonPlan.title}</h3>
+        
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px'}}>
+          <div>
+            <p><strong>Subject:</strong> {selectedLessonPlan.subject?.subName}</p>
+            <p><strong>Duration:</strong> {formatDuration(selectedLessonPlan.duration)}</p>
+          </div>
+          <div>
+            <p><strong>Date:</strong> {formatDate(selectedLessonPlan.lessonDate)}</p>
+            <p><strong>Term:</strong> {selectedLessonPlan.term} - Week {selectedLessonPlan.week}</p>
+          </div>
+        </div>
+
+        {selectedLessonPlan.objectives && selectedLessonPlan.objectives.length > 0 && (
+          <div style={{marginBottom: '20px'}}>
+            <h4 style={{color: '#1976d2'}}>Learning Objectives:</h4>
+            <ul>
+              {selectedLessonPlan.objectives.map((obj, index) => (
+                <li key={index} style={{marginBottom: '5px'}}>
+                  {typeof obj === 'object' ? obj.description || obj.type : obj}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {selectedLessonPlan.materials && selectedLessonPlan.materials.length > 0 && (
+          <div style={{marginBottom: '20px'}}>
+            <h4 style={{color: '#1976d2'}}>Required Materials:</h4>
+            <ul>
+              {selectedLessonPlan.materials.map((material, index) => (
+                <li key={index} style={{marginBottom: '5px'}}>
+                  {typeof material === 'object' ? material.description || material.type : material}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {selectedLessonPlan.activities && selectedLessonPlan.activities.length > 0 && (
+          <div style={{marginBottom: '20px'}}>
+            <h4 style={{color: '#1976d2'}}>Activities:</h4>
+            <ul>
+              {selectedLessonPlan.activities.map((activity, index) => (
+                <li key={index} style={{marginBottom: '5px'}}>
+                  {typeof activity === 'object' ? activity.description || activity.type : activity}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {selectedLessonPlan.assessment && (
+          <div style={{marginBottom: '20px'}}>
+            <h4 style={{color: '#1976d2'}}>Assessment:</h4>
+            <p>
+              {typeof selectedLessonPlan.assessment === 'object' 
+                ? selectedLessonPlan.assessment.description || selectedLessonPlan.assessment.type 
+                : selectedLessonPlan.assessment}
+            </p>
+          </div>
+        )}
+
+        {selectedLessonPlan.notes && (
+          <div style={{marginBottom: '20px'}}>
+            <h4 style={{color: '#1976d2'}}>Teacher's Notes:</h4>
+            <p>
+              {typeof selectedLessonPlan.notes === 'object' 
+                ? selectedLessonPlan.notes.description || selectedLessonPlan.notes.type 
+                : selectedLessonPlan.notes}
+            </p>
+          </div>
+        )}
+
+        <div style={{textAlign: 'center', marginTop: '30px'}}>
+          <button
+            style={lessonPlanStyles.primaryButton}
+            onClick={() => {
+              setSelectedLessonPlan(null);
+              window.location.href = `/lesson-plan/?planId=${selectedLessonPlan._id}`;
+            }}
+          >
+            View Full Details
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
         </ThemeProvider>
     );
 };

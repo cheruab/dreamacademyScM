@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { Button } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate } from 'react-router-dom';
 
 const LessonPlanForm = ({ subjectId: propSubjectId, onClose, onSuccess }) => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
     const urlSubjectId = searchParams.get('subjectId');
     const editId = searchParams.get('editId');
+     const navigate = useNavigate();
 
     const finalSubjectId = propSubjectId || urlSubjectId;
 
@@ -16,6 +20,7 @@ const LessonPlanForm = ({ subjectId: propSubjectId, onClose, onSuccess }) => {
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState('info');
     const [isEditing, setIsEditing] = useState(false);
+    
 
     const [formData, setFormData] = useState({
         title: '',
@@ -167,6 +172,10 @@ const LessonPlanForm = ({ subjectId: propSubjectId, onClose, onSuccess }) => {
         }));
     };
 
+    const handleBack = () => {
+        navigate(-1); // Go back to previous page
+    };
+
     const handleSubmit = async (e, status = 'Published') => {
         e.preventDefault();
 
@@ -262,6 +271,14 @@ const LessonPlanForm = ({ subjectId: propSubjectId, onClose, onSuccess }) => {
 
     return (
         <div style={styles.container}>
+            <Button
+                    startIcon={<ArrowBackIcon />}
+                    onClick={handleBack}
+                    variant="outlined"
+                    sx={{ mb: 2 }}
+                >
+                    Back
+                </Button>
             <div style={styles.header}>
                 <h1 style={styles.headerTitle}>{isEditing ? 'Edit' : 'Create'} Lesson Plan</h1>
             </div>

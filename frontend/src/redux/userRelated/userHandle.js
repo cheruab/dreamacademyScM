@@ -92,7 +92,7 @@ export const getComplains = (userId) => async (dispatch) => {
   try {
     dispatch(complainsRequest()); // Use complainsRequest instead of USER_COMPLAINS_REQUEST
 
-    const { data } = await axios.get(`${process.env.REACT_APP_BASE_URL}/complains/user/${userId}`);
+    const { data } = await axios.get(`${process.env.REACT_APP_BASE_URL}/ComplainsByUser/${userId}`);
     console.log('API response:', data);
 
     dispatch(complainsSuccess(data)); // Use complainsSuccess instead of USER_COMPLAINS_SUCCESS

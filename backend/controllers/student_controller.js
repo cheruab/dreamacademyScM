@@ -105,9 +105,9 @@ const getStudentDetail = async (req, res) => {
         let student = await Student.findById(req.params.id)
             .populate("school", "schoolName")
             .populate("sclassName", "sclassName")
-            .populate("examResult.subName", "name") // <-- changed to 'name'
-            .populate("attendance.subName", "name sessions") // <-- changed to 'name'
-            .populate("subjects", "name subCode");
+            .populate("examResult.subName", "subName subCode")
+            .populate("attendance.subName", "subName subCode") // This should populate attendance subjects
+            .populate("subjects", "subName subCode");
 
         if (student) {
             student.password = undefined;
@@ -303,16 +303,27 @@ const removeStudentAttendance = async (req, res) => {
 const getStudentById = async (req, res) => {
     try {
         const student = await Student.findById(req.params.id)
-            .populate('sclassName', 'name') // class name
-            .populate('school', 'schoolName') // school name
-            .populate('parent', 'name email') // parent info
-            .populate('examResult.subName', 'name'); // subject name for exam result
+            .populate('sclassName', 'sclassName') 
+            .populate('school', 'schoolName') 
+            .populate('parent', 'name email') 
+            .populate({
+                path: 'examResult.subName', 
+                select: 'subName subCode'
+            })
+            .populate({
+                path: 'attendance.subName', 
+                select: 'subName subCode'
+            }); // ✅ This is the key addition - same as your parent controller
 
         if (!student) {
             return res.status(404).json({ message: 'Student not found' });
         }
 
-        res.status(200).json(student);
+        // Remove password before sending
+        const studentData = student.toObject();
+        delete studentData.password;
+
+        res.status(200).json(studentData);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

@@ -57,7 +57,16 @@ const {
 
 } = require('../controllers/class-controller.js');
 
-const { complainCreate, complainList, userComplainsList} = require('../controllers/complain-controller.js');
+// Import the corrected complaint controller
+const { 
+    complainCreate, 
+    getAllComplains,
+    complainList,
+    getComplainsByUser, 
+    userComplainsList,
+    replyToComplaint,
+    updateComplaintStatus
+} = require('../controllers/complain-controller.js');
 
 const { 
     noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice 
@@ -87,7 +96,7 @@ const {
     getParents,
     getMyChild,
     getParentDetail,
-    getComplainsByUser,
+   
     deleteParents,
     deleteParent,
     updateParent,
@@ -129,6 +138,7 @@ const {
     getStudentWorksheets: getWorksheets 
 } = require('../controllers/worksheetController'); 
 
+
 // ================== Admin ==================
 router.post('/AdminReg', adminRegister);
 router.post('/AdminLogin', adminLogIn);
@@ -162,7 +172,6 @@ router.post("/ParentLogin", parentLogIn);
 router.get("/Parents/:id", getParents);
 router.get("/Parent/:id", getParentDetail);
 router.get('/parents/:parentId/children', getMyChild);
-router.get('/complains/user/:userId', getComplainsByUser);
 router.get('/api/parent/results/:parentId', getParentResults);
 
 
@@ -181,11 +190,41 @@ router.get('/parents/:parentId/children', getMyChild);
 // Make sure parent details route exists
 router.get('/Parent/:id', getParentDetail);
 
+
 // ================== Complains ==================
 router.post('/ComplainCreate', complainCreate);
+
+// This route handles the getAllComplains function with query params
+router.get('/getAllComplains/:id', getAllComplains); // For admin to get all complaints
+
+// Alternative route for admin complaints (if you prefer this format)
 router.get('/ComplainList/:id', complainList);
 
+// Routes for user-specific complaints (parents)
+router.get('/UserComplainsList/:userId', userComplainsList);
+router.get('/ComplainsByUser/:userId', getComplainsByUser);
+
+// NEW ROUTES for admin reply functionality
+// In your routes file, add:
+router.put('/ReplyToComplaint/:id', replyToComplaint);
+router.put('/api/complaints/:id/status', updateComplaintStatus);
+router.get('/ComplainsByUser/:userId', getComplainsByUser);
+// Additional helpful routes
+router.get('/complaints/school/:schoolId', async (req, res) => {
+    try {
+        const { getAllComplains } = require('../controllers/complain-controller.js');
+        // Reuse the getAllComplains function
+        req.params.id = req.params.schoolId;
+        req.query.address = "Complain";
+        await getAllComplains(req, res);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Add a route to get student with full details including populated fields
+// In your student routes file
+router.get("/StudentDetail/:id", getStudentDetail);
 router.get('/student-full/:id', async (req, res) => {
     try {
         const student = await Student.findById(req.params.id)

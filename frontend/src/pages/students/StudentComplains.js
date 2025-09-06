@@ -13,8 +13,15 @@ import {
     Card,
     CardContent,
     Chip,
-    Alert
+    Alert,
+    Collapse,
+    Button
 } from '@mui/material';
+import {
+    ExpandMore as ExpandMoreIcon,
+    ExpandLess as ExpandLessIcon,
+    ChatBubbleOutline as ChatIcon
+} from '@mui/icons-material';
 import Popup from '../../components/Popup';
 import { BlueButton } from '../../components/buttonStyles';
 import { addStuff, getComplains } from '../../redux/userRelated/userHandle';
@@ -36,10 +43,13 @@ const StudentComplains = ({ child }) => {
 
     const [complaint, setComplaint] = useState("");
     const [date, setDate] = useState(todayDate);
+    const [category, setCategory] = useState("Other");
+    const [priority, setPriority] = useState("Medium");
 
     const [loader, setLoader] = useState(false);
     const [message, setMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
+    const [expandedComplaints, setExpandedComplaints] = useState({});
 
     // Fetch complaints of current user
     useEffect(() => {
@@ -54,6 +64,8 @@ const StudentComplains = ({ child }) => {
         complaint,
         school,
         userType: "parent",
+        category,
+        priority,
     };
 
     const submitHandler = (event) => {
@@ -74,6 +86,8 @@ const StudentComplains = ({ child }) => {
             setMessage("Complaint submitted successfully! We will review it soon.");
             setComplaint("");
             setDate(todayDate);
+            setCategory("Other");
+            setPriority("Medium");
             dispatch(getComplains(user)); // Refresh complaints list
         }
         else if (error) {
@@ -87,7 +101,9 @@ const StudentComplains = ({ child }) => {
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
-            day: 'numeric'
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     };
 
@@ -95,8 +111,38 @@ const StudentComplains = ({ child }) => {
         return complaint.status || "Submitted";
     };
 
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'Submitted': return 'primary';
+            case 'In Progress': return 'warning';
+            case 'Responded': return 'success';
+            case 'Rejected': return 'error';
+            default: return 'default';
+        }
+    };
+
+    const getPriorityColor = (priority) => {
+        switch (priority) {
+            case 'Critical': return 'error';
+            case 'High': return 'warning';
+            case 'Medium': return 'info';
+            case 'Low': return 'success';
+            default: return 'default';
+        }
+    };
+
+    const toggleExpanded = (id) => {
+        setExpandedComplaints(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }));
+    };
+
+    const categories = ['Academic', 'Behavioral', 'Infrastructure', 'Staff', 'Other'];
+    const priorities = ['Low', 'Medium', 'High', 'Critical'];
+
     return (
-        <Box sx={{ maxWidth: 800, margin: '0 auto', p: 2 }}>
+        <Box sx={{ maxWidth: 900, margin: '0 auto', p: 2 }}>
             {/* Header */}
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <FeedbackIcon sx={{ fontSize: 30, color: '#f44336', mr: 2 }} />
@@ -117,27 +163,72 @@ const StudentComplains = ({ child }) => {
             <Card sx={{ mb: 4, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
                 <CardContent sx={{ p: 3 }}>
                     <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', fontWeight: 'bold' }}>
-                        ✍️ New Complaint
+                        ✏️ New Complaint
                     </Typography>
                     
                     <form onSubmit={submitHandler}>
                         <Stack spacing={3}>
-                            <TextField
-                                fullWidth
-                                label="Select Date"
-                                type="date"
-                                value={date}
-                                onChange={(event) => setDate(event.target.value)}
-                                required
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                                sx={{
-                                    '& .MuiOutlinedInput-root': {
-                                        borderRadius: 2
-                                    }
-                                }}
-                            />
+                            <Box sx={{ display: 'flex', gap: 2 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Select Date"
+                                    type="date"
+                                    value={date}
+                                    onChange={(event) => setDate(event.target.value)}
+                                    required
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2
+                                        }
+                                    }}
+                                />
+                                <TextField
+                                    select
+                                    fullWidth
+                                    label="Category"
+                                    value={category}
+                                    onChange={(event) => setCategory(event.target.value)}
+                                    SelectProps={{
+                                        native: true,
+                                    }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2
+                                        }
+                                    }}
+                                >
+                                    {categories.map((cat) => (
+                                        <option key={cat} value={cat}>
+                                            {cat}
+                                        </option>
+                                    ))}
+                                </TextField>
+                                <TextField
+                                    select
+                                    fullWidth
+                                    label="Priority"
+                                    value={priority}
+                                    onChange={(event) => setPriority(event.target.value)}
+                                    SelectProps={{
+                                        native: true,
+                                    }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2
+                                        }
+                                    }}
+                                >
+                                    {priorities.map((pri) => (
+                                        <option key={pri} value={pri}>
+                                            {pri}
+                                        </option>
+                                    ))}
+                                </TextField>
+                            </Box>
+                            
                             <TextField
                                 fullWidth
                                 label={`Write your complaint about ${child?.name || 'your child'}`}
@@ -192,53 +283,108 @@ const StudentComplains = ({ child }) => {
                             <Typography sx={{ ml: 2 }}>Loading complaints...</Typography>
                         </Box>
                     ) : complains && complains.length > 0 ? (
-                        <Paper elevation={2} sx={{ maxHeight: 400, overflow: 'auto', borderRadius: 2 }}>
-                            <List sx={{ p: 0 }}>
+                        <Box sx={{ maxHeight: 600, overflow: 'auto' }}>
+                            <Stack spacing={3}>
                                 {complains.map((item, index) => (
-                                    <div key={item._id || index}>
-                                        <ListItem 
-                                            alignItems="flex-start" 
-                                            sx={{ 
-                                                py: 2,
-                                                '&:hover': { backgroundColor: '#f9f9f9' }
-                                            }}
-                                        >
-                                            <ListItemText
-                                                primary={
-                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                                                            📅 {formatDate(item.date)}
-                                                        </Typography>
+                                    <Card 
+                                        key={item._id || index}
+                                        sx={{ 
+                                            borderRadius: 2, 
+                                            border: '1px solid #e0e0e0',
+                                            '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.1)' },
+                                            transition: 'box-shadow 0.2s'
+                                        }}
+                                    >
+                                        <CardContent sx={{ p: 3 }}>
+                                            {/* Header */}
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                                                    📅 {formatDate(item.date)}
+                                                </Typography>
+                                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                                    {item.priority && (
                                                         <Chip 
-                                                            label={getComplaintStatus(item)} 
+                                                            label={item.priority} 
                                                             size="small" 
-                                                            color="primary"
+                                                            color={getPriorityColor(item.priority)}
                                                             variant="outlined"
                                                         />
-                                                    </Box>
-                                                }
-                                                secondary={
-                                                    <Typography 
-                                                        variant="body2" 
-                                                        sx={{ 
-                                                            color: 'text.primary',
-                                                            backgroundColor: '#f8f9fa',
-                                                            p: 2,
-                                                            borderRadius: 1,
-                                                            mt: 1,
-                                                            border: '1px solid #e0e0e0'
-                                                        }}
+                                                    )}
+                                                    <Chip 
+                                                        label={getComplaintStatus(item)} 
+                                                        size="small" 
+                                                        color={getStatusColor(getComplaintStatus(item))}
+                                                    />
+                                                </Box>
+                                            </Box>
+
+                                            {/* Category */}
+                                            {item.category && (
+                                                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+                                                    📂 Category: {item.category}
+                                                </Typography>
+                                            )}
+
+                                            {/* Original Complaint */}
+                                            <Paper sx={{ 
+                                                p: 2, 
+                                                backgroundColor: '#f8f9fa', 
+                                                borderRadius: 1,
+                                                mb: 2 
+                                            }}>
+                                                <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                                                    {expandedComplaints[item._id] || item.complaint.length <= 200 
+                                                        ? item.complaint 
+                                                        : `${item.complaint.substring(0, 200)}...`}
+                                                </Typography>
+                                                
+                                                {item.complaint.length > 200 && (
+                                                    <Button 
+                                                        size="small" 
+                                                        onClick={() => toggleExpanded(item._id)}
+                                                        endIcon={expandedComplaints[item._id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                                        sx={{ mt: 1 }}
                                                     >
-                                                        {item.complaint}
+                                                        {expandedComplaints[item._id] ? 'Show Less' : 'Show More'}
+                                                    </Button>
+                                                )}
+                                            </Paper>
+
+                                            {/* Admin Response */}
+                                            {item.response ? (
+                                                <Paper sx={{ 
+                                                    p: 2, 
+                                                    backgroundColor: '#e3f2fd', 
+                                                    borderRadius: 1,
+                                                    border: '1px solid #2196f3' 
+                                                }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                                        <ChatIcon sx={{ fontSize: 16, color: '#1976d2', mr: 1 }} />
+                                                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                                                            Admin Response:
+                                                        </Typography>
+                                                    </Box>
+                                                    <Typography variant="body2" sx={{ mb: 1 }}>
+                                                        {item.response}
                                                     </Typography>
-                                                }
-                                            />
-                                        </ListItem>
-                                        {index < complains.length - 1 && <Divider />}
-                                    </div>
+                                                    {item.responseDate && (
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            Responded on: {formatDate(item.responseDate)}
+                                                        </Typography>
+                                                    )}
+                                                </Paper>
+                                            ) : (
+                                                <Alert severity="info" sx={{ fontSize: '0.875rem' }}>
+                                                    <Typography variant="body2">
+                                                        ⏳ Awaiting admin response. We will get back to you soon.
+                                                    </Typography>
+                                                </Alert>
+                                            )}
+                                        </CardContent>
+                                    </Card>
                                 ))}
-                            </List>
-                        </Paper>
+                            </Stack>
+                        </Box>
                     ) : (
                         <Box sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
                             <FeedbackIcon sx={{ fontSize: 60, mb: 2, opacity: 0.5 }} />
