@@ -122,7 +122,7 @@ const getAdminDetail = async (req, res) => {
 // ===== Upload Result File for Parent =====
 const uploadResultForParent = async (req, res) => {
     try {
-        const { parentId, description } = req.body;
+        const { parentId, description, subject, semester, examType } = req.body;
 
         if (!req.file) {
             return res.status(400).json({ message: "No file uploaded" });
@@ -143,6 +143,9 @@ const uploadResultForParent = async (req, res) => {
             fileUrl: `/uploads/results/${req.file.filename}`,
             originalName: req.file.originalname,
             description: description || '',
+            subject: subject || '',
+            semester: semester || '',
+            examType: examType || '',
             uploadedAt: new Date()
         });
 
@@ -161,7 +164,7 @@ const uploadResultForParent = async (req, res) => {
 // ===== Upload Worksheet/Assignment for Student =====
 const uploadWorksheetForStudent = async (req, res) => {
     try {
-        const { studentId, uploadType, description } = req.body;
+        const { studentId, uploadType, description, subject } = req.body;
 
         if (!req.file) {
             return res.status(400).json({ message: "No file uploaded" });
@@ -180,6 +183,7 @@ const uploadWorksheetForStudent = async (req, res) => {
             originalName: req.file.originalname,
             uploadType: uploadType, // 'worksheet' or 'assignment'
             description: description || '',
+            subject: subject || '',
             uploadedBy: 'admin'
         });
 
@@ -195,6 +199,7 @@ const uploadWorksheetForStudent = async (req, res) => {
             fileUrl: savedWorksheet.filePath,
             uploadType: uploadType,
             description: description || '',
+            subject: subject || '',
             uploadedAt: savedWorksheet.uploadDate
         });
         await student.save();
@@ -213,10 +218,16 @@ const uploadWorksheetForStudent = async (req, res) => {
 // ===== Upload Past Exam for Student =====
 const uploadPastExamForStudent = async (req, res) => {
     try {
-        const { studentId, subject, year, examType, description } = req.body;
+        const { studentId, subject, year, examType, description, grade } = req.body;
+
+        console.log('Uploading past exam with grade:', grade); // DEBUG
 
         if (!req.file) {
             return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        if (!grade) {
+            return res.status(400).json({ message: "Grade is required" });
         }
 
         // Verify student exists
@@ -235,10 +246,14 @@ const uploadPastExamForStudent = async (req, res) => {
             originalName: req.file.originalname,
             description: description || '',
             uploadedBy: req.body.adminId || 'admin',
-            mimeType: req.file.mimetype
+            mimeType: req.file.mimetype,
+            grade: grade // REQUIRED field
         });
 
+        console.log('Saving past exam with grade:', newPastExam.grade); // DEBUG
+
         const savedPastExam = await newPastExam.save();
+        console.log('Saved past exam:', savedPastExam); // DEBUG
 
         // Add to student's pastExams array if it doesn't exist
         if (!student.pastExams) {
@@ -253,10 +268,12 @@ const uploadPastExamForStudent = async (req, res) => {
             filename: req.file.filename,
             fileUrl: savedPastExam.filePath,
             description: description || '',
-            uploadedAt: savedPastExam.uploadDate
+            uploadedAt: savedPastExam.uploadDate,
+            grade: grade // REQUIRED field
         });
         
         await student.save();
+        console.log('Student updated with grade:', grade); // DEBUG
 
         res.status(201).json({
             message: `Past exam uploaded successfully`,
@@ -266,6 +283,67 @@ const uploadPastExamForStudent = async (req, res) => {
     } catch (error) {
         console.error('uploadPastExamForStudent error:', error);
         res.status(500).json({ message: "Server error uploading past exam file" });
+    }
+};
+
+// ===== NEW: Get Past Exams Organized by Grade → Subject → Year =====
+const getStudentPastExams = async (req, res) => {
+    try {
+        const studentId = req.params.studentId;
+
+        // Verify student exists
+        const student = await Student.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+
+        // Fetch past exams from PastExam collection
+        const pastExams = await PastExam.find({ student: studentId }).sort({ uploadDate: -1 });
+
+        // Organize by Grade → Subject → Year → Files structure
+        const organizedData = {};
+
+        pastExams.forEach(exam => {
+            const grade = exam.grade || 'Unknown Grade';
+            const subject = exam.subject;
+            const year = exam.year;
+
+            // Initialize grade level
+            if (!organizedData[grade]) {
+                organizedData[grade] = {};
+            }
+
+            // Initialize subject level
+            if (!organizedData[grade][subject]) {
+                organizedData[grade][subject] = {};
+            }
+
+            // Initialize year level
+            if (!organizedData[grade][subject][year]) {
+                organizedData[grade][subject][year] = [];
+            }
+
+            // Add file to appropriate grade → subject → year
+            organizedData[grade][subject][year].push({
+                _id: exam._id,
+                fileUrl: exam.filePath,
+                originalName: exam.originalName,
+                examType: exam.examType,
+                description: exam.description,
+                uploadedAt: exam.uploadDate,
+                uploadedBy: exam.uploadedBy,
+                mimeType: exam.mimeType,
+                grade: exam.grade,
+                subject: exam.subject,
+                year: exam.year
+            });
+        });
+
+        res.json(organizedData);
+
+    } catch (error) {
+        console.error('getStudentPastExams error:', error);
+        res.status(500).json({ message: "Server error fetching past exams" });
     }
 };
 
@@ -290,6 +368,7 @@ const getStudentWorksheets = async (req, res) => {
             originalName: w.originalName,
             uploadType: w.uploadType,
             description: w.description,
+            subject: w.subject || '',
             uploadedAt: w.uploadDate,
             uploadedBy: w.uploadedBy
         }));
@@ -312,5 +391,6 @@ module.exports = {
     uploadResultForParent,
     uploadPastExam,
     uploadWorksheetForStudent,
-    getStudentWorksheets
+    getStudentWorksheets,
+    getStudentPastExams // NEW: API endpoint for organized past exams
 };

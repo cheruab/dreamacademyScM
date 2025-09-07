@@ -3,15 +3,23 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 import { getAllParents } from '../../../redux/studentsRelated/parentHandle';
+import { deleteUser } from '../../../redux/userRelated/userHandle';
 
 import {
-    Paper, Box, IconButton
+    Paper, 
+    Box, 
+    Button,
+    Typography,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField
 } from '@mui/material';
-import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import { BlackButton, BlueButton, GreenButton } from '../../../components/buttonStyles';
+import WarningIcon from '@mui/icons-material/Warning';
+import { GreenButton } from '../../../components/buttonStyles';
 import TableTemplate from '../../../components/TableTemplate';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
-import SpeedDialTemplate from '../../../components/SpeedDialTemplate';
 import Popup from '../../../components/Popup';
 
 const ShowStudentss = () => {
@@ -30,13 +38,35 @@ const ShowStudentss = () => {
 
     const [showPopup, setShowPopup] = React.useState(false);
     const [message, setMessage] = React.useState("");
+    
+    // Delete confirmation dialog states
+    const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+    const [parentToDelete, setParentToDelete] = React.useState(null);
+    const [deleteConfirmText, setDeleteConfirmText] = React.useState('');
 
-    const deleteHandler = (deleteID, address) => {
-        console.log(deleteID);
-        console.log(address);
-        setMessage("Sorry the delete function has been disabled for now.")
-        setShowPopup(true)
-    }
+    const initiateDelete = (parent) => {
+        setParentToDelete(parent);
+        setDeleteConfirmText('');
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (deleteConfirmText.toLowerCase() === 'delete' && parentToDelete) {
+            dispatch(deleteUser(parentToDelete.id, "Parent"));
+            setMessage(`Parent "${parentToDelete.name}" has been deleted successfully.`);
+            setShowPopup(true);
+        }
+        
+        setDeleteDialogOpen(false);
+        setParentToDelete(null);
+        setDeleteConfirmText('');
+    };
+
+    const cancelDelete = () => {
+        setDeleteDialogOpen(false);
+        setParentToDelete(null);
+        setDeleteConfirmText('');
+    };
 
     const parentColumns = [
         { id: 'name', label: 'Name', minWidth: 170 },
@@ -61,27 +91,17 @@ const ShowStudentss = () => {
     const ParentButtonHaver = ({ row }) => {
         return (
             <>
-                <IconButton onClick={() => deleteHandler(row.id, "Parent")}>
-                    <PersonRemoveIcon color="error" />
-                </IconButton>
-                <BlueButton variant="contained"
-                    onClick={() => navigate("/Admin/parents/parent/" + row.id)}>
-                    View
-                </BlueButton>
+                <Button 
+                    variant="contained" 
+                    color="error"
+                    onClick={() => initiateDelete(row)}
+                    sx={{ minWidth: '80px' }}
+                >
+                    Delete
+                </Button>
             </>
         );
     };
-
-    const actions = [
-        {
-            icon: <PersonAddAlt1Icon color="primary" />, name: 'Add New Parent',
-            action: () => navigate("/Admin/addparents")
-        },
-        {
-            icon: <PersonRemoveIcon color="error" />, name: 'Delete All Parents',
-            action: () => deleteHandler(currentUser._id, "Parents")
-        },
-    ];
 
     return (
         <>
@@ -97,14 +117,69 @@ const ShowStudentss = () => {
                         </Box>
                         :
                         <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                            {/* Header with Add Parent Button */}
+                            <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="h6">Parents</Typography>
+                                <GreenButton 
+                                    variant="contained" 
+                                    startIcon={<PersonAddAlt1Icon />}
+                                    onClick={() => navigate("/Admin/addparents")}
+                                >
+                                    Add New Parent
+                                </GreenButton>
+                            </Box>
+
                             {Array.isArray(actualParentsList) && actualParentsList.length > 0 &&
                                 <TableTemplate buttonHaver={ParentButtonHaver} columns={parentColumns} rows={parentRows} />
                             }
-                            <SpeedDialTemplate actions={actions} />
                         </Paper>
                     }
                 </>
             }
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog 
+                open={deleteDialogOpen} 
+                onClose={cancelDelete}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <WarningIcon color="error" />
+                    Confirm Delete
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body1" sx={{ mb: 2 }}>
+                        Are you sure you want to delete the parent "{parentToDelete?.name}"?
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                        This action cannot be undone. All related data will be permanently removed.
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        label="Type 'delete' to confirm"
+                        value={deleteConfirmText}
+                        onChange={(e) => setDeleteConfirmText(e.target.value)}
+                        placeholder="delete"
+                        variant="outlined"
+                        helperText="Type 'delete' (case insensitive) to confirm deletion"
+                    />
+                </DialogContent>
+                <DialogActions sx={{ p: 3 }}>
+                    <Button onClick={cancelDelete} color="primary">
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={confirmDelete} 
+                        color="error"
+                        variant="contained"
+                        disabled={deleteConfirmText.toLowerCase() !== 'delete'}
+                    >
+                        Delete Parent
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </>
     );

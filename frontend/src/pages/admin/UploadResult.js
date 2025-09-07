@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllParents } from '../../redux/studentsRelated/parentHandle';
-import { getAllStudents } from '../../redux/studentRelated/studentHandle'; // Assuming this exists
+import { getAllStudents } from '../../redux/studentRelated/studentHandle';
 import PersonIcon from '@mui/icons-material/Person';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
@@ -30,6 +30,9 @@ const UploadResult = ({ onUploadSuccess }) => {
   const [parentUploading, setParentUploading] = useState(false);
   const [parentMessage, setParentMessage] = useState('');
   const [parentDescription, setParentDescription] = useState('');
+  const [parentSubject, setParentSubject] = useState('');
+  const [parentSemester, setParentSemester] = useState('');
+  const [parentExamType, setParentExamType] = useState('');
 
   // Student upload states (worksheets/assignments)
   const [studentId, setStudentId] = useState('');
@@ -37,7 +40,8 @@ const UploadResult = ({ onUploadSuccess }) => {
   const [studentUploading, setStudentUploading] = useState(false);
   const [studentMessage, setStudentMessage] = useState('');
   const [studentDescription, setStudentDescription] = useState('');
-  const [uploadType, setUploadType] = useState('worksheet'); // 'worksheet' or 'assignment'
+  const [uploadType, setUploadType] = useState('worksheet');
+  const [studentSubject, setStudentSubject] = useState('');
 
   // Past exam upload states
   const [pastExamStudentId, setPastExamStudentId] = useState('');
@@ -48,6 +52,7 @@ const UploadResult = ({ onUploadSuccess }) => {
   const [pastExamYear, setPastExamYear] = useState('');
   const [pastExamType, setPastExamType] = useState('');
   const [pastExamDescription, setPastExamDescription] = useState('');
+  const [pastExamGrade, setPastExamGrade] = useState(''); // REQUIRED field
 
   // New state for fetching actual subjects
   const [availableSubjects, setAvailableSubjects] = useState([]);
@@ -60,7 +65,21 @@ const UploadResult = ({ onUploadSuccess }) => {
 
   const examTypes = [
     'Mid-term Exam', 'Final Exam', 'Quiz', 'Unit Test', 'Practice Test',
-    'Mock Exam', 'Sample Paper', 'Previous Year Paper'
+    'Mock Exam', 'Sample Paper', 'Previous Year Paper', 'Monthly Test',
+    'Class Test', 'Annual Exam', 'Pre-board Exam'
+  ];
+
+  const semesters = [
+    'Semester 1', 'Semester 2', 'Semester 3', 'Semester 4',
+    'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8',
+    '1st Term', '2nd Term', '3rd Term', 'Annual'
+  ];
+
+  // UPDATED: More comprehensive grade options
+  const grades = [
+    'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
+    'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12',
+    'Kindergarten', 'Pre-K', 'Nursery'
   ];
 
   // Generate years (current year and 10 years back)
@@ -72,7 +91,7 @@ const UploadResult = ({ onUploadSuccess }) => {
     const role = localStorage.getItem("role");
     if (adminId && role) {
       dispatch(getAllParents(adminId, role));
-      dispatch(getAllStudents(adminId)); // Fetch students for worksheet/assignment uploads
+      dispatch(getAllStudents(adminId));
     }
   }, [dispatch]);
 
@@ -86,12 +105,10 @@ const UploadResult = ({ onUploadSuccess }) => {
     
     setSubjectsLoading(true);
     try {
-      // Try the same endpoint that ClassDetails.js uses for fetching subjects
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/AllSubjects/${currentUser._id}`);
       const data = await response.json();
       
       if (Array.isArray(data)) {
-        // Extract unique subject names from the response
         const uniqueSubjects = [...new Set(data.map(subject => subject.subName))].sort();
         setAvailableSubjects(uniqueSubjects);
       } else {
@@ -100,7 +117,6 @@ const UploadResult = ({ onUploadSuccess }) => {
       }
     } catch (error) {
       console.error('Error fetching subjects:', error);
-      // Fallback: if the API doesn't exist, use some common subjects as backup
       setAvailableSubjects([
         'Mathematics', 'English', 'Science', 'Physics', 'Chemistry', 'Biology',
         'History', 'Geography', 'Computer Science', 'Economics'
@@ -118,8 +134,8 @@ const UploadResult = ({ onUploadSuccess }) => {
 
   const handleParentSubmit = async e => {
     e.preventDefault();
-    if (!parentId || !parentFile) {
-      setParentMessage('Please select a parent and a file.');
+    if (!parentId || !parentFile || !parentSubject || !parentSemester || !parentExamType) {
+      setParentMessage('Please fill in all required fields.');
       return;
     }
 
@@ -127,6 +143,9 @@ const UploadResult = ({ onUploadSuccess }) => {
     formData.append('resultFile', parentFile);
     formData.append('parentId', parentId);
     formData.append('description', parentDescription);
+    formData.append('subject', parentSubject);
+    formData.append('semester', parentSemester);
+    formData.append('examType', parentExamType);
 
     setParentUploading(true);
     setParentMessage('');
@@ -142,6 +161,9 @@ const UploadResult = ({ onUploadSuccess }) => {
       setParentFile(null);
       setParentId('');
       setParentDescription('');
+      setParentSubject('');
+      setParentSemester('');
+      setParentExamType('');
 
       if (onUploadSuccess) {
         onUploadSuccess();
@@ -162,8 +184,8 @@ const UploadResult = ({ onUploadSuccess }) => {
 
   const handleStudentSubmit = async e => {
     e.preventDefault();
-    if (!studentId || !studentFile || !uploadType) {
-      setStudentMessage('Please select a student, file, and upload type.');
+    if (!studentId || !studentFile || !uploadType || !studentSubject) {
+      setStudentMessage('Please fill in all required fields.');
       return;
     }
 
@@ -172,6 +194,7 @@ const UploadResult = ({ onUploadSuccess }) => {
     formData.append('studentId', studentId);
     formData.append('uploadType', uploadType);
     formData.append('description', studentDescription);
+    formData.append('subject', studentSubject);
 
     setStudentUploading(true);
     setStudentMessage('');
@@ -188,6 +211,7 @@ const UploadResult = ({ onUploadSuccess }) => {
       setStudentId('');
       setStudentDescription('');
       setUploadType('worksheet');
+      setStudentSubject('');
 
       if (onUploadSuccess) {
         onUploadSuccess();
@@ -208,8 +232,10 @@ const UploadResult = ({ onUploadSuccess }) => {
 
   const handlePastExamSubmit = async e => {
     e.preventDefault();
-    if (!pastExamStudentId || !pastExamFile || !pastExamSubject || !pastExamYear || !pastExamType) {
-      setPastExamMessage('Please fill in all required fields and select a file.');
+    
+    // UPDATED: More comprehensive validation including grade
+    if (!pastExamStudentId || !pastExamFile || !pastExamSubject || !pastExamYear || !pastExamType || !pastExamGrade) {
+      setPastExamMessage('Please fill in all required fields including Grade.');
       return;
     }
 
@@ -220,16 +246,19 @@ const UploadResult = ({ onUploadSuccess }) => {
     formData.append('year', pastExamYear);
     formData.append('examType', pastExamType);
     formData.append('description', pastExamDescription);
+    formData.append('grade', pastExamGrade); // IMPORTANT: Grade is required
 
     setPastExamUploading(true);
     setPastExamMessage('');
 
     try {
-      await axios.post(`${process.env.REACT_APP_BASE_URL}/upload-pastexam`, formData, {
+      const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/upload-pastexam`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
+
+      console.log('Past exam upload response:', response.data); // DEBUG
 
       setPastExamMessage('Past exam uploaded successfully!');
       setPastExamFile(null);
@@ -238,13 +267,14 @@ const UploadResult = ({ onUploadSuccess }) => {
       setPastExamYear('');
       setPastExamType('');
       setPastExamDescription('');
+      setPastExamGrade(''); // Reset grade
 
       if (onUploadSuccess) {
         onUploadSuccess();
       }
     } catch (error) {
-      console.error(error);
-      setPastExamMessage('Error uploading past exam.');
+      console.error('Past exam upload error:', error);
+      setPastExamMessage(error.response?.data?.message || 'Error uploading past exam.');
     } finally {
       setPastExamUploading(false);
     }
@@ -292,6 +322,58 @@ const UploadResult = ({ onUploadSuccess }) => {
                   </Select>
                 </FormControl>
 
+                <FormControl fullWidth margin="normal" required>
+                  <InputLabel>Subject</InputLabel>
+                  <Select
+                    value={parentSubject}
+                    onChange={e => setParentSubject(e.target.value)}
+                    label="Subject"
+                    disabled={subjectsLoading}
+                  >
+                    {subjectsLoading ? (
+                      <MenuItem disabled>Loading subjects...</MenuItem>
+                    ) : availableSubjects.length === 0 ? (
+                      <MenuItem disabled>No subjects available</MenuItem>
+                    ) : (
+                      availableSubjects.map(subject => (
+                        <MenuItem key={subject} value={subject}>
+                          {subject}
+                        </MenuItem>
+                      ))
+                    )}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth margin="normal" required>
+                  <InputLabel>Semester</InputLabel>
+                  <Select
+                    value={parentSemester}
+                    onChange={e => setParentSemester(e.target.value)}
+                    label="Semester"
+                  >
+                    {semesters.map(semester => (
+                      <MenuItem key={semester} value={semester}>
+                        {semester}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth margin="normal" required>
+                  <InputLabel>Exam Type</InputLabel>
+                  <Select
+                    value={parentExamType}
+                    onChange={e => setParentExamType(e.target.value)}
+                    label="Exam Type"
+                  >
+                    {examTypes.map(type => (
+                      <MenuItem key={type} value={type}>
+                        {type}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
                 <TextField
                   fullWidth
                   margin="normal"
@@ -300,7 +382,7 @@ const UploadResult = ({ onUploadSuccess }) => {
                   onChange={e => setParentDescription(e.target.value)}
                   multiline
                   rows={2}
-                  placeholder="e.g., Mid-term exam results, Final grades..."
+                  placeholder="e.g., Chapter 1-5 coverage, Advanced level..."
                 />
 
                 <Box sx={{ mt: 2, mb: 2 }}>
@@ -380,6 +462,28 @@ const UploadResult = ({ onUploadSuccess }) => {
                 </FormControl>
 
                 <FormControl fullWidth margin="normal" required>
+                  <InputLabel>Subject</InputLabel>
+                  <Select
+                    value={studentSubject}
+                    onChange={e => setStudentSubject(e.target.value)}
+                    label="Subject"
+                    disabled={subjectsLoading}
+                  >
+                    {subjectsLoading ? (
+                      <MenuItem disabled>Loading subjects...</MenuItem>
+                    ) : availableSubjects.length === 0 ? (
+                      <MenuItem disabled>No subjects available</MenuItem>
+                    ) : (
+                      availableSubjects.map(subject => (
+                        <MenuItem key={subject} value={subject}>
+                          {subject}
+                        </MenuItem>
+                      ))
+                    )}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth margin="normal" required>
                   <InputLabel>Upload Type</InputLabel>
                   <Select
                     value={uploadType}
@@ -399,7 +503,7 @@ const UploadResult = ({ onUploadSuccess }) => {
                   onChange={e => setStudentDescription(e.target.value)}
                   multiline
                   rows={2}
-                  placeholder="e.g., Math worksheet Chapter 5, Science assignment..."
+                  placeholder="e.g., Chapter 5 exercises, Home assignment..."
                 />
 
                 <Box sx={{ mt: 2, mb: 2 }}>
@@ -445,7 +549,7 @@ const UploadResult = ({ onUploadSuccess }) => {
           </Card>
         </Grid>
 
-        {/* Past Exams Upload Section - FIXED */}
+        {/* Past Exams Upload Section */}
         <Grid item xs={12} lg={4}>
           <Card sx={{ height: '100%', boxShadow: 3 }}>
             <CardContent>
@@ -456,7 +560,7 @@ const UploadResult = ({ onUploadSuccess }) => {
                 </Typography>
               </Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Upload past exam papers organized by subject and year
+                Upload past exam papers organized by grade, subject and year
               </Typography>
 
               <form onSubmit={handlePastExamSubmit}>
@@ -479,7 +583,23 @@ const UploadResult = ({ onUploadSuccess }) => {
                   </Select>
                 </FormControl>
 
-                {/* FIXED: Use actual subjects from database instead of hardcoded list */}
+                {/* UPDATED: Grade field moved to top for emphasis */}
+                <FormControl fullWidth margin="normal" required>
+                  <InputLabel>Grade *</InputLabel>
+                  <Select
+                    value={pastExamGrade}
+                    onChange={e => setPastExamGrade(e.target.value)}
+                    label="Grade *"
+                    error={!pastExamGrade}
+                  >
+                    {grades.map(grade => (
+                      <MenuItem key={grade} value={grade}>
+                        {grade}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
                 <FormControl fullWidth margin="normal" required>
                   <InputLabel>Subject</InputLabel>
                   <Select

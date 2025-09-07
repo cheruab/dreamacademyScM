@@ -294,7 +294,7 @@ const TeacherStudentsList = () => {
             <CardContent>
                 <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                     <SubjectIcon color="primary" />
-                    My Teaching Assignments
+                    My Teaching 
                 </Typography>
                 
                 <Grid container spacing={2}>
@@ -313,7 +313,7 @@ const TeacherStudentsList = () => {
                 {assignmentData.hasMultiple && (
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                            Detailed Assignments:
+                            My Classes and Subjects:
                         </Typography>
                         {assignmentData.details.map((classAssignment, index) => (
                             <Box key={index} sx={{ mb: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1 }}>
@@ -422,9 +422,7 @@ const TeacherStudentsList = () => {
                                         {column.label}
                                     </StyledTableCell>
                                 ))}
-                                <StyledTableCell align="center">
-                                    Actions
-                                </StyledTableCell>
+                            
                             </StyledTableRow>
                         </TableHead>
                         <TableBody>
@@ -468,15 +466,7 @@ const TeacherStudentsList = () => {
                                                     {row.rollnum}
                                                 </Typography>
                                             </StyledTableCell>
-                                            <StyledTableCell align="center">
-                                                <BlueButton 
-                                                    variant="contained"
-                                                    size="small"
-                                                    onClick={() => navigate(`/Teacher/class/student/${row.id}`)}
-                                                >
-                                                    View Details
-                                                </BlueButton>
-                                            </StyledTableCell>
+                                          
                                         </StyledTableRow>
                                     );
                                 })}

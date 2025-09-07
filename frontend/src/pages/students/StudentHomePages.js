@@ -21,12 +21,7 @@ import EventIcon from '@mui/icons-material/Event';
 import FeedbackIcon from '@mui/icons-material/Feedback';
 
 const StudentHomePages = ({ child, parent }) => {
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 17) return "Good Afternoon";
-    return "Good Evening";
-  };
+
 
   const getAttendanceStats = () => {
     if (!child?.attendance || child.attendance.length === 0) {
@@ -65,42 +60,7 @@ const StudentHomePages = ({ child, parent }) => {
         boxSizing: "border-box",
       }}
     >
-      {/* Welcome Header */}
-      <Box sx={{ mb: 4 }}>
-        <Paper 
-          elevation={0}
-          sx={{ 
-            p: 4,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            borderRadius: 3,
-            textAlign: 'center'
-          }}
-        >
-          <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2 }}>
-            {getGreeting()}, {parent?.name || 'Dear Parent'}! 🌟
-          </Typography>
-          <Typography variant="h5" sx={{ opacity: 0.9, mb: 3 }}>
-            Welcome to your child <strong>{child?.name || 'Student'}</strong>'s academic dashboard
-          </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
-            <Chip 
-              icon={<SchoolIcon />}
-              label={child?.school?.schoolName || 'School'}
-              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 'bold' }}
-            />
-            <Chip 
-              icon={<ClassIcon />}
-              label={child?.sclassName?.sclassName || 'Class'}
-              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 'bold' }}
-            />
-            <Chip 
-              label={`Roll No: ${child?.rollNum || 'N/A'}`}
-              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 'bold' }}
-            />
-          </Box>
-        </Paper>
-      </Box>
+
 
       {/* Quick Stats */}
       <Grid container spacing={3} sx={{ mb: 4 }}>

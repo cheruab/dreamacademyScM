@@ -41,10 +41,23 @@ const pastExamSchema = new mongoose.Schema({
   mimeType: {
     type: String,
     default: ''
+  },
+  // UPDATED: Grade field is now required for proper folder organization
+  grade: {
+    type: String,
+    required: true, // Changed from default: '' to required: true
+    validate: {
+      validator: function(v) {
+        return v && v.trim().length > 0; // Ensure it's not empty
+      },
+      message: 'Grade is required and cannot be empty'
+    }
   }
 });
 
 // Index for efficient querying
 pastExamSchema.index({ student: 1, subject: 1, year: 1 });
+// Index for grade-based queries (primary index now)
+pastExamSchema.index({ student: 1, grade: 1, subject: 1, year: 1 });
 
 module.exports = mongoose.model('PastExam', pastExamSchema);

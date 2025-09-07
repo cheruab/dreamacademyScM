@@ -33,9 +33,13 @@ const uploadPastExam = multer({
 });
 
 // Upload past exam for a student
+// Upload past exam for a student
 const uploadPastExamForStudent = async (req, res) => {
     try {
-        const { studentId, subject, year, examType, description } = req.body;
+        const { studentId, subject, year, examType, description, grade } = req.body;
+
+        console.log('Uploading past exam with grade:', grade); // DEBUG
+        console.log('Full request body:', req.body); // DEBUG
 
         if (!req.file) {
             return res.status(400).json({ message: "No file uploaded" });
@@ -56,11 +60,15 @@ const uploadPastExamForStudent = async (req, res) => {
             filePath: `/uploads/pastexams/${req.file.filename}`,
             originalName: req.file.originalname,
             description: description || '',
-            uploadedBy: req.body.adminId || 'admin',
-            mimeType: req.file.mimetype
+            uploadedBy: req.user?.name || 'admin',
+            mimeType: req.file.mimetype,
+            grade: grade || 'Unknown Grade'
         });
 
+        console.log('Saving past exam with grade:', newPastExam.grade); // DEBUG
+
         const savedPastExam = await newPastExam.save();
+        console.log('Saved past exam:', savedPastExam); // DEBUG
 
         // Add to student's pastExams array if it doesn't exist
         if (!student.pastExams) {
@@ -75,10 +83,12 @@ const uploadPastExamForStudent = async (req, res) => {
             filename: req.file.filename,
             fileUrl: savedPastExam.filePath,
             description: description || '',
-            uploadedAt: savedPastExam.uploadDate
+            uploadedAt: savedPastExam.uploadDate,
+            grade: grade || 'Unknown Grade'
         });
         
         await student.save();
+        console.log('Student updated with grade:', grade); // DEBUG
 
         res.status(201).json({
             message: `Past exam uploaded successfully`,
@@ -90,8 +100,9 @@ const uploadPastExamForStudent = async (req, res) => {
         res.status(500).json({ message: "Server error uploading past exam file" });
     }
 };
-
 // Get all past exams for a student, organized by subject and year
+// Get all past exams for a student, organized by GRADE -> Subject -> Year
+// Get all past exams for a student, organized by GRADE -> Subject -> Year
 const getStudentPastExams = async (req, res) => {
     try {
         const studentId = req.params.studentId;
@@ -110,16 +121,31 @@ const getStudentPastExams = async (req, res) => {
             uploadDate: -1 
         });
 
-        // Organize by subject and year
-        const organizedExams = {};
+        console.log('Found', pastExams.length, 'past exams for student', studentId); // DEBUG
+
+        // Organize by GRADE -> Subject -> Year (NOT by Subject -> Year)
+        const organizedByGrade = {};
         pastExams.forEach(exam => {
-            if (!organizedExams[exam.subject]) {
-                organizedExams[exam.subject] = {};
+            // Use the grade from the exam, or default to 'Unknown Grade'
+            const grade = exam.grade || 'Unknown Grade';
+            
+            // Initialize grade level if it doesn't exist
+            if (!organizedByGrade[grade]) {
+                organizedByGrade[grade] = {};
             }
-            if (!organizedExams[exam.subject][exam.year]) {
-                organizedExams[exam.subject][exam.year] = [];
+            
+            // Initialize subject if it doesn't exist
+            if (!organizedByGrade[grade][exam.subject]) {
+                organizedByGrade[grade][exam.subject] = {};
             }
-            organizedExams[exam.subject][exam.year].push({
+            
+            // Initialize year if it doesn't exist
+            if (!organizedByGrade[grade][exam.subject][exam.year]) {
+                organizedByGrade[grade][exam.subject][exam.year] = [];
+            }
+            
+            // Add file to the appropriate grade -> subject -> year
+            organizedByGrade[grade][exam.subject][exam.year].push({
                 _id: exam._id,
                 fileUrl: exam.filePath,
                 originalName: exam.originalName,
@@ -127,11 +153,13 @@ const getStudentPastExams = async (req, res) => {
                 description: exam.description,
                 uploadedAt: exam.uploadDate,
                 uploadedBy: exam.uploadedBy,
-                mimeType: exam.mimeType
+                mimeType: exam.mimeType,
+                grade: exam.grade
             });
         });
 
-        res.json(organizedExams);
+        console.log('Organized by grade:', Object.keys(organizedByGrade)); // DEBUG
+        res.json(organizedByGrade);
 
     } catch (error) {
         console.error('getStudentPastExams error:', error);
@@ -158,7 +186,9 @@ const getPastExamsBySubjectYear = async (req, res) => {
             description: exam.description,
             uploadedAt: exam.uploadDate,
             uploadedBy: exam.uploadedBy,
-            mimeType: exam.mimeType
+            mimeType: exam.mimeType,
+            // FIXED: Return the actual grade from database
+            grade: exam.grade
         }));
 
         res.json(formattedExams);
@@ -202,6 +232,23 @@ const getSubjectYears = async (req, res) => {
     }
 };
 
+// Get available grades for a student
+const getStudentGrades = async (req, res) => {
+    try {
+        const studentId = req.params.studentId;
+
+        const grades = await PastExam.distinct('grade', { 
+            student: studentId 
+        }).then(grades => grades.filter(grade => grade && grade.trim() !== ''));
+        
+        res.json(grades.sort());
+
+    } catch (error) {
+        console.error('getStudentGrades error:', error);
+        res.status(500).json({ message: "Server error fetching grades" });
+    }
+};
+
 // Delete a past exam
 const deletePastExam = async (req, res) => {
     try {
@@ -229,6 +276,27 @@ const deletePastExam = async (req, res) => {
     }
 };
 
+// DEBUG: Check what grades are actually in the database
+const debugCheckGrades = async (req, res) => {
+    try {
+        const studentId = req.params.studentId;
+        const pastExams = await PastExam.find({ student: studentId });
+        
+        console.log('All past exams for student:', studentId);
+        pastExams.forEach(exam => {
+            console.log(`Exam: ${exam.subject}, Grade: "${exam.grade}"`);
+        });
+        
+        const distinctGrades = await PastExam.distinct('grade', { student: studentId });
+        console.log('Distinct grades in database:', distinctGrades);
+        
+        res.json({ pastExams, distinctGrades });
+    } catch (error) {
+        console.error('Debug error:', error);
+        res.status(500).json({ message: "Debug error" });
+    }
+};
+
 module.exports = {
     uploadPastExam,
     uploadPastExamForStudent,
@@ -236,5 +304,7 @@ module.exports = {
     getPastExamsBySubjectYear,
     getStudentSubjects,
     getSubjectYears,
-    deletePastExam
+    getStudentGrades,
+    deletePastExam,
+    debugCheckGrades
 };

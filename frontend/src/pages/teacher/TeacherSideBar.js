@@ -50,13 +50,6 @@ const TeacherSideBar = () => {
                     <ListItemText primary="Home" />
                 </ListItemButton>
                 
-                {/* My Subject */}
-                <ListItemButton component={Link} to="/Teacher/class">
-                    <ListItemIcon>
-                        <ClassOutlinedIcon color={location.pathname.startsWith("/Teacher/class") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary= "My Subjects " />
-                </ListItemButton>
 
                 {/* Student Management */}
                 <ListItemButton onClick={handleStudentsClick}>

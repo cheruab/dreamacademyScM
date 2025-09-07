@@ -39,6 +39,7 @@ const { adminRegister,
     uploadPastExamForStudent,
     uploadResultForParent, 
     uploadWorksheetForStudent,
+    getStudentPastExams,
     getStudentWorksheets  } = require('../controllers/admin-controller.js');
 const {uploadResult: uploadResultController, 
     getParentResults} = require('../controllers/resultController.js');
@@ -499,54 +500,12 @@ router.get('/SubjectsWithAssignments/:id', async (req, res) => {
 // Past exam upload route
 // Use the admin controller version (which seems to be your preferred pattern)
 router.post('/upload-pastexam', uploadPastExam.single('pastExamFile'), uploadPastExamForStudent);
-// Add these routes to your route.js file
+
+// NEW: Route for getting past exams organized by Grade -> Subject -> Year
+router.get('/student-pastexams/:studentId', getStudentPastExams);
 
 // Get all past exams for a student (organized by subject and year)
-// Update the student past exams route
-router.get('/student-pastexams/:studentId', async (req, res) => {
-    try {
-        const { studentId } = req.params;
-        console.log('Fetching past exams for student:', studentId);
-
-        if (!mongoose.Types.ObjectId.isValid(studentId)) {
-            return res.status(400).json({ message: 'Invalid student ID' });
-        }
-
-        // Find all past exams for this student
-        const pastExams = await PastExam.find({ student: studentId })
-            .sort({ uploadDate: -1 });
-
-        console.log(`Found ${pastExams.length} past exams for student ${studentId}`);
-
-        // Organize by subject and year and map filePath to fileUrl
-        const organizedData = {};
-        
-        pastExams.forEach(exam => {
-            if (!organizedData[exam.subject]) {
-                organizedData[exam.subject] = {};
-            }
-            if (!organizedData[exam.subject][exam.year]) {
-                organizedData[exam.subject][exam.year] = [];
-            }
-            
-            // Map filePath to fileUrl for frontend compatibility
-            const examWithFileUrl = {
-                ...exam.toObject(),
-                fileUrl: exam.filePath // Map filePath to fileUrl
-            };
-            
-            organizedData[exam.subject][exam.year].push(examWithFileUrl);
-        });
-
-        console.log('Organized past exams:', Object.keys(organizedData));
-        res.json(organizedData);
-
-    } catch (error) {
-        console.error('Error fetching student past exams:', error);
-        res.status(500).json({ message: 'Server error fetching past exams' });
-    }
-});
-
+// Update the student past exams ro
 // Update the specific past exam files route
 router.get('/pastexams/:studentId/:subject/:year', async (req, res) => {
     try {

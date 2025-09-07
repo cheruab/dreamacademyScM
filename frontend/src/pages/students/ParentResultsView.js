@@ -146,7 +146,7 @@ const ParentResultsView = () => {
       <Box sx={{ mt: 4, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
         <Typography variant="body2" color="text.secondary">
           <strong>Note:</strong> Exam results are uploaded by school administration. 
-          If you have questions about any results, please contact your child's teacher or school office.
+          If you have questions about any results, please write us your Complains or visit our school office.
         </Typography>
       </Box>
     </Box>
