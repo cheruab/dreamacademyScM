@@ -4,7 +4,7 @@ const Parent = require('../models/studentSchemas'); // Parent model
 // Upload a result file for a parent
 const uploadResult = async (req, res) => {
   try {
-    const { parentId } = req.body;
+    const { parentId, subject, semester, examType, description } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
@@ -16,21 +16,33 @@ const uploadResult = async (req, res) => {
       return res.status(404).json({ message: "Parent not found" });
     }
 
-    // Save result info in Result collection
+    // Save result info in Result collection with additional metadata
     const newResult = new Result({
       parent: parentId,
       filePath: `/uploads/results/${req.file.filename}`, // relative path
       originalName: req.file.originalname,
+      subject: subject || 'General',
+      semester: semester,
+      examType: examType,
+      description: description || ''
     });
 
     const savedResult = await newResult.save();
 
-    // Optionally, also store in parent's uploadedResults array
+    // Also store in parent's uploadedResults array with metadata
+    if (!parent.uploadedResults) {
+      parent.uploadedResults = [];
+    }
+    
     parent.uploadedResults.push({
       filename: req.file.filename,
       fileUrl: newResult.filePath,
+      originalName: req.file.originalname,
       uploadedAt: savedResult.uploadDate,
-      description: req.body.description || ''
+      subject: subject || 'General',
+      semester: semester,
+      examType: examType,
+      description: description || ''
     }); 
     await parent.save();
 
@@ -59,12 +71,17 @@ const getParentResults = async (req, res) => {
     // Fetch results from Result collection
     const results = await Result.find({ parent: parentId }).sort({ uploadDate: -1 });
 
-    // Map results to consistent frontend structure
+    // Map results to consistent frontend structure with all metadata
     const formattedResults = results.map(r => ({
       _id: r._id,
       fileUrl: r.filePath,
       originalName: r.originalName,
-      uploadedAt: r.uploadDate
+      uploadedAt: r.uploadDate,
+      subject: r.subject || 'General',
+      semester: r.semester,
+      examType: r.examType,
+      description: r.description,
+      mimeType: r.mimeType // Include mimeType if available
     }));
 
     res.json(formattedResults);

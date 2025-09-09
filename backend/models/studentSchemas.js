@@ -29,14 +29,20 @@ const studentSchemas = new mongoose.Schema({
         required: true,
     },
 
-    uploadedResults: [
-  {
-    filename: String,
-    fileUrl: String,   // stored file URL/path
-    uploadedAt: { type: Date, default: Date.now },
-    description: String  // optional, e.g. "Math exam result"
-  }
-],
+    uploadedResults: [{
+        filename: String,
+        fileUrl: String,
+        originalName: String,
+        description: String,
+        subject: String,
+        semester: String,
+        examType: String,
+        mimeType: String,
+        uploadedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
 // In parentModel.js
 resultFile: {
   type: String,

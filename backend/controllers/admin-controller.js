@@ -160,6 +160,59 @@ const uploadResultForParent = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+// Add this to your admin-controller.js file
+
+// ===== Get Parent Results (Organized by Subject → Semester) =====
+const getParentResults = async (req, res) => {
+    try {
+        const parentId = req.params.parentId;
+
+        // Verify parent exists
+        const parent = await Parent.findById(parentId);
+        if (!parent) {
+            return res.status(404).json({ message: "Parent not found" });
+        }
+
+        // Get results from parent's uploadedResults array
+        const results = parent.uploadedResults || [];
+
+        // Organize by Subject → Semester → Files structure
+        const organizedData = {};
+
+        results.forEach(result => {
+            const subject = result.subject || 'General';
+            const semester = result.semester || 'No Semester';
+
+            // Initialize subject level
+            if (!organizedData[subject]) {
+                organizedData[subject] = {};
+            }
+
+            // Initialize semester level
+            if (!organizedData[subject][semester]) {
+                organizedData[subject][semester] = [];
+            }
+
+            // Add file to appropriate subject → semester
+            organizedData[subject][semester].push({
+                _id: result._id,
+                fileUrl: result.fileUrl,
+                originalName: result.originalName,
+                examType: result.examType,
+                description: result.description,
+                uploadedAt: result.uploadedAt,
+                subject: result.subject,
+                semester: result.semester
+            });
+        });
+
+        res.json(organizedData);
+
+    } catch (error) {
+        console.error('getParentResults error:', error);
+        res.status(500).json({ message: "Server error fetching parent results" });
+    }
+};
 
 // ===== Upload Worksheet/Assignment for Student =====
 const uploadWorksheetForStudent = async (req, res) => {
@@ -391,6 +444,7 @@ module.exports = {
     uploadResultForParent,
     uploadPastExam,
     uploadWorksheetForStudent,
+    getParentResults,
     getStudentWorksheets,
     getStudentPastExams // NEW: API endpoint for organized past exams
 };

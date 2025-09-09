@@ -5,7 +5,9 @@ import { getAllTeachers } from '../../../redux/teacherRelated/teacherHandle';
 import {
     Paper, Table, TableBody, TableContainer,
     TableHead, TablePagination, Button, Box,
-    Chip, Stack, Typography
+    Chip, Stack, Typography, Dialog, DialogActions,
+    DialogContent, DialogContentText, DialogTitle,
+    TextField
 } from '@mui/material';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import { StyledTableCell, StyledTableRow } from '../../../components/styles';
@@ -28,6 +30,9 @@ const ShowTeachers = () => {
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [teacherToDelete, setTeacherToDelete] = useState(null);
+    const [confirmationText, setConfirmationText] = useState("");
 
     if (loading) {
         return <div>Loading...</div>;
@@ -45,7 +50,23 @@ const ShowTeachers = () => {
     }
 
     const deleteHandler = (deleteID) => {
-        dispatch(deleteUser(deleteID, "Teacher"));
+        setTeacherToDelete(deleteID);
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (confirmationText.toLowerCase() === 'delete') {
+            dispatch(deleteUser(teacherToDelete, "Teacher"));
+            setDeleteDialogOpen(false);
+            setConfirmationText("");
+            setTeacherToDelete(null);
+        }
+    };
+
+    const cancelDelete = () => {
+        setDeleteDialogOpen(false);
+        setConfirmationText("");
+        setTeacherToDelete(null);
     };
 
     // Helper function to format assignments for display (simplified - no dropdown)
@@ -130,84 +151,127 @@ const ShowTeachers = () => {
     };
 
     return (
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            {/* Header with Add Teacher Button */}
-            <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6">Teachers</Typography>
-                <GreenButton 
-                    variant="contained" 
-                    startIcon={<PersonAddAlt1Icon />}
-                    onClick={() => navigate(`/Admin/teachers/addteacher/${currentUser._id}`)}
-                >
-                    Add New Teacher
-                </GreenButton>
-            </Box>
+        <>
+            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                {/* Header with Add Teacher Button */}
+                <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h6">Teachers</Typography>
+                    <GreenButton 
+                        variant="contained" 
+                        startIcon={<PersonAddAlt1Icon />}
+                        onClick={() => navigate(`/Admin/teachers/addteacher/${currentUser._id}`)}
+                    >
+                        Add New Teacher
+                    </GreenButton>
+                </Box>
 
-            <TableContainer>
-                <Table stickyHeader aria-label="sticky table">
-                    <TableHead>
-                        <StyledTableRow>
-                            {columns.map((column) => (
-                                <StyledTableCell
-                                    key={column.id}
-                                    align={column.align}
-                                    style={{ minWidth: column.minWidth }}
-                                >
-                                    {column.label}
+                <TableContainer>
+                    <Table stickyHeader aria-label="sticky table">
+                        <TableHead>
+                            <StyledTableRow>
+                                {columns.map((column) => (
+                                    <StyledTableCell
+                                        key={column.id}
+                                        align={column.align}
+                                        style={{ minWidth: column.minWidth }}
+                                    >
+                                        {column.label}
+                                    </StyledTableCell>
+                                ))}
+                                <StyledTableCell align="center">
+                                    Actions
                                 </StyledTableCell>
-                            ))}
-                            <StyledTableCell align="center">
-                                Actions
-                            </StyledTableCell>
-                        </StyledTableRow>
-                    </TableHead>
-                    <TableBody>
-                        {rows
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((row) => {
-                                return (
-                                    <StyledTableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                                        <StyledTableCell>
-                                            {row.name}
-                                        </StyledTableCell>
-                                        <StyledTableCell>
-                                            <AssignmentCell 
-                                                assignment={row.assignments}
-                                            />
-                                        </StyledTableCell>
-                                        <StyledTableCell>
-                                            {row.email}
-                                        </StyledTableCell>
-                                        <StyledTableCell align="center">
-                                            <Button 
-                                                variant="contained" 
-                                                color="error"
-                                                onClick={() => deleteHandler(row.id)}
-                                            >
-                                                Delete
-                                            </Button>
-                                        </StyledTableCell>
-                                    </StyledTableRow>
-                                );
-                            })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <TablePagination
-                rowsPerPageOptions={[5, 10, 25, 100]}
-                component="div"
-                count={rows.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={(event, newPage) => setPage(newPage)}
-                onRowsPerPageChange={(event) => {
-                    setRowsPerPage(parseInt(event.target.value, 10));
-                    setPage(0);
-                }}
-            />
+                            </StyledTableRow>
+                        </TableHead>
+                        <TableBody>
+                            {rows
+                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                .map((row) => {
+                                    return (
+                                        <StyledTableRow hover role="checkbox" tabIndex={-1} key={row.id}>
+                                            <StyledTableCell>
+                                                {row.name}
+                                            </StyledTableCell>
+                                            <StyledTableCell>
+                                                <AssignmentCell 
+                                                    assignment={row.assignments}
+                                                />
+                                            </StyledTableCell>
+                                            <StyledTableCell>
+                                                {row.email}
+                                            </StyledTableCell>
+                                            <StyledTableCell align="center">
+                                                <Button 
+                                                    variant="contained" 
+                                                    color="error"
+                                                    onClick={() => deleteHandler(row.id)}
+                                                >
+                                                    Delete
+                                                </Button>
+                                            </StyledTableCell>
+                                        </StyledTableRow>
+                                    );
+                                })}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25, 100]}
+                    component="div"
+                    count={rows.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={(event, newPage) => setPage(newPage)}
+                    onRowsPerPageChange={(event) => {
+                        setRowsPerPage(parseInt(event.target.value, 10));
+                        setPage(0);
+                    }}
+                />
 
-            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-        </Paper>
+                <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
+            </Paper>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={cancelDelete}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    Confirm Deletion
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Are you sure you want to delete this teacher? This action cannot be undone.
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Type 'delete' to confirm"
+                        type="text"
+                        fullWidth
+                        variant="outlined"
+                        value={confirmationText}
+                        onChange={(e) => setConfirmationText(e.target.value)}
+                        sx={{ mt: 2 }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={cancelDelete} color="primary">
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={confirmDelete} 
+                        color="error" 
+                        disabled={confirmationText.toLowerCase() !== 'delete'}
+                        variant="contained"
+                    >
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </>
     );
 };
 

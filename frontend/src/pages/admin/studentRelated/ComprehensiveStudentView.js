@@ -258,7 +258,12 @@ const ComprehensiveStudentView = () => {
         
         // Calculate exam statistics
         const totalExams = examResultsData.length;
-        const passedExams = examResultsData.filter(result => result.passed).length;
+      // In calculateStats function, replace the passedExams calculation with:
+        const passedExams = examResultsData.filter(result => {
+            // Ignore the faulty 'passed' field from backend and calculate based on percentage
+            const passingGrade = 60; // Adjust this threshold as needed
+            return result.percentage >= passingGrade;
+        }).length;
         const averageScore = totalExams > 0 
             ? Math.round(examResultsData.reduce((sum, result) => sum + result.percentage, 0) / totalExams)
             : 0;
@@ -616,6 +621,7 @@ const ComprehensiveStudentView = () => {
                         )}
                     </TabPanel>
 
+                                        {/* Exam Results Tab */}
                     {/* Exam Results Tab */}
                     <TabPanel value={tabValue} index={1}>
                         <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
@@ -624,7 +630,21 @@ const ComprehensiveStudentView = () => {
                         {examResults.length > 0 ? (
                             <Grid container spacing={3}>
                                 {examResults.map((result, index) => {
+                                    // Add debugging line
+                                    console.log(`Exam ${index + 1}:`, {
+                                        percentage: result.percentage,
+                                        passed: result.passed,
+                                        passedType: typeof result.passed,
+                                        score: result.score,
+                                        totalQuestions: result.totalQuestions
+                                    });
+                                    
                                     const gradeInfo = getGradeFromPercentage(result.percentage);
+                                    
+                                    // Calculate if passed - ignore faulty backend 'passed' field
+                                    const passingGrade = 60; // Adjust this threshold based on your school's requirements
+                                    const isPassed = result.percentage >= passingGrade;
+                                    
                                     return (
                                         <Grid item xs={12} key={result._id || index}>
                                             <Card elevation={2}>
@@ -688,9 +708,9 @@ const ComprehensiveStudentView = () => {
                                                                         Status
                                                                     </Typography>
                                                                     <Chip
-                                                                        icon={result.passed ? <CheckCircleIcon /> : <CancelIcon />}
-                                                                        label={result.passed ? 'PASSED' : 'FAILED'}
-                                                                        color={result.passed ? 'success' : 'error'}
+                                                                        icon={isPassed ? <CheckCircleIcon /> : <CancelIcon />}
+                                                                        label={isPassed ? 'PASSED' : 'FAILED'}
+                                                                        color={isPassed ? 'success' : 'error'}
                                                                         size="small"
                                                                     />
                                                                 </Grid>

@@ -471,7 +471,7 @@ const LessonPlanDashboard = () => {
                                         window.location.href = `/lesson-plan/?planId=${selectedPlan._id}`;
                                     }}
                                 >
-                                    View Full Details
+                                    View Full Lesson Plan
                                 </button>
                             </div>
                         </div>

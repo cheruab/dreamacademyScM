@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserDetails } from '../../redux/userRelated/userHandle';
 import { 
-    BottomNavigation, 
-    BottomNavigationAction, 
     Container, 
     Paper, 
     Table, 
@@ -23,10 +21,6 @@ import {
 } from '@mui/material';
 import CustomBarChart from '../../components/CustomBarChart';
 
-import InsertChartIcon from '@mui/icons-material/InsertChart';
-import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
-import TableChartIcon from '@mui/icons-material/TableChart';
-import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import BookIcon from '@mui/icons-material/Book';
 import GradeIcon from '@mui/icons-material/Grade';
 import QuizIcon from '@mui/icons-material/Quiz';
@@ -42,8 +36,7 @@ const StudentSubjectss = ({ studentId, child }) => {
 
     const [subjectMarks, setSubjectMarks] = useState([]);
     const [enrolledSubjects, setEnrolledSubjects] = useState([]);
-    const [examResults, setExamResults] = useState([]); // New state for exam results
-    const [selectedSection, setSelectedSection] = useState('subjects');
+    const [examResults, setExamResults] = useState([]);
     const [subjectsLoading, setSubjectsLoading] = useState(true);
     const [examResultsLoading, setExamResultsLoading] = useState(true);
     const [subjectsError, setSubjectsError] = useState('');
@@ -76,7 +69,7 @@ const StudentSubjectss = ({ studentId, child }) => {
                 setSubjectsLoading(true);
                 setSubjectsError('');
                 
-                // Get class ID - handle different possible structures including arrays
+                // Get class ID
                 let classId;
                 
                 if (Array.isArray(child.sclassName)) {
@@ -144,7 +137,6 @@ const StudentSubjectss = ({ studentId, child }) => {
                 setExamResultsLoading(true);
                 console.log("Fetching exam results for student:", child._id);
                 
-                // Fetch exam results for the student
                 const examResultsResponse = await axios.get(`${process.env.REACT_APP_BASE_URL}/student/${child._id}/exam-results`);
                 console.log("Exam results response:", examResultsResponse.data);
                 
@@ -163,10 +155,6 @@ const StudentSubjectss = ({ studentId, child }) => {
 
         fetchExamResults();
     }, [child]);
-
-    const handleSectionChange = (event, newSection) => {
-        setSelectedSection(newSection);
-    };
 
     const renderSubjectsSection = () => (
         <Container maxWidth="md" sx={{ mb: 4 }}>
@@ -358,7 +346,7 @@ const StudentSubjectss = ({ studentId, child }) => {
     );
 
     const renderTableSection = () => (
-        <Container maxWidth="md">
+        <Container maxWidth="md" sx={{ mb: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <GradeIcon sx={{ fontSize: 30, color: '#ff9800', mr: 2 }} />
                 <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#ff9800' }}>
@@ -422,9 +410,9 @@ const StudentSubjectss = ({ studentId, child }) => {
     );
 
     const renderChartSection = () => (
-        <Container maxWidth="md">
+        <Container maxWidth="md" sx={{ mb: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <InsertChartIcon sx={{ fontSize: 30, color: '#9c27b0', mr: 2 }} />
+                <GradeIcon sx={{ fontSize: 30, color: '#9c27b0', mr: 2 }} />
                 <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#9c27b0' }}>
                     📈 Marks Chart (Traditional)
                 </Typography>
@@ -433,7 +421,7 @@ const StudentSubjectss = ({ studentId, child }) => {
             {subjectMarks.length === 0 ? (
                 <Card sx={{ textAlign: 'center', py: 4 }}>
                     <CardContent>
-                        <InsertChartIcon sx={{ fontSize: 60, color: 'grey.400', mb: 2 }} />
+                        <GradeIcon sx={{ fontSize: 60, color: 'grey.400', mb: 2 }} />
                         <Typography variant="h6" color="text.secondary">
                             No data to display chart
                         </Typography>
@@ -459,49 +447,15 @@ const StudentSubjectss = ({ studentId, child }) => {
                 </Box>
             ) : (
                 <div>
-                    {/* Always render subjects first */}
-                    {selectedSection === 'subjects' && renderSubjectsSection()}
-
-                    {/* Show exam results section */}
-                    {selectedSection === 'examResults' && renderExamResultsSection()}
-
-                    {/* Then render traditional marks sections if present */}
+                    {/* Render all sections in a single scrollable page */}
+                    {renderSubjectsSection()}
+                    {renderExamResultsSection()}
                     {subjectMarks && subjectMarks.length > 0 && (
                         <>
-                            {selectedSection === 'table' && renderTableSection()}
-                            {selectedSection === 'chart' && renderChartSection()}
+                            {renderTableSection()}
+                            {renderChartSection()}
                         </>
                     )}
-
-                    {/* Bottom Navigation */}
-                    <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
-                        <BottomNavigation value={selectedSection} onChange={handleSectionChange} showLabels>
-                            <BottomNavigationAction
-                                label="Subjects"
-                                value="subjects"
-                                icon={<BookIcon />}
-                            />
-                            <BottomNavigationAction
-                                label="Exam Results"
-                                value="examResults"
-                                icon={<QuizIcon />}
-                            />
-                            {subjectMarks && subjectMarks.length > 0 && (
-                                <>
-                                    <BottomNavigationAction
-                                        label="Traditional Marks"
-                                        value="table"
-                                        icon={selectedSection === 'table' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
-                                    />
-                                    <BottomNavigationAction
-                                        label="Marks Chart"
-                                        value="chart"
-                                        icon={selectedSection === 'chart' ? <InsertChartIcon /> : <InsertChartOutlinedIcon />}
-                                    />
-                                </>
-                            )}
-                        </BottomNavigation>
-                    </Paper>
                 </div>
             )}
         </>

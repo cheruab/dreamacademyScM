@@ -39,10 +39,9 @@ const { adminRegister,
     uploadPastExamForStudent,
     uploadResultForParent, 
     uploadWorksheetForStudent,
+    getParentResults,
     getStudentPastExams,
     getStudentWorksheets  } = require('../controllers/admin-controller.js');
-const {uploadResult: uploadResultController, 
-    getParentResults} = require('../controllers/resultController.js');
 
 const { 
     sclassCreate, 
@@ -173,7 +172,6 @@ router.post("/ParentLogin", parentLogIn);
 router.get("/Parents/:id", getParents);
 router.get("/Parent/:id", getParentDetail);
 router.get('/parents/:parentId/children', getMyChild);
-router.get('/api/parent/results/:parentId', getParentResults);
 
 
 router.post('/uploadResult', uploadResult.single('resultFile'), uploadResultForParent);
@@ -183,7 +181,7 @@ router.post('/upload-worksheet', uploadWorksheet.single('worksheetFile'), upload
 router.get('/student-worksheets/:studentId', getStudentWorksheets);
 // Add these route fixes to your route.js file
 // Fix the parent results route - it should match what the frontend is calling
-router.get('/api/parent/results/:parentId', getParentResults);
+
 
 // Fix the parent children route to match frontend expectations
 router.get('/parents/:parentId/children', getMyChild);

@@ -9,25 +9,21 @@ import {
   Typography, 
   Paper, 
   CircularProgress,
-  useTheme,
   Card,
   CardContent,
   Button,
-  Collapse,
   Chip,
   Grid,
   Divider,
   Badge,
-  Tooltip
+  Tooltip,
+  Stack
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import QuizIcon from '@mui/icons-material/Quiz';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ScheduleIcon from '@mui/icons-material/Schedule';
 import LockIcon from '@mui/icons-material/Lock';
 import GradeIcon from '@mui/icons-material/Grade';
 import TimerIcon from '@mui/icons-material/Timer';
@@ -35,130 +31,183 @@ import BookIcon from '@mui/icons-material/Book';
 import ArticleIcon from '@mui/icons-material/Article';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import SchoolIcon from '@mui/icons-material/School';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import axios from 'axios';
 
-// Complete theme configuration
+// Modern professional theme
 const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#3f51b5',
-      light: '#7986cb',
-      dark: '#303f9f',
+      main: '#2563eb',
+      light: '#60a5fa',
+      dark: '#1d4ed8',
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#f50057',
-      light: '#ff5983',
-      dark: '#c51162',
+      main: '#7c3aed',
+      light: '#a78bfa',
+      dark: '#5b21b6',
       contrastText: '#ffffff',
     },
     success: {
-      main: '#4caf50',
-      light: '#81c784',
-      dark: '#388e3c',
+      main: '#059669',
+      light: '#34d399',
+      dark: '#047857',
       contrastText: '#ffffff',
     },
     warning: {
-      main: '#ff9800',
-      light: '#ffb74d',
-      dark: '#f57c00',
-      contrastText: 'rgba(0, 0, 0, 0.87)',
+      main: '#d97706',
+      light: '#fbbf24',
+      dark: '#92400e',
+      contrastText: '#ffffff',
     },
     error: {
-      main: '#f44336',
-      light: '#e57373',
-      dark: '#d32f2f',
+      main: '#dc2626',
+      light: '#f87171',
+      dark: '#991b1b',
       contrastText: '#ffffff',
     },
     info: {
-      main: '#2196f3',
-      light: '#64b5f6',
-      dark: '#1976d2',
+      main: '#0891b2',
+      light: '#22d3ee',
+      dark: '#0e7490',
       contrastText: '#ffffff',
     },
     grey: {
-      50: '#fafafa',
-      100: '#f5f5f5',
-      200: '#eeeeee',
-      300: '#e0e0e0',
-      400: '#bdbdbd',
-      500: '#9e9e9e',
-      600: '#757575',
-      700: '#616161',
-      800: '#424242',
-      900: '#212121',
-      A100: '#f5f5f5',
-      A200: '#eeeeee',
-      A400: '#bdbdbd',
-      A700: '#616161',
-    },
-    common: {
-      black: '#000',
-      white: '#fff',
-    },
-    text: {
-      primary: 'rgba(0, 0, 0, 0.87)',
-      secondary: 'rgba(0, 0, 0, 0.6)',
-      disabled: 'rgba(0, 0, 0, 0.38)',
+      50: '#f8fafc',
+      100: '#f1f5f9',
+      200: '#e2e8f0',
+      300: '#cbd5e1',
+      400: '#94a3b8',
+      500: '#64748b',
+      600: '#475569',
+      700: '#334155',
+      800: '#1e293b',
+      900: '#0f172a',
     },
     background: {
+      default: '#f8fafc',
       paper: '#ffffff',
-      default: '#fafafa',
     },
-    action: {
-      active: 'rgba(0, 0, 0, 0.54)',
-      hover: 'rgba(0, 0, 0, 0.04)',
-      hoverOpacity: 0.04,
-      selected: 'rgba(0, 0, 0, 0.08)',
-      selectedOpacity: 0.08,
-      disabled: 'rgba(0, 0, 0, 0.26)',
-      disabledBackground: 'rgba(0, 0, 0, 0.12)',
-      disabledOpacity: 0.38,
-      focus: 'rgba(0, 0, 0, 0.12)',
-      focusOpacity: 0.12,
-      activatedOpacity: 0.12,
+    text: {
+      primary: '#0f172a',
+      secondary: '#475569',
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     h4: {
       fontWeight: 700,
-      color: '#2c3e50',
+      fontSize: '2rem',
+      letterSpacing: '-0.02em',
+      color: '#0f172a',
     },
     h5: {
       fontWeight: 600,
-      color: '#2c3e50',
+      fontSize: '1.5rem',
+      letterSpacing: '-0.01em',
+      color: '#1e293b',
     },
     h6: {
+      fontWeight: 600,
+      fontSize: '1.25rem',
+      color: '#334155',
+    },
+    subtitle1: {
       fontWeight: 500,
-      color: '#34495e',
+      fontSize: '1rem',
+      color: '#475569',
     },
     body1: {
-      color: '#7f8c8d',
+      fontSize: '0.875rem',
+      lineHeight: 1.6,
+      color: '#64748b',
+    },
+    body2: {
+      fontSize: '0.8rem',
+      lineHeight: 1.5,
+      color: '#64748b',
+    },
+    button: {
+      fontWeight: 500,
+      fontSize: '0.875rem',
+      textTransform: 'none',
     },
   },
+  shape: {
+    borderRadius: 12,
+  },
   components: {
-    Button: {
+    MuiButton: {
       styleOverrides: {
         root: {
           textTransform: 'none',
+          fontWeight: 500,
+          borderRadius: 8,
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          },
+        },
+        contained: {
+          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+          '&:hover': {
+            background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+          },
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+          '&:hover': {
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            transform: 'translateY(-2px)',
+          },
+          transition: 'all 0.2s ease-in-out',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontSize: '0.75rem',
+          fontWeight: 500,
+          height: 28,
         },
       },
     },
   },
 });
+
 const lessonPlanStyles = {
   primaryButton: { 
-    background: '#1976d2', 
+    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', 
     color: 'white', 
     border: 'none', 
     padding: '12px 24px', 
     borderRadius: '8px', 
-    fontSize: '1rem', 
+    fontSize: '0.875rem', 
     cursor: 'pointer', 
-    fontWeight: '600', 
-    transition: 'all 0.3s ease' 
+    fontWeight: '500', 
+    transition: 'all 0.2s ease-in-out',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    '&:hover': {
+      background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+      transform: 'translateY(-1px)',
+      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+    }
   },
 };
 
@@ -171,7 +220,6 @@ const StudentSubjects = () => {
     const [subjectsList, setSubjectsList] = useState([]);
     const [subjectsLoading, setSubjectsLoading] = useState(true);
     const [subjectsError, setSubjectsError] = useState('');
-    const [expandedSubject, setExpandedSubject] = useState(null);
     const [subjectExams, setSubjectExams] = useState({});
     const [subjectLessonPlans, setSubjectLessonPlans] = useState({});
     const [loadingExams, setLoadingExams] = useState({});
@@ -198,13 +246,18 @@ const StudentSubjects = () => {
                 const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/ClassSubjects/${classId}`);
                 
                 if (response.data && response.data.message) {
-                    // Handle case where API returns { message: "No subjects found" }
                     setSubjectsList([]);
                     setSubjectsError(response.data.message);
                 } else if (Array.isArray(response.data)) {
                     console.log("Subjects fetched:", response.data);
                     setSubjectsList(response.data);
                     setSubjectsError('');
+                    
+                    // Auto-fetch exams and lesson plans for all subjects
+                    response.data.forEach(subject => {
+                        fetchSubjectExams(subject._id);
+                        fetchSubjectLessonPlans(subject._id);
+                    });
                 } else {
                     setSubjectsList([]);
                     setSubjectsError("Unexpected response format");
@@ -255,16 +308,11 @@ const StudentSubjects = () => {
                 }));
             }
         }
-
     }, [response]);
-
-    
-
-
 
     // Function to fetch exams for a specific subject
     const fetchSubjectExams = async (subjectId) => {
-        if (subjectExams[subjectId]) return; // Already fetched
+        if (subjectExams[subjectId]) return;
         
         setLoadingExams(prev => ({ ...prev, [subjectId]: true }));
         try {
@@ -278,7 +326,7 @@ const StudentSubjects = () => {
 
     // Function to fetch lesson plans for a specific subject
     const fetchSubjectLessonPlans = async (subjectId) => {
-        if (subjectLessonPlans[subjectId]) return; // Already fetched
+        if (subjectLessonPlans[subjectId]) return;
         
         setLoadingLessonPlans(prev => ({ ...prev, [subjectId]: true }));
         try {
@@ -311,32 +359,22 @@ const StudentSubjects = () => {
         return pattern.test(url);
     };
 
-    const handleSubjectExpand = (subjectId) => {
-        if (expandedSubject === subjectId) {
-            setExpandedSubject(null);
-        } else {
-            setExpandedSubject(subjectId);
-            fetchSubjectExams(subjectId);
-            fetchSubjectLessonPlans(subjectId);
-        }
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
     };
 
-    const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-};
-
-const formatDuration = (minutes) => {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  if (hours > 0) {
-    return `${hours}h ${mins}m`;
-  }
-  return `${mins}min`;
-};
+    const formatDuration = (minutes) => {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        if (hours > 0) {
+            return `${hours}h ${mins}m`;
+        }
+        return `${mins}min`;
+    };
 
     const formatDateOnly = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -345,7 +383,6 @@ const formatDuration = (minutes) => {
             day: 'numeric'
         });
     };
-
 
     // Get exam status for a student
     const getExamStatus = (examId) => {
@@ -362,10 +399,8 @@ const formatDuration = (minutes) => {
         return { completed: false };
     };
 
-    // Updated: Always return true for flexible scheduling
+    // Check if exam is available
     const isExamAvailable = (exam) => {
-        // For flexible exams, they're always available
-        // You can add additional logic here like availability windows if needed
         if (exam.scheduleType === 'flexible') {
             const now = new Date();
             const availableFrom = exam.availableFrom ? new Date(exam.availableFrom) : new Date(0);
@@ -374,7 +409,6 @@ const formatDuration = (minutes) => {
             return now >= availableFrom && now <= availableUntil;
         }
         
-        // For fixed schedule exams, check the time window
         const now = new Date();
         const startTime = exam.startTime ? new Date(exam.startTime) : new Date(0);
         const endTime = exam.endTime ? new Date(exam.endTime) : new Date('2099-12-31');
@@ -382,7 +416,7 @@ const formatDuration = (minutes) => {
         return now >= startTime && now <= endTime;
     };
 
-    // Updated: Get exam button props based on flexible scheduling
+    // Get exam button props
     const getExamButtonProps = (exam) => {
         const status = getExamStatus(exam._id);
         const available = isExamAvailable(exam);
@@ -392,10 +426,9 @@ const formatDuration = (minutes) => {
                 color: status.passed ? 'success' : 'error',
                 variant: 'outlined',
                 startIcon: status.passed ? <CheckCircleIcon /> : <GradeIcon />,
-                text: `Score: ${status.percentage}%`,
+                text: `${status.percentage}%`,
                 disabled: false,
                 onClick: () => {
-                    // Navigate to the exam taking page which will show results
                     navigate(`/Student/exam/${exam._id}`);
                 }
             };
@@ -406,16 +439,16 @@ const formatDuration = (minutes) => {
                 color: 'inherit',
                 variant: 'outlined',
                 startIcon: <LockIcon />,
-                text: 'Not Available',
+                text: 'Unavailable',
                 disabled: true,
                 onClick: () => {}
             };
         }
 
         return {
-            color: 'success',
+            color: 'primary',
             variant: 'contained',
-            startIcon: <QuizIcon />,
+            startIcon: <PlayArrowIcon />,
             text: 'Take Exam',
             disabled: false,
             onClick: () => {
@@ -471,9 +504,9 @@ const formatDuration = (minutes) => {
     const getExamScheduleText = (exam) => {
         if (exam.scheduleType === 'flexible') {
             if (exam.availableFrom && exam.availableUntil) {
-                return `Available from ${formatDate(exam.availableFrom)} to ${formatDate(exam.availableUntil)}`;
+                return `Available ${formatDate(exam.availableFrom)} - ${formatDate(exam.availableUntil)}`;
             }
-            return 'Take anytime when ready';
+            return 'Available anytime';
         } else {
             if (exam.startTime && exam.endTime) {
                 return `${formatDate(exam.startTime)} - ${formatDate(exam.endTime)}`;
@@ -487,12 +520,14 @@ const formatDuration = (minutes) => {
             <ThemeProvider theme={theme}>
                 <Box sx={{ 
                     display: 'flex', 
+                    flexDirection: 'column',
                     justifyContent: 'center', 
                     alignItems: 'center',
-                    minHeight: '60vh'
+                    minHeight: '60vh',
+                    gap: 2
                 }}>
-                    <CircularProgress size={60} />
-                    <Typography sx={{ ml: 2 }}>Loading subjects...</Typography>
+                    <CircularProgress size={40} thickness={4} />
+                    <Typography variant="body1" color="text.secondary">Loading your courses...</Typography>
                 </Box>
             </ThemeProvider>
         );
@@ -500,149 +535,138 @@ const formatDuration = (minutes) => {
 
     return (
         <ThemeProvider theme={theme}>
-            <Container maxWidth="lg" sx={{ 
-                mt: 4, 
-                mb: 10,
-                px: { xs: 2, sm: 3 }
+            <Box sx={{ 
+                minHeight: '100vh',
+                background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                py: 4
             }}>
-                <Typography variant="h4" align="center" gutterBottom sx={{ 
-                    mb: 4,
-                    textTransform: 'uppercase',
-                    letterSpacing: 1.1
-                }}>
-                    Your Course Materials, Lesson Plans & Exams
-                </Typography>
+                <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+                    {/* Header Section */}
+                    <Box sx={{ textAlign: 'center', mb: 6 }}>
+                        <Typography variant="h4" sx={{ 
+                            mb: 2,
+                            background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                            backgroundClip: 'text',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                        }}>
+                            Course Dashboard
+                        </Typography>
+                        <Typography variant="subtitle1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
+                            Access your course materials, lesson plans, and take flexible exams at your own pace
+                        </Typography>
+                    </Box>
 
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    {subjectsList.length > 0 ? (
-                        subjectsList.map((subject) => {
-                            const examStats = getSubjectExamStats(subject._id);
-                            const lessonStats = getSubjectLessonStats(subject._id);
-                            return (
-                                <Paper 
-                                    key={subject._id} 
-                                    elevation={3} 
-                                    sx={{ 
-                                        borderRadius: 2,
-                                        background: 'linear-gradient(145deg, #ffffff, #f8f9fa)',
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                                        overflow: 'hidden'
-                                    }}
-                                >
-                                    {/* Subject Header */}
-                                    <Box sx={{ 
-                                        p: 3,
-                                        borderBottom: '1px solid rgba(0,0,0,0.1)',
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        color: 'white'
-                                    }}>
-                                        <Grid container alignItems="center" justifyContent="space-between">
-                                            <Grid item xs={12} md={8}>
-                                                <Typography variant="h5" sx={{ mb: 1 }}>
-                                                    {subject.subName} ({subject.subCode})
-                                                </Typography>
-                                                <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
-                                                    {subject.description || "No description available"}
-                                                </Typography>
-                                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                                                    <Chip 
-                                                        icon={<AccessTimeIcon />}
-                                                        label={`${subject.sessions} Sessions`} 
-                                                        size="small"
-                                                        sx={{ 
-                                                            backgroundColor: 'rgba(255,255,255,0.2)',
-                                                            color: 'white',
-                                                            '& .MuiChip-icon': { color: 'white' }
-                                                        }}
-                                                    />
-                                                    {lessonStats.total > 0 && (
-                                                        <Badge badgeContent={lessonStats.published} color="info">
+                    {/* Subjects Grid */}
+                    <Stack spacing={4}>
+                        {subjectsList.length > 0 ? (
+                            subjectsList.map((subject) => {
+                                const examStats = getSubjectExamStats(subject._id);
+                                const lessonStats = getSubjectLessonStats(subject._id);
+                                
+                                return (
+                                    <Paper 
+                                        key={subject._id} 
+                                        elevation={0}
+                                        sx={{ 
+                                            borderRadius: 3,
+                                            overflow: 'hidden',
+                                            border: '1px solid',
+                                            borderColor: 'grey.200',
+                                            transition: 'all 0.3s ease-in-out',
+                                            '&:hover': {
+                                                borderColor: 'primary.main',
+                                                boxShadow: '0 20px 25px -5px rgba(15, 170, 15, 0.97), 0 10px 10px -5px rgba(20, 190, 34, 0.84)',
+                                            }
+                                        }}
+                                    >
+                                        {/* Subject Header */}
+                                        <Box sx={{ 
+                                            p: 4,
+                                            background: 'linear-gradient(135deg, #22773eff 0%, #12993fff 100%)',
+                                            color: 'white'
+                                        }}>
+                                            <Grid container spacing={3} alignItems="center">
+                                                <Grid item xs={12} lg={8}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                                                        <SchoolIcon sx={{ fontSize: 32 }} />
+                                                        <Box>
+                                                            <Typography variant="h5" sx={{ mb: 0.5, color: 'white' }}>
+                                                                {subject.subName}
+                                                            </Typography>
+                                                            <Typography variant="body2" sx={{ opacity: 0.8, color: 'white' }}>
+                                                                {subject.subCode} • {subject.sessions} Sessions
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                    <Typography variant="body2" sx={{ opacity: 0.9, mb: 2, lineHeight: 1.6,color: 'white' }}>
+                                                        {subject.description || "Comprehensive course covering essential topics and practical applications."}
+                                                    </Typography>
+                                                </Grid>
+                                                
+                                                <Grid item xs={12} lg={4}>
+                                                    <Stack direction="row" spacing={1} justifyContent={{ xs: 'flex-start', lg: 'flex-end' }}>
+                                                        {lessonStats.total > 0 && (
                                                             <Chip 
                                                                 icon={<BookIcon />}
-                                                                label="Lesson Plans" 
-                                                                size="small"
+                                                                label={`${lessonStats.published} Plans`}
                                                                 sx={{ 
-                                                                    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                                                                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
                                                                     color: 'white',
+                                                                    border: '1px solid rgba(59, 130, 246, 0.3)',
                                                                     '& .MuiChip-icon': { color: 'white' }
                                                                 }}
                                                             />
-                                                        </Badge>
-                                                    )}
-                                                    {examStats.total > 0 && (
-                                                        <>
-                                                            <Badge badgeContent={examStats.completed} color="success">
-                                                                <Chip 
-                                                                    icon={<CheckCircleIcon />}
-                                                                    label="Completed" 
-                                                                    size="small"
-                                                                    sx={{ 
-                                                                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
-                                                                        color: 'white',
-                                                                        '& .MuiChip-icon': { color: 'white' }
-                                                                    }}
-                                                                />
-                                                            </Badge>
-                                                            <Badge badgeContent={examStats.available} color="warning">
-                                                                <Chip 
-                                                                    icon={<QuizIcon />}
-                                                                    label="Available" 
-                                                                    size="small"
-                                                                    sx={{ 
-                                                                        backgroundColor: 'rgba(255, 152, 0, 0.2)',
-                                                                        color: 'white',
-                                                                        '& .MuiChip-icon': { color: 'white' }
-                                                                    }}
-                                                                />
-                                                            </Badge>
-                                                        </>
-                                                    )}
-                                                </Box>
+                                                        )}
+                                                        {examStats.total > 0 && (
+                                                            <Chip 
+                                                                icon={<QuizIcon />}
+                                                                label={`${examStats.completed}/${examStats.total} Exams`}
+                                                                sx={{ 
+                                                                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                                                                    color: 'white',
+                                                                    border: '1px solid rgba(34, 197, 94, 0.3)',
+                                                                    '& .MuiChip-icon': { color: 'white' }
+                                                                }}
+                                                            />
+                                                        )}
+                                                        <Chip 
+                                                            icon={<TrendingUpIcon />}
+                                                            label="Active"
+                                                            sx={{ 
+                                                                backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                                                                color: 'white',
+                                                                border: '1px solid rgba(168, 85, 247, 0.3)',
+                                                                '& .MuiChip-icon': { color: 'white' }
+                                                            }}
+                                                        />
+                                                    </Stack>
+                                                </Grid>
                                             </Grid>
-                                            <Grid item>
-                                                <Button
-                                                    variant="contained"
-                                                    onClick={() => handleSubjectExpand(subject._id)}
-                                                    sx={{ 
-                                                        backgroundColor: 'rgba(255,255,255,0.2)',
-                                                        color: 'white',
-                                                        '&:hover': {
-                                                            backgroundColor: 'rgba(255,255,255,0.3)'
-                                                        }
-                                                    }}
-                                                    endIcon={expandedSubject === subject._id ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                                                >
-                                                    {expandedSubject === subject._id ? 'Hide Content' : 'View Content'}
-                                                </Button>
-                                            </Grid>
-                                        </Grid>
-                                    </Box>
+                                        </Box>
 
-                                    {/* Collapsible Content */}
-                                    <Collapse in={expandedSubject === subject._id}>
-                                        <Box sx={{ p: 3 }}>
-                                            <Grid container spacing={3}>
+                                        {/* Subject Content - Always Visible */}
+                                        <Box sx={{ p: 4 }}>
+                                            <Grid container spacing={4}>
                                                 {/* Video Section */}
                                                 <Grid item xs={12} lg={4}>
-                                                    <Card elevation={2} sx={{ height: '100%' }}>
-                                                        <CardContent>
-                                                            <Typography variant="h6" sx={{ 
-                                                                mb: 2,
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: 1
-                                                            }}>
-                                                                <PlayArrowIcon color="primary" />
-                                                                Subject Video
-                                                            </Typography>
+                                                    <Card sx={{ height: '100%', borderRadius: 2 }}>
+                                                        <CardContent sx={{ p: 3 }}>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                                                                <VideoLibraryIcon sx={{ color: 'primary.main', fontSize: 24 }} />
+                                                                <Typography variant="h6" color="text.primary">
+                                                                    Course Video
+                                                                </Typography>
+                                                            </Box>
+                                                            
                                                             {validateYouTubeUrl(subject.videoLink) ? (
                                                                 <Box sx={{
                                                                     position: 'relative',
-                                                                    paddingTop: '56.25%', // 16:9 aspect ratio
-                                                                    backgroundColor: '#000',
-                                                                    borderRadius: 1,
+                                                                    paddingTop: '56.25%',
+                                                                    backgroundColor: 'grey.900',
+                                                                    borderRadius: 2,
                                                                     overflow: 'hidden',
-                                                                    border: '1px solid rgba(0,0,0,0.1)'
+                                                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                                                                 }}>
                                                                     <iframe
                                                                         src={subject.videoLink}
@@ -661,13 +685,16 @@ const formatDuration = (minutes) => {
                                                                 </Box>
                                                             ) : (
                                                                 <Box sx={{ 
-                                                                    p: 3, 
+                                                                    p: 4, 
                                                                     textAlign: 'center',
-                                                                    backgroundColor: '#f5f5f5',
-                                                                    borderRadius: 1
+                                                                    backgroundColor: 'grey.50',
+                                                                    borderRadius: 2,
+                                                                    border: '2px dashed',
+                                                                    borderColor: 'grey.300'
                                                                 }}>
+                                                                    <VideoLibraryIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
                                                                     <Typography color="text.secondary" variant="body2">
-                                                                        {subject.videoLink ? "Invalid YouTube URL" : "No video available"}
+                                                                        {subject.videoLink ? "Invalid video URL" : "No video available"}
                                                                     </Typography>
                                                                 </Box>
                                                             )}
@@ -677,108 +704,107 @@ const formatDuration = (minutes) => {
 
                                                 {/* Lesson Plans Section */}
                                                 <Grid item xs={12} lg={4}>
-                                                    <Card elevation={2} sx={{ height: '100%' }}>
-                                                        <CardContent>
-                                                            <Typography variant="h6" sx={{ 
-                                                                mb: 2,
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: 1
-                                                            }}>
-                                                                <BookIcon color="info" />
-                                                                Lesson Plans ({lessonStats.published})
-                                                            </Typography>
-
-                                                            {/* Lesson Plan Stats */}
-                                                            {lessonStats.total > 0 && (
-                                                                <Box sx={{ mb: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                                    <Card sx={{ height: '100%', borderRadius: 2 }}>
+                                                        <CardContent sx={{ p: 3 }}>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                                                                <BookIcon sx={{ color: 'info.main', fontSize: 24 }} />
+                                                                <Typography variant="h6" color="text.primary">
+                                                                    Lesson Plans
+                                                                </Typography>
+                                                                {lessonStats.published > 0 && (
                                                                     <Chip 
-                                                                        icon={<ArticleIcon />}
-                                                                        label={`${lessonStats.published} Published`}
+                                                                        label={lessonStats.published}
+                                                                        size="small"
                                                                         color="info"
-                                                                        size="small"
-                                                                        variant="outlined"
+                                                                        sx={{ ml: 1 }}
                                                                     />
-                                                                    <Chip 
-                                                                        icon={<SchoolIcon />}
-                                                                        label="Study Materials"
-                                                                        color="primary"
-                                                                        size="small"
-                                                                        variant="outlined"
-                                                                    />
-                                                                </Box>
-                                                            )}
+                                                                )}
+                                                            </Box>
 
                                                             {loadingLessonPlans[subject._id] ? (
-                                                                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                                                                    <CircularProgress size={30} />
+                                                                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                                                                    <CircularProgress size={32} />
                                                                 </Box>
                                                             ) : subjectLessonPlans[subject._id] && subjectLessonPlans[subject._id].length > 0 ? (
-                                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                                <Stack spacing={2}>
                                                                     {subjectLessonPlans[subject._id]
-                                                                        .filter(plan => plan.status === 'Published') // Only show published lesson plans
-                                                                        .slice(0, 3) // Show only first 3 for space
+                                                                        .filter(plan => plan.status === 'Published')
+                                                                        .slice(0, 3)
                                                                         .map((plan) => (
                                                                         <Paper 
                                                                             key={plan._id}
                                                                             variant="outlined"
                                                                             sx={{ 
-                                                                                p: 2,
-                                                                                transition: 'transform 0.2s',
-                                                                                borderLeft: `4px solid #2196f3`,
+                                                                                p: 2.5,
+                                                                                borderRadius: 2,
+                                                                                borderLeft: '4px solid',
+                                                                                borderLeftColor: 'info.main',
+                                                                                transition: 'all 0.2s ease-in-out',
                                                                                 '&:hover': {
-                                                                                    transform: 'translateX(3px)',
-                                                                                    boxShadow: 1
+                                                                                    transform: 'translateX(4px)',
+                                                                                    borderLeftColor: 'info.dark',
+                                                                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                                                                                 }
                                                                             }}
                                                                         >
-                                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                                                                                <Typography variant="subtitle2" fontWeight="600" sx={{ flex: 1 }}>
+                                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                                                                                <Typography variant="subtitle1" fontWeight="600" sx={{ flex: 1, color: 'text.primary' }}>
                                                                                     {plan.title}
                                                                                 </Typography>
                                                                                 <Chip
-                                                                                    icon={<CalendarTodayIcon />}
+                                                                                    icon={<CalendarTodayIcon sx={{ fontSize: 16 }} />}
                                                                                     label={`Week ${plan.week}`}
-                                                                                    color="primary"
                                                                                     size="small"
                                                                                     variant="outlined"
+                                                                                    sx={{ 
+                                                                                        borderColor: 'info.main',
+                                                                                        color: 'info.main',
+                                                                                        fontSize: '0.7rem'
+                                                                                    }}
                                                                                 />
                                                                             </Box>
                                                                             
-                                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 1 }}>
-                                                                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-                                                                                    <Chip 
-                                                                                        label={formatDuration(plan.duration)} 
-                                                                                        size="small"
-                                                                                        color="secondary"
-                                                                                        variant="outlined"
-                                                                                    />
-                                                                                    <Chip 
-                                                                                        label={plan.term} 
-                                                                                        size="small"
-                                                                                        color="info"
-                                                                                        variant="outlined"
-                                                                                    />
-                                                                                </Box>
-                                                                            </Box>
+                                                                            <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
+                                                                                <Chip 
+                                                                                    label={formatDuration(plan.duration)} 
+                                                                                    size="small"
+                                                                                    sx={{ 
+                                                                                        backgroundColor: 'secondary.50',
+                                                                                        color: 'secondary.main',
+                                                                                        border: '1px solid',
+                                                                                        borderColor: 'secondary.200'
+                                                                                    }}
+                                                                                />
+                                                                                <Chip 
+                                                                                    label={plan.term} 
+                                                                                    size="small"
+                                                                                    sx={{ 
+                                                                                        backgroundColor: 'info.50',
+                                                                                        color: 'info.main',
+                                                                                        border: '1px solid',
+                                                                                        borderColor: 'info.200'
+                                                                                    }}
+                                                                                />
+                                                                            </Stack>
 
-                                                                            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
-                                                                                Date: {formatDateOnly(plan.lessonDate)}
+                                                                            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+                                                                                {formatDateOnly(plan.lessonDate)}
                                                                             </Typography>
 
                                                                             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                                               <Tooltip title="View detailed lesson plan">
-                                                                            <Button
-                                                                            variant="outlined"
-                                                                            size="small"
-                                                                            color="info"
-                                                                            startIcon={<ArticleIcon />}
-                                                                            onClick={() => setSelectedLessonPlan(plan)}
-                                                                            sx={{ minWidth: 100 }}
-                                                                            >
-                                                                            View Lesson Plan
-                                                                            </Button>
-                                                                            </Tooltip>
+                                                                                <Button
+                                                                                    variant="outlined"
+                                                                                    size="small"
+                                                                                    startIcon={<ArticleIcon sx={{ fontSize: 16 }} />}
+                                                                                    onClick={() => setSelectedLessonPlan(plan)}
+                                                                                    sx={{ 
+                                                                                        borderRadius: 2,
+                                                                                        textTransform: 'none',
+                                                                                        fontSize: '0.8rem'
+                                                                                    }}
+                                                                                >
+                                                                                    View Lesson Plan
+                                                                                </Button>
                                                                             </Box>
                                                                         </Paper>
                                                                     ))}
@@ -788,28 +814,27 @@ const formatDuration = (minutes) => {
                                                                             variant="text"
                                                                             size="small"
                                                                             color="info"
-                                                                            onClick={() => {
-                                                                                // You can navigate to a dedicated lesson plans page or show a modal
-                                                                                console.log(`View all lesson plans for subject ${subject._id}`);
-                                                                            }}
+                                                                            sx={{ mt: 1, fontSize: '0.8rem' }}
                                                                         >
                                                                             View All {subjectLessonPlans[subject._id].filter(plan => plan.status === 'Published').length} Lesson Plans
                                                                         </Button>
                                                                     )}
-                                                                </Box>
+                                                                </Stack>
                                                             ) : (
                                                                 <Box sx={{ 
-                                                                    p: 3, 
+                                                                    py: 6, 
                                                                     textAlign: 'center',
-                                                                    backgroundColor: '#f5f5f5',
-                                                                    borderRadius: 1
+                                                                    backgroundColor: 'grey.50',
+                                                                    borderRadius: 2,
+                                                                    border: '2px dashed',
+                                                                    borderColor: 'grey.300'
                                                                 }}>
-                                                                    <BookIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
-                                                                    <Typography color="text.secondary" variant="body2">
-                                                                        No lesson plans available yet
+                                                                    <BookIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
+                                                                    <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
+                                                                        No lesson plans available
                                                                     </Typography>
-                                                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                                                                        Your teacher will publish lesson plans here
+                                                                    <Typography variant="caption" color="text.secondary">
+                                                                        Your instructor will publish lesson plans here
                                                                     </Typography>
                                                                 </Box>
                                                             )}
@@ -819,51 +844,57 @@ const formatDuration = (minutes) => {
 
                                                 {/* Exams Section */}
                                                 <Grid item xs={12} lg={4}>
-                                                    <Card elevation={2} sx={{ height: '100%' }}>
-                                                        <CardContent>
-                                                            <Typography variant="h6" sx={{ 
-                                                                mb: 2,
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: 1
-                                                            }}>
-                                                                <QuizIcon color="secondary" />
-                                                                Flexible Exams ({examStats.total})
-                                                            </Typography>
-
-                                                            {/* Exam Stats */}
-                                                            {examStats.total > 0 && (
-                                                                <Box sx={{ mb: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                                    <Card sx={{ height: '100%', borderRadius: 2 }}>
+                                                        <CardContent sx={{ p: 3 }}>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                                                                <AssignmentIcon sx={{ color: 'success.main', fontSize: 24 }} />
+                                                                <Typography variant="h6" color="text.primary">
+                                                                    Assessments
+                                                                </Typography>
+                                                                {examStats.total > 0 && (
                                                                     <Chip 
-                                                                        icon={<CheckCircleIcon />}
-                                                                        label={`${examStats.completed} Completed`}
+                                                                        label={`${examStats.completed}/${examStats.total}`}
+                                                                        size="small"
                                                                         color="success"
+                                                                        sx={{ ml: 1 }}
+                                                                    />
+                                                                )}
+                                                            </Box>
+
+                                                            {/* Exam Stats Bar */}
+                                                            {examStats.total > 0 && (
+                                                                <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
+                                                                    <Chip 
+                                                                        icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
+                                                                        label={`${examStats.completed} Done`}
                                                                         size="small"
                                                                         variant="outlined"
+                                                                        sx={{ 
+                                                                            borderColor: 'success.main',
+                                                                            color: 'success.main',
+                                                                            fontSize: '0.7rem'
+                                                                        }}
                                                                     />
                                                                     <Chip 
-                                                                        icon={<QuizIcon />}
-                                                                        label={`${examStats.available} Available`}
-                                                                        color="warning"
+                                                                        icon={<TimerIcon sx={{ fontSize: 16 }} />}
+                                                                        label="Flexible"
                                                                         size="small"
                                                                         variant="outlined"
+                                                                        sx={{ 
+                                                                            borderColor: 'info.main',
+                                                                            color: 'info.main',
+                                                                            fontSize: '0.7rem'
+                                                                        }}
                                                                     />
-                                                                    <Chip 
-                                                                        icon={<TimerIcon />}
-                                                                        label="Take Anytime"
-                                                                        color="info"
-                                                                        size="small"
-                                                                        variant="outlined"
-                                                                    />
-                                                                </Box>
+                                                                </Stack>
                                                             )}
 
                                                             {loadingExams[subject._id] ? (
-                                                                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                                                                    <CircularProgress size={30} />
+                                                                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                                                                    <CircularProgress size={32} />
                                                                 </Box>
                                                             ) : subjectExams[subject._id] && subjectExams[subject._id].length > 0 ? (
-                                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                                <Stack spacing={2}>
                                                                     {subjectExams[subject._id].map((exam) => {
                                                                         const buttonProps = getExamButtonProps(exam);
                                                                         const status = getExamStatus(exam._id);
@@ -873,127 +904,137 @@ const formatDuration = (minutes) => {
                                                                                 key={exam._id}
                                                                                 variant="outlined"
                                                                                 sx={{ 
-                                                                                    p: 2,
-                                                                                    transition: 'transform 0.2s',
-                                                                                    borderLeft: `4px solid ${
-                                                                                        status.completed 
-                                                                                            ? (status.passed ? '#4caf50' : '#f44336')
-                                                                                            : '#2196f3'
-                                                                                    }`,
+                                                                                    p: 2.5,
+                                                                                    borderRadius: 2,
+                                                                                    borderLeft: '4px solid',
+                                                                                    borderLeftColor: status.completed 
+                                                                                        ? (status.passed ? 'success.main' : 'error.main')
+                                                                                        : 'primary.main',
+                                                                                    transition: 'all 0.2s ease-in-out',
                                                                                     '&:hover': {
-                                                                                        transform: 'translateX(5px)',
-                                                                                        boxShadow: 2
+                                                                                        transform: 'translateY(-2px)',
+                                                                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
                                                                                     }
                                                                                 }}
                                                                             >
-                                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                                                                                    <Typography variant="subtitle1" fontWeight="600">
+                                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                                                                                    <Typography variant="subtitle1" fontWeight="600" color="text.primary">
                                                                                         {exam.title}
                                                                                     </Typography>
-                                                                                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                                                                    <Stack direction="row" spacing={0.5}>
                                                                                         {status.completed && (
                                                                                             <Chip
-                                                                                                icon={status.passed ? <CheckCircleIcon /> : <GradeIcon />}
+                                                                                                icon={status.passed ? <CheckCircleIcon sx={{ fontSize: 16 }} /> : <GradeIcon sx={{ fontSize: 16 }} />}
                                                                                                 label={status.passed ? 'Passed' : 'Failed'}
-                                                                                                color={status.passed ? 'success' : 'error'}
                                                                                                 size="small"
+                                                                                                color={status.passed ? 'success' : 'error'}
+                                                                                                sx={{ fontSize: '0.7rem' }}
                                                                                             />
                                                                                         )}
                                                                                         {exam.scheduleType === 'flexible' && (
                                                                                             <Chip
-                                                                                                icon={<TimerIcon />}
+                                                                                                icon={<TimerIcon sx={{ fontSize: 16 }} />}
                                                                                                 label="Flexible"
-                                                                                                color="info"
                                                                                                 size="small"
                                                                                                 variant="outlined"
+                                                                                                sx={{ 
+                                                                                                    borderColor: 'info.main',
+                                                                                                    color: 'info.main',
+                                                                                                    fontSize: '0.7rem'
+                                                                                                }}
                                                                                             />
                                                                                         )}
-                                                                                    </Box>
+                                                                                    </Stack>
                                                                                 </Box>
                                                                                 
                                                                                 {exam.description && (
-                                                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, lineHeight: 1.5 }}>
                                                                                         {exam.description}
                                                                                     </Typography>
                                                                                 )}
                                                                                 
-                                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                                                                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-                                                                                        <Chip 
-                                                                                            label={`${exam.questions?.length || 0} Questions`} 
-                                                                                            size="small"
-                                                                                            color="primary"
-                                                                                            variant="outlined"
-                                                                                        />
-                                                                                        <Chip 
-                                                                                            label={`Duration: ${formatExamDuration(exam.timeLimit)}`} 
-                                                                                            size="small"
-                                                                                            color="secondary"
-                                                                                            variant="outlined"
-                                                                                        />
-                                                                                        <Chip 
-                                                                                            label={`Pass: ${exam.passingMarks || 60}%`} 
-                                                                                            size="small"
-                                                                                            color="warning"
-                                                                                            variant="outlined"
-                                                                                        />
-                                                                                    </Box>
-                                                                                </Box>
+                                                                                <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                                                                                    <Chip 
+                                                                                        label={`${exam.questions?.length || 0} Questions`} 
+                                                                                        size="small"
+                                                                                        sx={{ 
+                                                                                            backgroundColor: 'primary.50',
+                                                                                            color: 'primary.main',
+                                                                                            fontSize: '0.7rem'
+                                                                                        }}
+                                                                                    />
+                                                                                    <Chip 
+                                                                                        label={formatExamDuration(exam.timeLimit)} 
+                                                                                        size="small"
+                                                                                        sx={{ 
+                                                                                            backgroundColor: 'warning.50',
+                                                                                            color: 'warning.main',
+                                                                                            fontSize: '0.7rem'
+                                                                                        }}
+                                                                                    />
+                                                                                    <Chip 
+                                                                                        label={`${exam.passingMarks || 60}% to pass`} 
+                                                                                        size="small"
+                                                                                        sx={{ 
+                                                                                            backgroundColor: 'success.50',
+                                                                                            color: 'success.main',
+                                                                                            fontSize: '0.7rem'
+                                                                                        }}
+                                                                                    />
+                                                                                </Stack>
 
                                                                                 <Box sx={{ mb: 2 }}>
-                                                                                    <Typography variant="caption" color="text.secondary" display="block">
-                                                                                        Schedule:
+                                                                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+                                                                                        Schedule
                                                                                     </Typography>
-                                                                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                                                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
                                                                                         {getExamScheduleText(exam)}
                                                                                     </Typography>
                                                                                     {status.completed && (
-                                                                                        <Typography variant="caption" color="text.secondary">
+                                                                                        <Typography variant="caption" color="success.main" sx={{ fontWeight: 500 }}>
                                                                                             Completed: {formatDate(status.completedAt)}
                                                                                         </Typography>
                                                                                     )}
                                                                                 </Box>
 
                                                                                 <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                                                    <Tooltip title={
-                                                                                        status.completed 
-                                                                                            ? "View your results and review answers"
-                                                                                            : isExamAvailable(exam)
-                                                                                                ? "Start taking this exam anytime - timer begins when you start"
-                                                                                                : "This exam is not currently available"
-                                                                                    }>
-                                                                                        <span>
-                                                                                            <Button
-                                                                                                variant={buttonProps.variant}
-                                                                                                size="small"
-                                                                                                color={buttonProps.color}
-                                                                                                startIcon={buttonProps.startIcon}
-                                                                                                onClick={buttonProps.onClick}
-                                                                                                disabled={buttonProps.disabled}
-                                                                                                sx={{ minWidth: 120 }}
-                                                                                            >
-                                                                                                {buttonProps.text}
-                                                                                            </Button>
-                                                                                        </span>
-                                                                                    </Tooltip>
+                                                                                    <Button
+                                                                                        variant={buttonProps.variant}
+                                                                                        size="small"
+                                                                                        color={buttonProps.color}
+                                                                                        startIcon={buttonProps.startIcon}
+                                                                                        onClick={buttonProps.onClick}
+                                                                                        disabled={buttonProps.disabled}
+                                                                                        sx={{ 
+                                                                                            minWidth: 120,
+                                                                                            borderRadius: 2,
+                                                                                            textTransform: 'none',
+                                                                                            fontSize: '0.8rem',
+                                                                                            fontWeight: 500
+                                                                                        }}
+                                                                                    >
+                                                                                        {buttonProps.text}
+                                                                                    </Button>
                                                                                 </Box>
                                                                             </Paper>
                                                                         );
                                                                     })}
-                                                                </Box>
+                                                                </Stack>
                                                             ) : (
                                                                 <Box sx={{ 
-                                                                    p: 3, 
+                                                                    py: 6, 
                                                                     textAlign: 'center',
-                                                                    backgroundColor: '#f5f5f5',
-                                                                    borderRadius: 1
+                                                                    backgroundColor: 'grey.50',
+                                                                    borderRadius: 2,
+                                                                    border: '2px dashed',
+                                                                    borderColor: 'grey.300'
                                                                 }}>
-                                                                    <QuizIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
-                                                                    <Typography color="text.secondary" variant="body2">
-                                                                        No exams available yet
+                                                                    <AssignmentIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
+                                                                    <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
+                                                                        No assessments available
                                                                     </Typography>
-                                                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                                                                        Check back later for flexible exams you can take anytime
+                                                                    <Typography variant="caption" color="text.secondary">
+                                                                        Flexible exams will appear here when ready
                                                                     </Typography>
                                                                 </Box>
                                                             )}
@@ -1002,185 +1043,341 @@ const formatDuration = (minutes) => {
                                                 </Grid>
                                             </Grid>
                                         </Box>
-                                    </Collapse>
-                                </Paper>
-                            );
-                        })
-                    ) : subjectsError ? (
-                        <Paper sx={{ p: 4, textAlign: 'center' }}>
-                            <Typography color="error" variant="h6" sx={{ mb: 2 }}>
-                                {subjectsError}
+                                    </Paper>
+                                );
+                            })
+                        ) : subjectsError ? (
+                            <Paper sx={{ 
+                                p: 6, 
+                                textAlign: 'center',
+                                borderRadius: 3,
+                                border: '1px solid',
+                                borderColor: 'error.200',
+                                backgroundColor: 'error.50'
+                            }}>
+                                <Typography color="error.main" variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                                    {subjectsError}
+                                </Typography>
+                                <Typography color="text.secondary" variant="body2">
+                                    Please contact your administrator if this problem persists.
+                                </Typography>
+                            </Paper>
+                        ) : (
+                            <Paper sx={{ 
+                                p: 6, 
+                                textAlign: 'center',
+                                borderRadius: 3,
+                                border: '2px dashed',
+                                borderColor: 'grey.300',
+                                backgroundColor: 'grey.50'
+                            }}>
+                                <SchoolIcon sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
+                                <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+                                    No courses available
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Your courses will appear here once they're assigned
+                                </Typography>
+                            </Paper>
+                        )}
+                    </Stack>
+
+                    {/* Info Section */}
+                    <Paper elevation={0} sx={{ 
+                        p: 4, 
+                        mt: 6, 
+                        borderRadius: 3,
+                        background: 'linear-gradient(135deg, #dbeafe 0%, #e0e7ff 50%, #f3e8ff 100%)',
+                        border: '1px solid',
+                        borderColor: 'primary.100'
+                    }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                            <SchoolIcon sx={{ color: 'primary.main', fontSize: 32 }} />
+                            <Typography variant="h6" color="primary.main" fontWeight="600">
+                                Learning Platform Features
                             </Typography>
-                            <Typography color="text.secondary">
-                                Please contact your administrator if this problem persists.
+                        </Box>
+                        <Grid container spacing={4}>
+                            <Grid item xs={12} md={4}>
+                                <Box sx={{ textAlign: 'center' }}>
+                                    <BookIcon sx={{ fontSize: 40, color: 'info.main', mb: 2 }} />
+                                    <Typography variant="h6" color="text.primary" sx={{ mb: 1, fontWeight: 600 }}>
+                                        Interactive Lessons
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                        Access detailed lesson plans with objectives, materials, and structured content for effective learning.
+                                    </Typography>
+                                </Box>
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <Box sx={{ textAlign: 'center' }}>
+                                    <TimerIcon sx={{ fontSize: 40, color: 'warning.main', mb: 2 }} />
+                                    <Typography variant="h6" color="text.primary" sx={{ mb: 1, fontWeight: 600 }}>
+                                        Flexible Scheduling
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                        Take assessments at your own pace within availability periods. Perfect for self-directed learning.
+                                    </Typography>
+                                </Box>
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <Box sx={{ textAlign: 'center' }}>
+                                    <TrendingUpIcon sx={{ fontSize: 40, color: 'success.main', mb: 2 }} />
+                                    <Typography variant="h6" color="text.primary" sx={{ mb: 1, fontWeight: 600 }}>
+                                        Instant Feedback
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                        Get immediate results and review questions after completing assessments to enhance understanding.
+                                    </Typography>
+                                </Box>
+                            </Grid>
+                        </Grid>
+                    </Paper>
+                </Container>
+            </Box>
+
+            {/* Lesson Plan Modal */}
+            {selectedLessonPlan && (
+                <Box sx={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1300,
+                    p: 2
+                }}>
+                    <Paper sx={{
+                        maxWidth: 900,
+                        width: '100%',
+                        maxHeight: '90vh',
+                        overflow: 'auto',
+                        borderRadius: 3,
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                    }}>
+                        <Box sx={{ 
+                            p: 4,
+                            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                            color: 'white'
+                        }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Box>
+                                    <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                                        Lesson Plan Details
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                        {selectedLessonPlan.subject?.subName} • Week {selectedLessonPlan.week}
+                                    </Typography>
+                                </Box>
+                                <Button
+                                    onClick={() => setSelectedLessonPlan(null)}
+                                    sx={{
+                                        minWidth: 'auto',
+                                        p: 1,
+                                        color: 'white',
+                                        '&:hover': {
+                                            backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                                        }
+                                    }}
+                                >
+                                    <Typography sx={{ fontSize: 24, fontWeight: 300 }}>×</Typography>
+                                </Button>
+                            </Box>
+                        </Box>
+                        
+                        <Box sx={{ p: 4 }}>
+                            <Typography variant="h6" color="text.primary" sx={{ mb: 3, fontWeight: 600 }}>
+                                {selectedLessonPlan.title}
                             </Typography>
-                        </Paper>
-                    ) : (
-                        <Paper sx={{ p: 4, textAlign: 'center' }}>
-                            <Typography align="center" variant="h6" color="text.secondary">
-                                No subjects available
-                            </Typography>
-                        </Paper>
-                    )}
+                            
+                            <Grid container spacing={3} sx={{ mb: 4 }}>
+                                <Grid item xs={12} sm={6}>
+                                    <Stack spacing={2}>
+                                        <Box>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                                Duration
+                                            </Typography>
+                                            <Typography variant="body1" fontWeight="500">
+                                                {formatDuration(selectedLessonPlan.duration)}
+                                            </Typography>
+                                        </Box>
+                                        <Box>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                                Term
+                                            </Typography>
+                                            <Typography variant="body1" fontWeight="500">
+                                                {selectedLessonPlan.term}
+                                            </Typography>
+                                        </Box>
+                                    </Stack>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Stack spacing={2}>
+                                        <Box>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                                Date
+                                            </Typography>
+                                            <Typography variant="body1" fontWeight="500">
+                                                {formatDate(selectedLessonPlan.lessonDate)}
+                                            </Typography>
+                                        </Box>
+                                        <Box>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                                Week
+                                            </Typography>
+                                            <Typography variant="body1" fontWeight="500">
+                                                Week {selectedLessonPlan.week}
+                                            </Typography>
+                                        </Box>
+                                    </Stack>
+                                </Grid>
+                            </Grid>
+
+                            <Divider sx={{ my: 3 }} />
+
+                            <Stack spacing={4}>
+                                {selectedLessonPlan.objectives && selectedLessonPlan.objectives.length > 0 && (
+                                    <Box>
+                                        <Typography variant="h6" color="primary.main" sx={{ mb: 2, fontWeight: 600 }}>
+                                            Learning Objectives
+                                        </Typography>
+                                        <Stack spacing={1}>
+                                            {selectedLessonPlan.objectives.map((obj, index) => (
+                                                <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                                                    <Box sx={{ 
+                                                        width: 6, 
+                                                        height: 6, 
+                                                        borderRadius: '50%', 
+                                                        backgroundColor: 'primary.main',
+                                                        mt: 1,
+                                                        flexShrink: 0
+                                                    }} />
+                                                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                                        {typeof obj === 'object' ? obj.description || obj.type : obj}
+                                                    </Typography>
+                                                </Box>
+                                            ))}
+                                        </Stack>
+                                    </Box>
+                                )}
+
+                                {selectedLessonPlan.materials && selectedLessonPlan.materials.length > 0 && (
+                                    <Box>
+                                        <Typography variant="h6" color="primary.main" sx={{ mb: 2, fontWeight: 600 }}>
+                                            Required Materials
+                                        </Typography>
+                                        <Stack spacing={1}>
+                                            {selectedLessonPlan.materials.map((material, index) => (
+                                                <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                                                    <Box sx={{ 
+                                                        width: 6, 
+                                                        height: 6, 
+                                                        borderRadius: '50%', 
+                                                        backgroundColor: 'info.main',
+                                                        mt: 1,
+                                                        flexShrink: 0
+                                                    }} />
+                                                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                                        {typeof material === 'object' ? material.description || material.type : material}
+                                                    </Typography>
+                                                </Box>
+                                            ))}
+                                        </Stack>
+                                    </Box>
+                                )}
+
+                                {selectedLessonPlan.activities && selectedLessonPlan.activities.length > 0 && (
+                                    <Box>
+                                        <Typography variant="h6" color="primary.main" sx={{ mb: 2, fontWeight: 600 }}>
+                                            Learning Activities
+                                        </Typography>
+                                        <Stack spacing={1}>
+                                            {selectedLessonPlan.activities.map((activity, index) => (
+                                                <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                                                    <Box sx={{ 
+                                                        width: 6, 
+                                                        height: 6, 
+                                                        borderRadius: '50%', 
+                                                        backgroundColor: 'success.main',
+                                                        mt: 1,
+                                                        flexShrink: 0
+                                                    }} />
+                                                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                                        {typeof activity === 'object' ? activity.description || activity.type : activity}
+                                                    </Typography>
+                                                </Box>
+                                            ))}
+                                        </Stack>
+                                    </Box>
+                                )}
+
+                                {selectedLessonPlan.assessment && (
+                                    <Box>
+                                        <Typography variant="h6" color="primary.main" sx={{ mb: 2, fontWeight: 600 }}>
+                                            Assessment Method
+                                        </Typography>
+                                        <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, backgroundColor: 'grey.50' }}>
+                                            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                                {typeof selectedLessonPlan.assessment === 'object' 
+                                                    ? selectedLessonPlan.assessment.description || selectedLessonPlan.assessment.type 
+                                                    : selectedLessonPlan.assessment}
+                                            </Typography>
+                                        </Paper>
+                                    </Box>
+                                )}
+
+                                {selectedLessonPlan.notes && (
+                                    <Box>
+                                        <Typography variant="h6" color="primary.main" sx={{ mb: 2, fontWeight: 600 }}>
+                                            Additional Notes
+                                        </Typography>
+                                        <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, backgroundColor: 'grey.50' }}>
+                                            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                                {typeof selectedLessonPlan.notes === 'object' 
+                                                    ? selectedLessonPlan.notes.description || selectedLessonPlan.notes.type 
+                                                    : selectedLessonPlan.notes}
+                                            </Typography>
+                                        </Paper>
+                                    </Box>
+                                )}
+                                </Stack>
+
+                            <Box sx={{ textAlign: 'center', mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'grey.200' }}>
+                                <Button
+                                    variant="contained"
+                                    size="large"
+                                    startIcon={<ArticleIcon />}
+                                    onClick={() => {
+                                        setSelectedLessonPlan(null);
+                                        window.location.href = `/lesson-plan/?planId=${selectedLessonPlan._id}`;
+                                    }}
+                                    sx={{
+                                        px: 4,
+                                        py: 1.5,
+                                        borderRadius: 2,
+                                        background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                                        fontSize: '0.9rem',
+                                        fontWeight: 500,
+                                        boxShadow: '0 4px 12px rgba(6, 168, 74, 0.83)',
+                                        '&:hover': {
+                                            background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 8px 25px rgba(37, 99, 235, 0.4)'
+                                        }
+                                    }}
+                                >
+                                    View Complete Lesson Plan
+                                </Button>
+                            </Box>
+                        </Box>
+                    </Paper>
                 </Box>
-
-                {/* Info card about flexible scheduling and lesson plans */}
-                <Paper elevation={2} sx={{ p: 3, mt: 4, background: 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)' }}>
-                    <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <SchoolIcon color="primary" />
-                        About Your Learning Materials
-                    </Typography>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} md={6}>
-                            <Typography variant="body2" color="text.secondary">
-                                <strong>Lesson Plans:</strong> Access detailed study materials, objectives, and structured content for each lesson.
-                                <br />
-                                <strong>Study at your pace:</strong> Review lesson plans anytime to understand what will be covered in class.
-                                <br />
-                                <strong>Track your progress:</strong> See which topics have been taught and prepare for upcoming lessons.
-                            </Typography>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <Typography variant="body2" color="text.secondary">
-                                <strong>Flexible Exams:</strong> Take exams when you're ready within the availability period.
-                                <br />
-                                <strong>Instant Results:</strong> Get immediate feedback and review correct answers after completion.
-                                <br />
-                                <strong>One Attempt:</strong> Each exam can only be taken once, so make sure you're prepared.
-                            </Typography>
-                        </Grid>
-                    </Grid>
-                </Paper>
-            </Container>
-{selectedLessonPlan && (
-  <div style={{
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-    padding: '20px'
-  }}>
-    <div style={{
-      backgroundColor: 'white',
-      padding: '30px',
-      borderRadius: '12px',
-      maxWidth: '800px',
-      width: '100%',
-      maxHeight: '80vh',
-      overflow: 'auto'
-    }}>
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-        <h2 style={{color: '#1976d2', margin: 0}}>Lesson Plan Details</h2>
-        <button
-          onClick={() => setSelectedLessonPlan(null)}
-          style={{
-            background: 'none',
-            border: 'none',
-            fontSize: '24px',
-            cursor: 'pointer',
-            color: '#666'
-          }}
-        >
-          ×
-        </button>
-      </div>
-      
-      <div>
-        <h3 style={{color: '#333', marginBottom: '15px'}}>{selectedLessonPlan.title}</h3>
-        
-        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px'}}>
-          <div>
-            <p><strong>Subject:</strong> {selectedLessonPlan.subject?.subName}</p>
-            <p><strong>Duration:</strong> {formatDuration(selectedLessonPlan.duration)}</p>
-          </div>
-          <div>
-            <p><strong>Date:</strong> {formatDate(selectedLessonPlan.lessonDate)}</p>
-            <p><strong>Term:</strong> {selectedLessonPlan.term} - Week {selectedLessonPlan.week}</p>
-          </div>
-        </div>
-
-        {selectedLessonPlan.objectives && selectedLessonPlan.objectives.length > 0 && (
-          <div style={{marginBottom: '20px'}}>
-            <h4 style={{color: '#1976d2'}}>Learning Objectives:</h4>
-            <ul>
-              {selectedLessonPlan.objectives.map((obj, index) => (
-                <li key={index} style={{marginBottom: '5px'}}>
-                  {typeof obj === 'object' ? obj.description || obj.type : obj}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {selectedLessonPlan.materials && selectedLessonPlan.materials.length > 0 && (
-          <div style={{marginBottom: '20px'}}>
-            <h4 style={{color: '#1976d2'}}>Required Materials:</h4>
-            <ul>
-              {selectedLessonPlan.materials.map((material, index) => (
-                <li key={index} style={{marginBottom: '5px'}}>
-                  {typeof material === 'object' ? material.description || material.type : material}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {selectedLessonPlan.activities && selectedLessonPlan.activities.length > 0 && (
-          <div style={{marginBottom: '20px'}}>
-            <h4 style={{color: '#1976d2'}}>Activities:</h4>
-            <ul>
-              {selectedLessonPlan.activities.map((activity, index) => (
-                <li key={index} style={{marginBottom: '5px'}}>
-                  {typeof activity === 'object' ? activity.description || activity.type : activity}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {selectedLessonPlan.assessment && (
-          <div style={{marginBottom: '20px'}}>
-            <h4 style={{color: '#1976d2'}}>Assessment:</h4>
-            <p>
-              {typeof selectedLessonPlan.assessment === 'object' 
-                ? selectedLessonPlan.assessment.description || selectedLessonPlan.assessment.type 
-                : selectedLessonPlan.assessment}
-            </p>
-          </div>
-        )}
-
-        {selectedLessonPlan.notes && (
-          <div style={{marginBottom: '20px'}}>
-            <h4 style={{color: '#1976d2'}}>Teacher's Notes:</h4>
-            <p>
-              {typeof selectedLessonPlan.notes === 'object' 
-                ? selectedLessonPlan.notes.description || selectedLessonPlan.notes.type 
-                : selectedLessonPlan.notes}
-            </p>
-          </div>
-        )}
-
-        <div style={{textAlign: 'center', marginTop: '30px'}}>
-          <button
-            style={lessonPlanStyles.primaryButton}
-            onClick={() => {
-              setSelectedLessonPlan(null);
-              window.location.href = `/lesson-plan/?planId=${selectedLessonPlan._id}`;
-            }}
-          >
-            View Full Details
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+            )}
         </ThemeProvider>
     );
 };

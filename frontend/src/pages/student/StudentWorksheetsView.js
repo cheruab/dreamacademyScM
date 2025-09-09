@@ -15,7 +15,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Alert
+  Alert,
+  Breadcrumbs,
+  Link
 } from '@mui/material';
 import { useSelector } from 'react-redux';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -24,14 +26,22 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import WorkIcon from '@mui/icons-material/Work';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import CloseIcon from '@mui/icons-material/Close';
+import FolderIcon from '@mui/icons-material/Folder';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 const StudentWorksheetsView = () => {
-  const [worksheets, setWorksheets] = useState([]);
+  const [allWorksheets, setAllWorksheets] = useState([]);
+  const [worksheetsBySubject, setWorksheetsBySubject] = useState({});
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileError, setFileError] = useState(false);
+  
+  // Navigation state for folder view
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [currentFiles, setCurrentFiles] = useState([]);
   
   const { currentUser } = useSelector(state => state.user);
 
@@ -47,7 +57,20 @@ const StudentWorksheetsView = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BASE_URL}/student-worksheets/${currentUser._id}`
       );
-      setWorksheets(response.data);
+      const worksheets = response.data;
+      setAllWorksheets(worksheets);
+      
+      // Organize worksheets by subject
+      const organized = {};
+      worksheets.forEach(worksheet => {
+        const subject = worksheet.subject || 'General';
+        if (!organized[subject]) {
+          organized[subject] = [];
+        }
+        organized[subject].push(worksheet);
+      });
+      
+      setWorksheetsBySubject(organized);
     } catch (error) {
       console.error('Error fetching worksheets:', error);
     } finally {
@@ -57,15 +80,35 @@ const StudentWorksheetsView = () => {
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+    // Reset folder navigation when changing tabs
+    setSelectedSubject(null);
+    setCurrentFiles([]);
+  };
+
+  const handleSubjectClick = (subject) => {
+    setSelectedSubject(subject);
+    const subjectWorksheets = worksheetsBySubject[subject] || [];
+    
+    // Filter by current tab
+    const filteredFiles = filterWorksheetsByTab(subjectWorksheets);
+    setCurrentFiles(filteredFiles);
+  };
+
+  const handleBreadcrumbClick = () => {
+    setSelectedSubject(null);
+    setCurrentFiles([]);
+  };
+
+  const filterWorksheetsByTab = (worksheets) => {
+    if (tabValue === 0) return worksheets; // All
+    if (tabValue === 1) return worksheets.filter(w => w.uploadType === 'worksheet');
+    if (tabValue === 2) return worksheets.filter(w => w.uploadType === 'assignment');
+    return worksheets;
   };
 
   const getFileUrl = (fileUrl) => {
-    // This is the key fix for your "Cannot GET" error
     const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
-    
-    // Remove leading slash if it exists to avoid double slashes
     const cleanFileUrl = fileUrl.startsWith('/') ? fileUrl.slice(1) : fileUrl;
-    
     return `${baseUrl}/${cleanFileUrl}`;
   };
 
@@ -166,7 +209,7 @@ const StudentWorksheetsView = () => {
       );
     }
 
-    // For other file types (Word docs, etc.), show download option
+    // For other file types, show download option
     return (
       <Box sx={{ textAlign: 'center', py: 4 }}>
         <Typography variant="h6" gutterBottom>
@@ -186,28 +229,27 @@ const StudentWorksheetsView = () => {
     );
   };
 
-  const filteredWorksheets = worksheets.filter(worksheet => {
-    if (tabValue === 0) return true; // All
-    if (tabValue === 1) return worksheet.uploadType === 'worksheet'; // Worksheets only
-    if (tabValue === 2) return worksheet.uploadType === 'assignment'; 
-    if (tabValue === 3) return worksheet.uploadType === 'Student Exam results'; // Assignments only
-    return true;
-  });
-
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
         <CircularProgress />
+        <Typography variant="body1" sx={{ ml: 2 }}>
+          Loading worksheets...
+        </Typography>
       </Box>
     );
   }
 
+  const subjects = Object.keys(worksheetsBySubject).sort();
+
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+        <FolderIcon sx={{ mr: 2, color: 'primary.main' }} />
         My Worksheets & Assignments
       </Typography>
 
+      {/* Tabs for filtering */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="All" />
@@ -216,77 +258,176 @@ const StudentWorksheetsView = () => {
         </Tabs>
       </Box>
 
-      {filteredWorksheets.length === 0 ? (
+      {/* Breadcrumbs */}
+      {selectedSubject && (
+        <Box sx={{ mb: 3 }}>
+          <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
+            <Link
+              component="button"
+              variant="body1"
+              onClick={handleBreadcrumbClick}
+              sx={{
+                textDecoration: 'none',
+                color: 'primary.main',
+                fontWeight: 'normal'
+              }}
+            >
+              Subject Folders
+            </Link>
+            <Typography color="text.primary" sx={{ fontWeight: 'bold' }}>
+              {selectedSubject}
+            </Typography>
+          </Breadcrumbs>
+        </Box>
+      )}
+
+      {subjects.length === 0 ? (
         <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <WorkIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
           <Typography variant="h6" color="text.secondary">
             No {tabValue === 1 ? 'worksheets' : tabValue === 2 ? 'assignments' : 'files'} available yet.
           </Typography>
         </Box>
+      ) : !selectedSubject ? (
+        // SUBJECT FOLDERS VIEW
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+            <FolderIcon sx={{ mr: 2, color: 'primary.main' }} />
+            Select Subject
+          </Typography>
+          <Grid container spacing={3}>
+            {subjects.map((subject) => {
+              const subjectWorksheets = worksheetsBySubject[subject];
+              const filteredCount = filterWorksheetsByTab(subjectWorksheets).length;
+              
+              // Only show subjects that have files matching the current tab filter
+              if (filteredCount === 0) return null;
+
+              const worksheetCount = subjectWorksheets.filter(w => w.uploadType === 'worksheet').length;
+              const assignmentCount = subjectWorksheets.filter(w => w.uploadType === 'assignment').length;
+
+              return (
+                <Grid item xs={12} sm={6} md={4} key={subject}>
+                  <Card
+                    sx={{
+                      height: '100%',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      '&:hover': { 
+                        transform: 'translateY(-4px)', 
+                        boxShadow: 6,
+                        borderColor: 'primary.main'
+                      },
+                      border: '2px solid transparent'
+                    }}
+                    onClick={() => handleSubjectClick(subject)}
+                  >
+                    <CardContent sx={{ textAlign: 'center', p: 3 }}>
+                      <FolderOpenIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+                      <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                        {subject}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {filteredCount} file{filteredCount !== 1 ? 's' : ''} 
+                        {tabValue === 0 ? ' total' : tabValue === 1 ? ' worksheet' + (filteredCount !== 1 ? 's' : '') : ' assignment' + (filteredCount !== 1 ? 's' : '')}
+                      </Typography>
+                      
+                      {tabValue === 0 && (
+                        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 1 }}>
+                          {worksheetCount > 0 && (
+                            <Chip label={`${worksheetCount} Worksheets`} size="small" color="primary" variant="outlined" />
+                          )}
+                          {assignmentCount > 0 && (
+                            <Chip label={`${assignmentCount} Assignments`} size="small" color="secondary" variant="outlined" />
+                          )}
+                        </Box>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Box>
       ) : (
-        <Grid container spacing={3}>
-          {filteredWorksheets.map((worksheet) => (
-            <Grid item xs={12} md={6} lg={4} key={worksheet._id}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    {worksheet.uploadType === 'worksheet' ? (
-                      <WorkIcon sx={{ mr: 1, color: 'primary.main' }} />
-                    ) : (
-                      <AssignmentIcon sx={{ mr: 1, color: 'secondary.main' }} />
-                    )}
-                    <Typography variant="h6" component="div" sx={{ fontSize: '1rem' }}>
-                      {worksheet.originalName}
-                    </Typography>
-                  </Box>
+        // FILES VIEW for selected subject
+        <Box>
+          <Typography variant="h5" gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+            <FolderOpenIcon sx={{ mr: 2, color: 'secondary.main' }} />
+            {selectedSubject} - {tabValue === 0 ? 'All Files' : tabValue === 1 ? 'Worksheets' : 'Assignments'}
+          </Typography>
 
-                  <Chip
-                    label={worksheet.uploadType === 'worksheet' ? 'Worksheet' : 'Assignment'}
-                    color={worksheet.uploadType === 'worksheet' ? 'primary' : 'secondary'}
-                    size="small"
-                    sx={{ mb: 2 }}
-                  />
+          {currentFiles.length === 0 ? (
+            <Alert severity="info">
+              No {tabValue === 1 ? 'worksheets' : tabValue === 2 ? 'assignments' : 'files'} found in {selectedSubject}.
+            </Alert>
+          ) : (
+            <Grid container spacing={3}>
+              {currentFiles.map((worksheet) => (
+                <Grid item xs={12} md={6} lg={4} key={worksheet._id}>
+                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        {worksheet.uploadType === 'worksheet' ? (
+                          <WorkIcon sx={{ mr: 1, color: 'primary.main' }} />
+                        ) : (
+                          <AssignmentIcon sx={{ mr: 1, color: 'secondary.main' }} />
+                        )}
+                        <Typography variant="h6" component="div" sx={{ fontSize: '1rem' }}>
+                          {worksheet.originalName}
+                        </Typography>
+                      </Box>
 
-                  {worksheet.description && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {worksheet.description}
-                    </Typography>
-                  )}
-
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <CalendarTodayIcon sx={{ mr: 1, fontSize: 16, color: 'text.secondary' }} />
-                    <Typography variant="caption" color="text.secondary">
-                      Uploaded: {formatDate(worksheet.uploadedAt)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                    <Typography variant="caption" color="text.secondary">
-                      By: {worksheet.uploadedBy}
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button
-                        variant="outlined"
+                      <Chip
+                        label={worksheet.uploadType === 'worksheet' ? 'Worksheet' : 'Assignment'}
+                        color={worksheet.uploadType === 'worksheet' ? 'primary' : 'secondary'}
                         size="small"
-                        startIcon={<VisibilityIcon />}
-                        onClick={() => handleViewFile(worksheet)}
-                      >
-                        View
-                      </Button>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        startIcon={<DownloadIcon />}
-                        onClick={() => handleDownload(worksheet.fileUrl, worksheet.originalName)}
-                      >
-                        Download
-                      </Button>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
+                        sx={{ mb: 2 }}
+                      />
+
+                      {worksheet.description && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          {worksheet.description}
+                        </Typography>
+                      )}
+
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <CalendarTodayIcon sx={{ mr: 1, fontSize: 16, color: 'text.secondary' }} />
+                        <Typography variant="caption" color="text.secondary">
+                          Uploaded: {formatDate(worksheet.uploadedAt)}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                        <Typography variant="caption" color="text.secondary">
+                          By: {worksheet.uploadedBy}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<VisibilityIcon />}
+                            onClick={() => handleViewFile(worksheet)}
+                          >
+                            View
+                          </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<DownloadIcon />}
+                            onClick={() => handleDownload(worksheet.fileUrl, worksheet.originalName)}
+                          >
+                            Download
+                          </Button>
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
+          )}
+        </Box>
       )}
 
       {/* File Viewer Dialog */}
