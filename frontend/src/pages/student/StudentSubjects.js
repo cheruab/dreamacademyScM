@@ -89,8 +89,8 @@ const theme = createTheme({
       900: '#0f172a',
     },
     background: {
-      default: '#f8fafc',
-      paper: '#ffffff',
+      default: '#fdf9e2f3',
+      paper: '#f8f7f3ff',
     },
     text: {
       primary: '#0f172a',
@@ -385,19 +385,27 @@ const StudentSubjects = () => {
     };
 
     // Get exam status for a student
-    const getExamStatus = (examId) => {
-        const result = examResults.find(result => result.examId === examId);
-        if (result) {
-            return {
-                completed: true,
-                score: result.score,
-                percentage: result.percentage,
-                completedAt: result.completedAt,
-                passed: result.percentage >= 60
-            };
-        }
-        return { completed: false };
-    };
+const getExamStatus = (examId) => {
+    // Convert examId to string for consistent comparison
+    const examIdStr = examId?.toString();
+    
+    const result = examResults.find(result => {
+        // Handle different possible field names and convert to string
+        const resultExamId = (result.examId || result.exam || result._id)?.toString();
+        return resultExamId === examIdStr;
+    });
+    
+    if (result) {
+        return {
+            completed: true,
+            score: result.score,
+            percentage: result.percentage,
+            completedAt: result.completedAt,
+            passed: result.percentage >= 60
+        };
+    }
+    return { completed: false };
+};
 
     // Check if exam is available
     const isExamAvailable = (exam) => {
@@ -621,7 +629,7 @@ const StudentSubjects = () => {
                                                         {examStats.total > 0 && (
                                                             <Chip 
                                                                 icon={<QuizIcon />}
-                                                                label={`${examStats.completed}/${examStats.total} Exams`}
+                                                                label={`${examStats.total} Exams`}
                                                                 sx={{ 
                                                                     backgroundColor: 'rgba(34, 197, 94, 0.2)',
                                                                     color: 'white',
@@ -853,7 +861,7 @@ const StudentSubjects = () => {
                                                                 </Typography>
                                                                 {examStats.total > 0 && (
                                                                     <Chip 
-                                                                        label={`${examStats.completed}/${examStats.total}`}
+                                                                        label={`${examStats.total}`}
                                                                         size="small"
                                                                         color="success"
                                                                         sx={{ ml: 1 }}
@@ -861,33 +869,6 @@ const StudentSubjects = () => {
                                                                 )}
                                                             </Box>
 
-                                                            {/* Exam Stats Bar */}
-                                                            {examStats.total > 0 && (
-                                                                <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-                                                                    <Chip 
-                                                                        icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
-                                                                        label={`${examStats.completed} Done`}
-                                                                        size="small"
-                                                                        variant="outlined"
-                                                                        sx={{ 
-                                                                            borderColor: 'success.main',
-                                                                            color: 'success.main',
-                                                                            fontSize: '0.7rem'
-                                                                        }}
-                                                                    />
-                                                                    <Chip 
-                                                                        icon={<TimerIcon sx={{ fontSize: 16 }} />}
-                                                                        label="Flexible"
-                                                                        size="small"
-                                                                        variant="outlined"
-                                                                        sx={{ 
-                                                                            borderColor: 'info.main',
-                                                                            color: 'info.main',
-                                                                            fontSize: '0.7rem'
-                                                                        }}
-                                                                    />
-                                                                </Stack>
-                                                            )}
 
                                                             {loadingExams[subject._id] ? (
                                                                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>

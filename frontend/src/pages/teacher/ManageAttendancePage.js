@@ -28,7 +28,8 @@ import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    Divider
 } from '@mui/material';
 import {
     CheckCircle as CheckCircleIcon,
@@ -38,7 +39,8 @@ import {
     ArrowBack as ArrowBackIcon,
     Save as SaveIcon,
     Person as PersonIcon,
-    SubjectOutlined as SubjectIcon
+    SubjectOutlined as SubjectIcon,
+    History as HistoryIcon
 } from '@mui/icons-material';
 import { getAllStudents } from '../../redux/studentRelated/studentHandle';
 import { GreenButton } from '../../components/buttonStyles';
@@ -60,12 +62,37 @@ const ManageAttendancePage = () => {
     const [message, setMessage] = useState('');
     const [alertType, setAlertType] = useState('success');
     
+    // State for saved attendance history
+    const [savedAttendanceHistory, setSavedAttendanceHistory] = useState([]);
+    
     // Teacher data state
     const [teacherData, setTeacherData] = useState(null);
     const [myStudents, setMyStudents] = useState([]);
     const [mySubjects, setMySubjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Load saved attendance history from localStorage on component mount
+    useEffect(() => {
+        const loadSavedAttendanceHistoryFromStorage = () => {
+            try {
+                const saved = localStorage.getItem('teacherAttendanceHistory');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Only restore if it's from the same teacher
+                    if (parsed.teacherId === currentUser?._id) {
+                        setSavedAttendanceHistory(parsed.records || []);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading saved attendance history from localStorage:', error);
+            }
+        };
+        
+        if (currentUser?._id) {
+            loadSavedAttendanceHistoryFromStorage();
+        }
+    }, [currentUser]);
 
     useEffect(() => {
         fetchTeacherDataAndStudents();
@@ -159,7 +186,7 @@ const ManageAttendancePage = () => {
             }
 
         } catch (err) {
-            console.error('Error fetching teacher data:', err);
+            console.error('Error fetching teacher ', err);
             setError("Error loading teacher information");
         } finally {
             setLoading(false);
@@ -260,6 +287,41 @@ const ManageAttendancePage = () => {
             });
 
             await Promise.all(attendancePromises);
+            
+            // Create saved attendance records for this submission
+            const newRecords = studentsWithAttendance.map(studentId => {
+                const student = myStudents.find(s => s._id === studentId);
+                return {
+                    studentId,
+                    studentName: student?.name || 'Unknown',
+                    rollNum: student?.rollNum || 'N/A',
+                    className: student?.sclassName?.sclassName || 'N/A',
+                    status: attendanceRecords[studentId],
+                    date: selectedDate,
+                    subject: mySubjects.find(s => s._id === selectedSubject)?.subName || 'Unknown',
+                    timestamp: new Date(),
+                    // Add a unique ID for this submission batch
+                    submissionId: Date.now() + Math.random().toString(36).substr(2, 9)
+                };
+            });
+            
+            // Add the new records to the history (prepend so newest is at top)
+            setSavedAttendanceHistory(prevHistory => {
+                const updatedHistory = [...newRecords, ...prevHistory];
+                
+                // Save to localStorage for persistence across reloads
+                try {
+                    localStorage.setItem('teacherAttendanceHistory', JSON.stringify({
+                        teacherId: currentUser._id,
+                        records: updatedHistory,
+                        lastUpdated: new Date().toISOString()
+                    }));
+                } catch (error) {
+                    console.error('Error saving to localStorage:', error);
+                }
+                
+                return updatedHistory;
+            });
             
             setMessage(`Successfully recorded attendance for ${studentsWithAttendance.length} students`);
             setAlertType('success');
@@ -549,6 +611,118 @@ const ManageAttendancePage = () => {
                 <Alert severity="info">
                     Please select a subject to view students and record attendance.
                 </Alert>
+            )}
+
+            {/* Saved Attendance History Display */}
+            {savedAttendanceHistory.length > 0 && (
+                <>
+                    <Divider sx={{ my: 4 }} />
+                    <Paper sx={{ mt: 4 }}>
+                        <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', bgcolor: 'success.light' }}>
+                            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
+                                <HistoryIcon sx={{ mr: 1 }} />
+                                Attendance History
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                                {savedAttendanceHistory.length} total submissions
+                            </Typography>
+                        </Box>
+                        <TableContainer>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell><strong>Submission Time</strong></TableCell>
+                                        <TableCell><strong>Student</strong></TableCell>
+                                        <TableCell><strong>Class</strong></TableCell>
+                                        <TableCell><strong>Roll No</strong></TableCell>
+                                        <TableCell><strong>Subject</strong></TableCell>
+                                        <TableCell><strong>Date</strong></TableCell>
+                                        <TableCell><strong>Status</strong></TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {savedAttendanceHistory.map((record, index) => (
+                                        <TableRow key={record.submissionId || index} hover>
+                                            {index === 0 || 
+                                             (index > 0 && 
+                                              new Date(savedAttendanceHistory[index-1].timestamp).toDateString() !== 
+                                              new Date(record.timestamp).toDateString()) || 
+                                             (index > 0 && 
+                                              savedAttendanceHistory[index-1].submissionId !== record.submissionId) ? (
+                                                <TableCell rowSpan={
+                                                    // Calculate how many records belong to this submission
+                                                    (() => {
+                                                        let count = 1;
+                                                        for (let i = index + 1; i < savedAttendanceHistory.length; i++) {
+                                                            if (savedAttendanceHistory[i].submissionId === record.submissionId) {
+                                                                count++;
+                                                            } else {
+                                                                break;
+                                                            }
+                                                        }
+                                                        return count;
+                                                    })()
+                                                }>
+                                                    <Typography variant="body2" fontWeight="bold">
+                                                        {new Date(record.timestamp).toLocaleString()}
+                                                    </Typography>
+                                                </TableCell>
+                                            ) : null}
+                                            <TableCell>
+                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    <Avatar sx={{ mr: 2, width: 32, height: 32, bgcolor: 'success.main' }}>
+                                                        <PersonIcon fontSize="small" />
+                                                    </Avatar>
+                                                    <Typography variant="body2" fontWeight="medium">
+                                                        {record.studentName}
+                                                    </Typography>
+                                                </Box>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip 
+                                                    label={record.className} 
+                                                    size="small" 
+                                                    variant="outlined"
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="body2" fontWeight="bold">
+                                                    {record.rollNum}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="body2">
+                                                    {record.subject}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="body2">
+                                                    {new Date(record.date).toLocaleDateString()}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip
+                                                    icon={record.status === 'Present' ? <CheckCircleIcon /> : <CancelIcon />}
+                                                    label={record.status}
+                                                    color={record.status === 'Present' ? 'success' : 'error'}
+                                                    size="small"
+                                                    variant="filled"
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        <Box sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.50' }}>
+                            <Typography variant="body2" color="textSecondary">
+                                Showing {savedAttendanceHistory.length} attendance records from {savedAttendanceHistory.length > 0 ? 
+                                    new Date(savedAttendanceHistory[savedAttendanceHistory.length - 1].timestamp).toLocaleDateString() : ''} 
+                                    to {new Date(savedAttendanceHistory[0].timestamp).toLocaleDateString()}
+                            </Typography>
+                        </Box>
+                    </Paper>
+                </>
             )}
 
             {/* Success Dialog */}

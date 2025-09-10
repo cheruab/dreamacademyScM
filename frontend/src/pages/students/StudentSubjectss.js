@@ -26,6 +26,8 @@ import GradeIcon from '@mui/icons-material/Grade';
 import QuizIcon from '@mui/icons-material/Quiz';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ClassIcon from '@mui/icons-material/Class';
+import DescriptionIcon from '@mui/icons-material/Description';
 import { StyledTableCell, StyledTableRow } from '../../components/styles';
 import axios from 'axios';
 
@@ -160,7 +162,11 @@ const StudentSubjectss = ({ studentId, child }) => {
         <Container maxWidth="md" sx={{ mb: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <BookIcon sx={{ fontSize: 30, color: '#1976d2', mr: 2 }} />
-                <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                <Typography variant="h4" sx={{ 
+                    fontWeight: 700, 
+                    color: '#1976d2',
+                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif'
+                }}>
                     📚 {child?.name}'s Subjects
                 </Typography>
             </Box>
@@ -192,38 +198,195 @@ const StudentSubjectss = ({ studentId, child }) => {
                         <Grid item xs={12} sm={6} md={4} key={subject._id || index}>
                             <Card sx={{ 
                                 height: '100%',
-                                transition: 'all 0.3s ease',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                                border: '1px solid rgba(0, 0, 0, 0.08)',
+                                borderRadius: 3,
+                                overflow: 'hidden',
+                                position: 'relative',
                                 '&:hover': {
-                                    transform: 'translateY(-4px)',
-                                    boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                                    transform: 'translateY(-8px) scale(1.02)',
+                                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                                    borderColor: '#1976d2',
+                                },
+                                '&::before': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: '4px',
+                                    background: 'linear-gradient(90deg, #1976d2, #42a5f5)',
                                 }
                             }}>
-                                <CardContent>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                        <BookIcon sx={{ color: '#4caf50', mr: 1 }} />
-                                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                            {subject.subName || subject.name || 'Subject'}
-                                        </Typography>
+                                <CardContent sx={{ 
+                                    flexGrow: 1,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    p: 3,
+                                    pt: 4
+                                }}>
+                                    {/* Header Section */}
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'flex-start', 
+                                        mb: 2,
+                                        gap: 1.5
+                                    }}>
+                                        <Box sx={{
+                                            p: 1.5,
+                                            borderRadius: 2,
+                                            bgcolor: 'rgba(25, 118, 210, 0.1)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            minWidth: 48,
+                                            height: 48
+                                        }}>
+                                            <BookIcon sx={{ 
+                                                color: '#1976d2', 
+                                                fontSize: 24 
+                                            }} />
+                                        </Box>
+                                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                                            <Typography variant="h6" sx={{ 
+                                                fontWeight: 600,
+                                                fontSize: '1.1rem',
+                                                lineHeight: 1.3,
+                                                color: '#1a202c',
+                                                fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                                                mb: 0.5,
+                                                wordBreak: 'break-word'
+                                            }}>
+                                                {subject.subName || subject.name || 'Subject'}
+                                            </Typography>
+                                            
+                                            {subject.subCode && (
+                                                <Chip 
+                                                    label={subject.subCode}
+                                                    size="small" 
+                                                    sx={{ 
+                                                        height: 24,
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: 500,
+                                                        bgcolor: '#e3f2fd',
+                                                        color: '#1565c0',
+                                                        '& .MuiChip-label': {
+                                                            px: 1
+                                                        }
+                                                    }} 
+                                                />
+                                            )}
+                                        </Box>
                                     </Box>
                                     
-                                    {subject.subCode && (
-                                        <Chip 
-                                            label={`Code: ${subject.subCode}`} 
-                                            size="small" 
-                                            sx={{ mb: 1, bgcolor: '#e3f2fd' }} 
-                                        />
-                                    )}
-                                    
+                                    {/* Sessions Info */}
                                     {subject.sessions && (
-                                        <Typography variant="body2" color="text.secondary">
-                                            📅 {subject.sessions} sessions
-                                        </Typography>
+                                        <Box sx={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center',
+                                            mb: 2,
+                                            p: 1.5,
+                                            borderRadius: 1.5,
+                                            bgcolor: 'rgba(76, 175, 80, 0.08)',
+                                            border: '1px solid rgba(76, 175, 80, 0.2)'
+                                        }}>
+                                            <ClassIcon sx={{ 
+                                                color: '#388e3c', 
+                                                fontSize: 18,
+                                                mr: 1 
+                                            }} />
+                                            <Typography variant="body2" sx={{
+                                                color: '#2e7d32',
+                                                fontWeight: 500,
+                                                fontSize: '0.875rem',
+                                                fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif'
+                                            }}>
+                                                {subject.sessions} Total Sessions
+                                            </Typography>
+                                        </Box>
                                     )}
                                     
+                                    {/* Description Section */}
                                     {subject.description && (
-                                        <Typography variant="body2" sx={{ mt: 1 }}>
-                                            {subject.description}
-                                        </Typography>
+                                        <Box sx={{ 
+                                            flexGrow: 1,
+                                            display: 'flex',
+                                            flexDirection: 'column'
+                                        }}>
+                                            <Box sx={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center',
+                                                mb: 1.5 
+                                            }}>
+                                                <DescriptionIcon sx={{ 
+                                                    color: '#6b7280', 
+                                                    fontSize: 18,
+                                                    mr: 1 
+                                                }} />
+                                                <Typography variant="subtitle2" sx={{
+                                                    color: '#4b5563',
+                                                    fontWeight: 600,
+                                                    fontSize: '0.875rem',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.5px',
+                                                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif'
+                                                }}>
+                                                    Description
+                                                </Typography>
+                                            </Box>
+                                            <Typography variant="body2" sx={{
+                                                color: '#374151',
+                                                lineHeight: 1.6,
+                                                fontSize: '0.9rem',
+                                                fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                                                fontWeight: 400,
+                                                textAlign: 'justify',
+                                                hyphens: 'auto',
+                                                wordBreak: 'break-word',
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 4,
+                                                WebkitBoxOrient: 'vertical',
+                                                overflow: 'hidden',
+                                                position: 'relative',
+                                                '&::after': {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    bottom: 0,
+                                                    right: 0,
+                                                    width: '30%',
+                                                    height: '1.4em',
+                                                    background: 'linear-gradient(to right, transparent, #ffffff 70%)'
+                                                }
+                                            }}>
+                                                {subject.description}
+                                            </Typography>
+                                        </Box>
+                                    )}
+                                    
+                                    {/* Empty state for cards without description */}
+                                    {!subject.description && (
+                                        <Box sx={{ 
+                                            flexGrow: 1,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            py: 2,
+                                            borderRadius: 1.5,
+                                            bgcolor: 'rgba(0, 0, 0, 0.02)',
+                                            border: '1px dashed rgba(0, 0, 0, 0.1)'
+                                        }}>
+                                            <Typography variant="body2" sx={{
+                                                color: '#9ca3af',
+                                                fontStyle: 'italic',
+                                                fontSize: '0.85rem',
+                                                fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif'
+                                            }}>
+                                                No description available
+                                            </Typography>
+                                        </Box>
                                     )}
                                 </CardContent>
                             </Card>

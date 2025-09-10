@@ -284,12 +284,7 @@ const ExamList = () => {
                 </Alert>
             )}
 
-            {/* Debug info - remove in production */}
-            {process.env.NODE_ENV === 'development' && (
-                <Alert severity="info" sx={{ mb: 2 }}>
-                    Debug: Found {exams.length} exams in state. API URL: {`${REACT_APP_BASE_URL}/exams/subject/${subjectId}`}
-                </Alert>
-            )}
+          
             
             {(!exams || exams.length === 0) ? (
                 <Paper elevation={2} sx={{ p: 6, textAlign: 'center' }}>

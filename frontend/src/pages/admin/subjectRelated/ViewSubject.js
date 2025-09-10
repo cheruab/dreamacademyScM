@@ -214,30 +214,7 @@ const ViewSubject = () => {
           color: 'white', 
           p: 3 
         }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar sx={{ 
-                bgcolor: 'rgba(255,255,255,0.2)', 
-                color: 'white', 
-                mr: 2,
-                width: 50,
-                height: 50
-              }}>
-                <GroupIcon />
-              </Avatar>
-              <Box>
-                <Typography variant="h5" fontWeight="bold">
-                  Class Students
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  {sclassStudents.length} students enrolled in this subject
-                </Typography>
-              </Box>
-            </Box>
-            <Badge badgeContent={sclassStudents.length} color="secondary" sx={{ mr: 2 }}>
-              <SchoolIcon sx={{ fontSize: '2rem' }} />
-            </Badge>
-          </Box>
+        
         </Box>
 
         <CardContent sx={{ p: 0 }}>

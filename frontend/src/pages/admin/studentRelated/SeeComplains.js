@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   Paper, 
   Box, 
-  Checkbox,
   Button,
   Dialog,
   DialogTitle,
@@ -13,7 +12,6 @@ import {
   Typography,
   Chip,
   IconButton,
-  Tooltip,
   Alert,
   CircularProgress,
   Stack
@@ -28,7 +26,6 @@ import { getAllComplains } from '../../../redux/complainRelated/complainHandle';
 import TableTemplate from '../../../components/TableTemplate';
 
 const SeeComplains = () => {
-  const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
   const dispatch = useDispatch();
   const { complainsList, loading, error, response } = useSelector((state) => state.complain);
   const { currentUser } = useSelector(state => state.user);
@@ -139,7 +136,6 @@ const handleReplySubmit = async () => {
     { id: 'complaint', label: 'Complaint', minWidth: 200 },
     { id: 'date', label: 'Date', minWidth: 150 },
     { id: 'status', label: 'Status', minWidth: 120 },
-    { id: 'priority', label: 'Priority', minWidth: 100 },
   ];
 
   const complainRows = complainsList && complainsList.length > 0 && complainsList.map((complain) => {
@@ -159,16 +155,6 @@ const handleReplySubmit = async () => {
           variant="outlined"
         />
       ),
-      priority: (
-        <Chip 
-          label={complain.priority || 'Medium'}
-          size="small"
-          color={complain.priority === 'Critical' ? 'error' : 
-                 complain.priority === 'High' ? 'warning' :
-                 complain.priority === 'Low' ? 'success' : 'info'}
-          variant="filled"
-        />
-      ),
       id: complain._id,
       fullComplaint: complain, // Store full complaint data
     };
@@ -179,27 +165,25 @@ const handleReplySubmit = async () => {
     
     return (
       <Stack direction="row" spacing={1}>
-        <Tooltip title="View Details">
-          <IconButton 
-            size="small" 
-            color="info"
-            onClick={() => handleViewClick(complaint)}
-          >
-            <ViewIcon />
-          </IconButton>
-        </Tooltip>
+        <Button 
+          size="small" 
+          variant="outlined"
+          color="info"
+          startIcon={<ViewIcon />}
+          onClick={() => handleViewClick(complaint)}
+        >
+          View Details
+        </Button>
         
-        <Tooltip title={complaint?.response ? "Update Reply" : "Reply"}>
-          <IconButton 
-            size="small" 
-            color="primary"
-            onClick={() => handleReplyClick(complaint)}
-          >
-            <ReplyIcon />
-          </IconButton>
-        </Tooltip>
-        
-        <Checkbox {...label} />
+        <Button 
+          size="small" 
+          variant="contained"
+          color="primary"
+          startIcon={<ReplyIcon />}
+          onClick={() => handleReplyClick(complaint)}
+        >
+          {complaint?.response ? "Update Reply" : "Reply"}
+        </Button>
       </Stack>
     );
   };

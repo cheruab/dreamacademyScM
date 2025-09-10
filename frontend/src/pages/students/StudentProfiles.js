@@ -13,13 +13,6 @@ const StudentProfiles = ({ childData }) => {
                 </Box>
             </Box>
             
-            <Typography variant="h5" gutterBottom>Academic Information</Typography>
-            <List>
-                <ListItem>
-                    <ListItemText primary="Overall Performance" secondary="Good" />
-                </ListItem>
-                {/* Add more academic details as needed */}
-            </List>
         </Box>
     );
 };

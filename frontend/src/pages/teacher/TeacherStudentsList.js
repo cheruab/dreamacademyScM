@@ -21,7 +21,6 @@ import { getAllStudents } from '../../redux/studentRelated/studentHandle';
 const TeacherStudentsList = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [expandedRows, setExpandedRows] = useState(new Set());
     const [teacherData, setTeacherData] = useState(null);
     const [myStudents, setMyStudents] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -147,16 +146,6 @@ const TeacherStudentsList = () => {
 
         console.log("Filtered students:", filteredStudents.length);
         setMyStudents(filteredStudents);
-    };
-
-    const toggleRowExpansion = (studentId) => {
-        const newExpandedRows = new Set(expandedRows);
-        if (newExpandedRows.has(studentId)) {
-            newExpandedRows.delete(studentId);
-        } else {
-            newExpandedRows.add(studentId);
-        }
-        setExpandedRows(newExpandedRows);
     };
 
     // Helper function to format teacher's assignments for display
@@ -339,9 +328,7 @@ const TeacherStudentsList = () => {
         </Card>
     );
 
-    const SubjectsCell = ({ subjects, studentId }) => {
-        const isExpanded = expandedRows.has(studentId);
-        
+    const SubjectsCell = ({ subjects }) => {
         if (subjects.length === 0) {
             return (
                 <Typography variant="body2" color="textSecondary">
@@ -350,45 +337,18 @@ const TeacherStudentsList = () => {
             );
         }
 
-        if (subjects.length === 1) {
-            return (
-                <Chip 
-                    label={subjects[0]} 
-                    size="small" 
-                    color="primary"
-                    variant="filled"
-                />
-            );
-        }
-
         return (
-            <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2">
-                        {subjects.length} subjects
-                    </Typography>
-                    <IconButton 
+            <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+                {subjects.map((subject, index) => (
+                    <Chip 
+                        key={index}
+                        label={subject} 
                         size="small" 
-                        onClick={() => toggleRowExpansion(studentId)}
-                    >
-                        {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                    </IconButton>
-                </Box>
-                
-                <Collapse in={isExpanded}>
-                    <Stack direction="row" spacing={0.5} sx={{ mt: 1, flexWrap: 'wrap', gap: 0.5 }}>
-                        {subjects.map((subject, index) => (
-                            <Chip 
-                                key={index}
-                                label={subject} 
-                                size="small" 
-                                color="primary"
-                                variant="filled"
-                            />
-                        ))}
-                    </Stack>
-                </Collapse>
-            </Box>
+                        color="primary"
+                        variant="filled"
+                    />
+                ))}
+            </Stack>
         );
     };
 
@@ -458,7 +418,6 @@ const TeacherStudentsList = () => {
                                             <StyledTableCell>
                                                 <SubjectsCell 
                                                     subjects={row.mySubjects} 
-                                                    studentId={row.id}
                                                 />
                                             </StyledTableCell>
                                             <StyledTableCell>

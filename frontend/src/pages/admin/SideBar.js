@@ -68,7 +68,7 @@ const SideBar = () => {
             letterSpacing: '0.5px',
           }}
         >
-          EduAdmin
+          Admin
         </Typography>
       </Box>
 

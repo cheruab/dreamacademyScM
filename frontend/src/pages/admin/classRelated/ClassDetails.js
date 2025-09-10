@@ -128,10 +128,6 @@ const ClassDetails = () => {
     };
 
     // Handle assignment submission
-// Replace the handleAssignSubmit function in your ClassDetails.js with this:
-
-// Replace the handleAssignSubmit function in your ClassDetails.js with this enhanced version:
-
 const handleAssignSubmit = async () => {
     if (selectedItems.length === 0) {
         setMessage('Please select at least one item');
@@ -261,9 +257,6 @@ const handleAssignSubmit = async () => {
     setAssignLoading(false);
 };
 
-// Also update the teacher assignment to only allow single selection
-// Replace the renderItemList function's teacher selection part with this:
-
 const renderItemList = () => {
     if (assignLoading) {
         return (
@@ -384,11 +377,13 @@ const renderItemList = () => {
             {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
                     <CircularProgress size={60} />
-                    <Typography sx={{ ml: 4 }}>Loading class details...</Typography>
+                    <Typography sx={{ ml: 4, fontFamily: 'Roboto, Arial, sans-serif' }}>
+                        Loading class details...
+                    </Typography>
                 </Box>
             ) : (
                 <>
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4, fontFamily: 'Roboto, Arial, sans-serif' }}>
 
                          <Box sx={{ mb: 2 }}>
                             <Button
@@ -400,30 +395,53 @@ const renderItemList = () => {
                                 Back to Classes
                             </Button>
                         </Box>
-                        <Typography variant="h4" align="center" gutterBottom sx={{ mb: 4 }}>
+                        <Typography variant="h4" align="center" gutterBottom sx={{ 
+                            mb: 4, 
+                            fontFamily: 'Roboto, Arial, sans-serif',
+                            fontWeight: 600,
+                            color: '#2c3e50'
+                        }}>
                             Class Overview
                         </Typography>
                         
                         {/* Main Stats Cards */}
                         <Grid container spacing={3} sx={{ mb: 4 }}>
                             <Grid item xs={12} md={4}>
-                                <StatsCard elevation={3}>
-                                    <Typography variant="h6" color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <SchoolIcon />
+                                <StatsCard elevation={2}>
+                                    <Typography variant="h6" sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: 1,
+                                        color: '#34495e',
+                                        fontWeight: 500
+                                    }}>
+                                        <SchoolIcon sx={{ color: '#3498db' }} />
                                         Class Name
                                     </Typography>
-                                    <Typography variant="h4">
+                                    <Typography variant="h4" sx={{ 
+                                        color: '#2c3e50',
+                                        fontWeight: 600
+                                    }}>
                                         {sclassDetails && sclassDetails.sclassName}
                                     </Typography>
                                 </StatsCard>
                             </Grid>
                             <Grid item xs={12} md={4}>
-                                <StatsCard elevation={3}>
-                                    <Typography variant="h6" color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <BookIcon />
+                                <StatsCard elevation={2}>
+                                    <Typography variant="h6" sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: 1,
+                                        color: '#34495e',
+                                        fontWeight: 500
+                                    }}>
+                                        <BookIcon sx={{ color: '#e74c3c' }} />
                                         Total Subjects
                                     </Typography>
-                                    <Typography variant="h4" color="success.main">
+                                    <Typography variant="h4" sx={{ 
+                                        color: '#27ae60',
+                                        fontWeight: 600
+                                    }}>
                                         {numberOfSubjects}
                                     </Typography>
                                 </StatsCard>
@@ -433,18 +451,28 @@ const renderItemList = () => {
 
                         {/* Student Information Card */}
                         {studentData && (
-                            <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-                                <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <PersonIcon color="primary" />
+                            <StyledPaper elevation={2} sx={{ p: 3, mb: 3 }}>
+                                <Typography variant="h5" gutterBottom sx={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: 1,
+                                    color: '#2c3e50',
+                                    fontWeight: 500
+                                }}>
+                                    <PersonIcon sx={{ color: '#9b59b6' }} />
                                     Student Information
                                 </Typography>
                                 <Divider sx={{ mb: 2 }} />
                                 <Grid container spacing={2}>
                                     <Grid item xs={12} md={6}>
-                                        <Typography variant="body1"><strong>Name:</strong> {studentData.name}</Typography>
+                                        <Typography variant="body1" sx={{ color: '#34495e' }}>
+                                            <strong>Name:</strong> {studentData.name}
+                                        </Typography>
                                     </Grid>
                                     <Grid item xs={12} md={6}>
-                                        <Typography variant="body1"><strong>Roll Number:</strong> {studentData.rollNum}</Typography>
+                                        <Typography variant="body1" sx={{ color: '#34495e' }}>
+                                            <strong>Roll Number:</strong> {studentData.rollNum}
+                                        </Typography>
                                     </Grid>
                                 </Grid>
                                 <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -481,23 +509,29 @@ const renderItemList = () => {
                                         Exam Results
                                     </GreenButton>
                                 </Box>
-                            </Paper>
+                            </StyledPaper>
                         )}
 
                         {/* Subjects Section */}
-                        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-                            <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <BookIcon color="secondary" />
+                        <StyledPaper elevation={2} sx={{ p: 3, mb: 3 }}>
+                            <Typography variant="h5" gutterBottom sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: 1,
+                                color: '#2c3e50',
+                                fontWeight: 500
+                            }}>
+                                <BookIcon sx={{ color: '#f39c12' }} />
                                 Assigned Subjects ({numberOfSubjects})
                             </Typography>
                             <Divider sx={{ mb: 2 }} />
                             
                             {response ? (
                                 <EmptyState>
-                                    <Typography variant="h6" color="text.secondary">
+                                    <Typography variant="h6" sx={{ color: '#7f8c8d' }}>
                                         No subjects assigned to this class
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary">
+                                    <Typography variant="body2" sx={{ color: '#95a5a6' }}>
                                         Assign subjects to get started
                                     </Typography>
                                 </EmptyState>
@@ -505,51 +539,68 @@ const renderItemList = () => {
                                 <Grid container spacing={2}>
                                     {subjectsList.map((subject) => (
                                         <Grid item xs={12} md={6} lg={4} key={subject._id}>
-                                            <Card variant="outlined" sx={{ height: '100%' }}>
-
-<CardContent>
-    <Typography variant="h6" color="primary" gutterBottom>
-        {subject.subName}
-    </Typography>
-    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        Code: {subject.subCode}
-    </Typography>
-    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        Sessions: {subject.sessions}
-    </Typography>
-    {/* Add teacher information here */}
-    <Typography variant="body2" sx={{ mb: 2 }}>
-        Teacher: {subject.teacher ? (
-            <Chip 
-                avatar={<Avatar>{subject.teacher.name.charAt(0)}</Avatar>}
-                label={subject.teacher.name}
-                size="small"
-                color="primary"
-                variant="outlined"
-            />
-        ) : (
-            <Chip 
-                label="Not assigned"
-                size="small"
-                color="default"
-                variant="outlined"
-            />
-        )}
-    </Typography>
-    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-        {/* ... existing buttons ... */}
-    </Box>
-</CardContent>
-                                            </Card>
+                                            <SubjectCard variant="outlined" sx={{ height: '100%' }}>
+                                                <CardContent>
+                                                    <Typography variant="h6" gutterBottom sx={{ 
+                                                        color: '#2980b9',
+                                                        fontWeight: 500
+                                                    }}>
+                                                        {subject.subName}
+                                                    </Typography>
+                                                    <Typography variant="body2" sx={{ 
+                                                        mb: 1,
+                                                        color: '#7f8c8d'
+                                                    }}>
+                                                        Code: {subject.subCode}
+                                                    </Typography>
+                                                    <Typography variant="body2" sx={{ 
+                                                        mb: 1,
+                                                        color: '#7f8c8d'
+                                                    }}>
+                                                        Sessions: {subject.sessions}
+                                                    </Typography>
+                                                    <Typography variant="body2" sx={{ mb: 2 }}>
+                                                        Teacher: {subject.teacher ? (
+                                                            <Chip 
+                                                                avatar={<Avatar sx={{ 
+                                                                    bgcolor: '#8e44ad',
+                                                                    width: 24,
+                                                                    height: 24 
+                                                                }}>
+                                                                    {subject.teacher.name.charAt(0)}
+                                                                </Avatar>}
+                                                                label={subject.teacher.name}
+                                                                size="small"
+                                                                sx={{
+                                                                    backgroundColor: '#ecf0f1',
+                                                                    color: '#2c3e50'
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <Chip 
+                                                                label="Not assigned"
+                                                                size="small"
+                                                                sx={{
+                                                                    backgroundColor: '#f1c40f',
+                                                                    color: '#fff'
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </Typography>
+                                                </CardContent>
+                                            </SubjectCard>
                                         </Grid>
                                     ))}
                                 </Grid>
                             )}
-                        </Paper>
+                        </StyledPaper>
 
                         {/* Quick Actions */}
-                        <Paper elevation={3} sx={{ p: 3 }}>
-                            <Typography variant="h5" gutterBottom>
+                        <StyledPaper elevation={2} sx={{ p: 3 }}>
+                            <Typography variant="h5" gutterBottom sx={{ 
+                                color: '#2c3e50',
+                                fontWeight: 500
+                            }}>
                                 Quick Actions
                             </Typography>
                             <Divider sx={{ mb: 2 }} />
@@ -571,7 +622,7 @@ const renderItemList = () => {
                                     Assign Teachers
                                 </BlueButton>
                             </Box>
-                        </Paper>
+                        </StyledPaper>
                     </Container>
 
                     {/* Assignment Dialog */}
@@ -581,11 +632,18 @@ const renderItemList = () => {
                         maxWidth="md"
                         fullWidth
                     >
-                        <DialogTitle>
+                        <DialogTitle sx={{ 
+                            fontFamily: 'Roboto, Arial, sans-serif',
+                            fontWeight: 500,
+                            color: '#2c3e50'
+                        }}>
                             Assign {assignDialogType.charAt(0).toUpperCase() + assignDialogType.slice(1)} to Class
                         </DialogTitle>
                         <DialogContent>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            <Typography variant="body2" sx={{ 
+                                mb: 2,
+                                color: '#7f8c8d'
+                            }}>
                                 Select {assignDialogType} to assign to {sclassDetails?.sclassName}:
                             </Typography>
                             {renderItemList()}
@@ -604,6 +662,7 @@ const renderItemList = () => {
                                 variant="contained"
                                 disabled={assignLoading || selectedItems.length === 0}
                                 startIcon={assignLoading ? <CircularProgress size={20} /> : <AssignmentIcon />}
+                                sx={{ backgroundColor: '#3498db' }}
                             >
                                 Assign Selected
                             </Button>
@@ -618,7 +677,7 @@ const renderItemList = () => {
 
 export default ClassDetails;
 
-// Styled Components
+// Simple Styled Components - just better cards and colors
 const StatsCard = styled(Paper)`
     padding: 1.5rem;
     text-align: center;
@@ -626,13 +685,33 @@ const StatsCard = styled(Paper)`
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: #f7b37bff;
+    border-radius: 8px;
+    font-family: 'Roboto', Arial, sans-serif;
+`;
+
+const StyledPaper = styled(Paper)`
+    background: #a8f889ff;
+    border-radius: 8px;
+    font-family: 'Roboto', Arial, sans-serif;
+`;
+
+const SubjectCard = styled(Card)`
+    background: #bdebb7ff;
+    border-radius: 8px;
+    font-family: 'Roboto', Arial, sans-serif;
+    border: 1px solid #549e6dff;
+    
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
 `;
 
 const EmptyState = styled(Box)`
     text-align: center;
     padding: 3rem;
-    background-color: #f9f9f9;
+    background-color: #bbd6f1f5;
     border-radius: 8px;
-    border: 2px dashed #ddd;
+    border: 2px dashed #3b5168ff;
+    font-family: 'Roboto', Arial, sans-serif;
 `;

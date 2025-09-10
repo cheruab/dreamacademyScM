@@ -489,7 +489,7 @@ const StyledCard = styled(Card)`
     flex-direction: column;
     transition: all 0.3s ease-in-out;
     border-radius: 16px;
-    background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+    background: linear-gradient(135deg, #d0e9d2ff 0%, #c7ecc2ff 100%);
     border: 1px solid rgba(102, 126, 234, 0.1);
     
     &:hover {

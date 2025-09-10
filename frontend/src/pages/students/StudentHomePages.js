@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Grid, 
   Card, 
@@ -19,9 +19,42 @@ import ClassIcon from '@mui/icons-material/Class';
 import BookIcon from '@mui/icons-material/Book';
 import EventIcon from '@mui/icons-material/Event';
 import FeedbackIcon from '@mui/icons-material/Feedback';
+import axios from 'axios';
 
 const StudentHomePages = ({ child, parent }) => {
+  const [examResults, setExamResults] = useState([]);
+  const [examResultsLoading, setExamResultsLoading] = useState(true);
 
+  // Fetch child's exam results for average calculation
+  useEffect(() => {
+    const fetchExamResults = async () => {
+      if (!child || !child._id) {
+        setExamResultsLoading(false);
+        return;
+      }
+
+      try {
+        setExamResultsLoading(true);
+        console.log("Fetching exam results for average calculation:", child._id);
+        
+        const examResultsResponse = await axios.get(`${process.env.REACT_APP_BASE_URL}/student/${child._id}/exam-results`);
+        console.log("Exam results response for average:", examResultsResponse.data);
+        
+        if (examResultsResponse.data.success && examResultsResponse.data.examResults) {
+          setExamResults(examResultsResponse.data.examResults);
+        } else {
+          setExamResults([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch exam results for average:", err);
+        setExamResults([]);
+      } finally {
+        setExamResultsLoading(false);
+      }
+    };
+
+    fetchExamResults();
+  }, [child]);
 
   const getAttendanceStats = () => {
     if (!child?.attendance || child.attendance.length === 0) {
@@ -37,15 +70,30 @@ const StudentHomePages = ({ child, parent }) => {
   };
 
   const getMarksStats = () => {
-    if (!child?.examResult || child.examResult.length === 0) {
-      return { subjects: 0, totalMarks: 0, averageMarks: 0 };
+    // Use exam results instead of traditional marks for average calculation
+    if (!examResults || examResults.length === 0) {
+      return { subjects: 0, totalMarks: 0, averageMarks: 0, examCount: 0 };
     }
 
-    const subjects = child.examResult.length;
-    const totalMarks = child.examResult.reduce((sum, result) => sum + (result.marksObtained || 0), 0);
-    const averageMarks = subjects > 0 ? Math.round(totalMarks / subjects) : 0;
+    const examCount = examResults.length;
+    const totalPercentage = examResults.reduce((sum, result) => sum + (result.percentage || 0), 0);
+    const averageMarks = examCount > 0 ? Math.round(totalPercentage / examCount) : 0;
+    
+    // Get unique subjects from exam results
+    const uniqueSubjects = new Set();
+    examResults.forEach(result => {
+      if (result.examId?.subject) {
+        const subjectName = result.examId.subject.subName || result.examId.subject.name || result.examId.subject;
+        uniqueSubjects.add(subjectName);
+      }
+    });
 
-    return { subjects, totalMarks, averageMarks };
+    return { 
+      subjects: uniqueSubjects.size, 
+      totalMarks: totalPercentage, 
+      averageMarks, 
+      examCount 
+    };
   };
 
   const attendanceStats = getAttendanceStats();
@@ -60,7 +108,6 @@ const StudentHomePages = ({ child, parent }) => {
         boxSizing: "border-box",
       }}
     >
-
 
       {/* Quick Stats */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -96,13 +143,18 @@ const StudentHomePages = ({ child, parent }) => {
             <CardContent sx={{ textAlign: 'center', py: 3 }}>
               <BookIcon sx={{ fontSize: 48, mb: 2 }} />
               <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-                {marksStats.averageMarks}
+                {examResultsLoading ? '...' : `${marksStats.averageMarks}%`}
               </Typography>
               <Typography variant="body1">
-                Average Marks
+                Average Score
               </Typography>
               <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                Across {marksStats.subjects} subjects
+                {examResultsLoading 
+                  ? 'Loading...' 
+                  : marksStats.examCount > 0 
+                    ? `Based on ${marksStats.examCount} exam${marksStats.examCount !== 1 ? 's' : ''}`
+                    : 'No exams completed'
+                }
               </Typography>
             </CardContent>
           </Card>
@@ -118,13 +170,20 @@ const StudentHomePages = ({ child, parent }) => {
             <CardContent sx={{ textAlign: 'center', py: 3 }}>
               <FeedbackIcon sx={{ fontSize: 48, mb: 2 }} />
               <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-                Active
+                {examResultsLoading ? '...' : (marksStats.averageMarks >= 60 ? 'Good' : marksStats.averageMarks > 0 ? 'Fair' : 'N/A')}
               </Typography>
               <Typography variant="body1">
-                Academic Status
+                Performance Level
               </Typography>
               <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                Enrolled & Learning
+                {examResultsLoading 
+                  ? 'Calculating...' 
+                  : marksStats.averageMarks >= 60 
+                    ? 'Above average performance' 
+                    : marksStats.averageMarks > 0 
+                      ? 'Room for improvement' 
+                      : 'No data available'
+                }
               </Typography>
             </CardContent>
           </Card>
