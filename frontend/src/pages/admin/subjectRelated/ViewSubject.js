@@ -188,16 +188,6 @@ const ViewSubject = () => {
                     </Typography>
                   </Box>
                 </Box>
-                {!(subjectDetails && subjectDetails.teacher) && (
-                  <GreenButton 
-                    variant="contained"
-                    startIcon={<PersonIcon />}
-                    onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}
-                    sx={{ borderRadius: 2 }}
-                  >
-                    Add Subject Teacher
-                  </GreenButton>
-                )}
               </Box>
             </Grid>
           </Grid>

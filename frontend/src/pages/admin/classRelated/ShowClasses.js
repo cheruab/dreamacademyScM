@@ -480,7 +480,7 @@ const ShowClasses = () => {
     <ThemeProvider theme={theme}>
       <Box sx={{ 
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        background: 'linear-gradient(135deg, #2f8ce2ff 0%, #6781f3ff 100%)',
         py: 4
       }}>
         <Box sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
@@ -488,7 +488,7 @@ const ShowClasses = () => {
           <Box sx={{ textAlign: 'center', mb: 6 }}>
             <Typography variant="h4" sx={{ 
               mb: 2,
-              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              background: 'linear-gradient(135deg, hsla(135, 20%, 96%, 1.00) 0%, #fafafaff 100%)',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',

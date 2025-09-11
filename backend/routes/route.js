@@ -41,6 +41,9 @@ const { adminRegister,
     uploadWorksheetForStudent,
     getParentResults,
     getStudentPastExams,
+    changeAdminPassword,
+    checkAdminExists,
+    resetAdminPassword,
     getStudentWorksheets  } = require('../controllers/admin-controller.js');
 
 const { 
@@ -143,6 +146,10 @@ const {
 router.post('/AdminReg', adminRegister);
 router.post('/AdminLogin', adminLogIn);
 router.get("/Admin/:id", getAdminDetail);
+router.post('/admin/change-password', changeAdminPassword);
+router.get('/admin/check-exists', checkAdminExists);
+router.post('/admin/reset-password', resetAdminPassword);
+
 
 // ================== Students ==================
 router.post('/StudentReg', studentRegister);

@@ -13,7 +13,10 @@ import {
   Divider,
   FormControl,
   InputLabel,
-  Select
+  Select,
+  Checkbox,
+  ListItemText,
+  FormControlLabel
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllParents } from '../../redux/studentsRelated/parentHandle';
@@ -44,7 +47,8 @@ const UploadResult = ({ onUploadSuccess }) => {
   const [studentSubject, setStudentSubject] = useState('');
 
   // Past exam upload states
-  const [pastExamStudentId, setPastExamStudentId] = useState('');
+  const [pastExamStudentIds, setPastExamStudentIds] = useState([]);
+  const [selectAllStudents, setSelectAllStudents] = useState(false);
   const [pastExamFile, setPastExamFile] = useState(null);
   const [pastExamUploading, setPastExamUploading] = useState(false);
   const [pastExamMessage, setPastExamMessage] = useState('');
@@ -99,6 +103,15 @@ const UploadResult = ({ onUploadSuccess }) => {
   useEffect(() => {
     fetchAvailableSubjects();
   }, [currentUser]);
+
+  // Handle select all students for past exams
+  useEffect(() => {
+    if (selectAllStudents && studentsList && studentsList.length > 0) {
+      setPastExamStudentIds(studentsList.map(student => student._id));
+    } else if (!selectAllStudents) {
+      setPastExamStudentIds([]);
+    }
+  }, [selectAllStudents, studentsList]);
 
   const fetchAvailableSubjects = async () => {
     if (!currentUser?._id) return;
@@ -234,35 +247,45 @@ const UploadResult = ({ onUploadSuccess }) => {
     e.preventDefault();
     
     // UPDATED: More comprehensive validation including grade
-    if (!pastExamStudentId || !pastExamFile || !pastExamSubject || !pastExamYear || !pastExamType || !pastExamGrade) {
+    if ((pastExamStudentIds.length === 0 && !selectAllStudents) || !pastExamFile || !pastExamSubject || !pastExamYear || !pastExamType || !pastExamGrade) {
       setPastExamMessage('Please fill in all required fields including Grade.');
       return;
     }
-
-    const formData = new FormData();
-    formData.append('pastExamFile', pastExamFile);
-    formData.append('studentId', pastExamStudentId);
-    formData.append('subject', pastExamSubject);
-    formData.append('year', pastExamYear);
-    formData.append('examType', pastExamType);
-    formData.append('description', pastExamDescription);
-    formData.append('grade', pastExamGrade); // IMPORTANT: Grade is required
 
     setPastExamUploading(true);
     setPastExamMessage('');
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/upload-pastexam`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      // If "Select All Students" is checked, upload to all students
+      const studentIdsToUpload = selectAllStudents 
+        ? studentsList.map(student => student._id) 
+        : pastExamStudentIds;
+
+      // Create an array of upload promises
+      const uploadPromises = studentIdsToUpload.map(async (studentId) => {
+        const formData = new FormData();
+        formData.append('pastExamFile', pastExamFile);
+        formData.append('studentId', studentId);
+        formData.append('subject', pastExamSubject);
+        formData.append('year', pastExamYear);
+        formData.append('examType', pastExamType);
+        formData.append('description', pastExamDescription);
+        formData.append('grade', pastExamGrade);
+
+        return axios.post(`${process.env.REACT_APP_BASE_URL}/upload-pastexam`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
       });
 
-      console.log('Past exam upload response:', response.data); // DEBUG
+      // Wait for all uploads to complete
+      await Promise.all(uploadPromises);
 
-      setPastExamMessage('Past exam uploaded successfully!');
+      setPastExamMessage(`Past exam uploaded successfully to ${studentIdsToUpload.length} student(s)!`);
       setPastExamFile(null);
-      setPastExamStudentId('');
+      setPastExamStudentIds([]);
+      setSelectAllStudents(false);
       setPastExamSubject('');
       setPastExamYear('');
       setPastExamType('');
@@ -277,6 +300,15 @@ const UploadResult = ({ onUploadSuccess }) => {
       setPastExamMessage(error.response?.data?.message || 'Error uploading past exam.');
     } finally {
       setPastExamUploading(false);
+    }
+  };
+
+  // Handle individual student selection for past exams
+  const handleStudentSelection = (studentId) => {
+    if (pastExamStudentIds.includes(studentId)) {
+      setPastExamStudentIds(pastExamStudentIds.filter(id => id !== studentId));
+    } else {
+      setPastExamStudentIds([...pastExamStudentIds, studentId]);
     }
   };
 
@@ -503,7 +535,7 @@ const UploadResult = ({ onUploadSuccess }) => {
                   onChange={e => setStudentDescription(e.target.value)}
                   multiline
                   rows={2}
-                  placeholder="e.g., Chapter 5 exercises, Home assignment..."
+                  placeholder="e.g., Chapter 3 problems, Due date: Friday..."
                 />
 
                 <Box sx={{ mt: 2, mb: 2 }}>
@@ -533,7 +565,7 @@ const UploadResult = ({ onUploadSuccess }) => {
                   startIcon={<UploadFileIcon />}
                   sx={{ mt: 2 }}
                 >
-                  {studentUploading ? <CircularProgress size={24} /> : `Upload ${uploadType === 'worksheet' ? 'Worksheet' : 'Assignment'}`}
+                  {studentUploading ? <CircularProgress size={24} /> : 'Upload Worksheet/Assignment'}
                 </Button>
               </form>
 
@@ -549,48 +581,70 @@ const UploadResult = ({ onUploadSuccess }) => {
           </Card>
         </Grid>
 
-        {/* Past Exams Upload Section */}
+        {/* Past Exam Upload Section */}
         <Grid item xs={12} lg={4}>
           <Card sx={{ height: '100%', boxShadow: 3 }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <FolderIcon sx={{ mr: 1, color: 'success.main' }} />
-                <Typography variant="h5" color="success.main">
+                <FolderIcon sx={{ mr: 1, color: 'info.main' }} />
+                <Typography variant="h5" color="info.main">
                   Upload Past Exams
                 </Typography>
               </Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Upload past exam papers organized by grade, subject and year
+                Upload past exam papers for students to practice
               </Typography>
 
               <form onSubmit={handlePastExamSubmit}>
-                <FormControl fullWidth margin="normal" required>
-                  <InputLabel>Select Student</InputLabel>
+                {/* NEW: Select All Students Checkbox */}
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={selectAllStudents}
+                      onChange={(e) => setSelectAllStudents(e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label="Select All Students"
+                  sx={{ mb: 1 }}
+                />
+
+                <FormControl fullWidth margin="normal" required={!selectAllStudents}>
+                  <InputLabel>Select Students</InputLabel>
                   <Select
-                    value={pastExamStudentId}
-                    onChange={e => setPastExamStudentId(e.target.value)}
-                    label="Select Student"
+                    multiple
+                    value={pastExamStudentIds}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // If the last option was "Select All", handle it
+                      if (value.includes("select-all")) {
+                        setSelectAllStudents(!selectAllStudents);
+                      } else {
+                        setPastExamStudentIds(value);
+                      }
+                    }}
+                    renderValue={(selected) => `${selected.length} student(s) selected`}
+                    disabled={selectAllStudents}
                   >
                     {studentsLoading ? (
                       <MenuItem disabled>Loading students...</MenuItem>
                     ) : (
                       studentsList?.map(student => (
                         <MenuItem key={student._id} value={student._id}>
-                          {student.name} - {student.rollNum} ({student.sclassName?.sclassName})
+                          <Checkbox checked={pastExamStudentIds.includes(student._id) || selectAllStudents} />
+                          <ListItemText primary={`${student.name} - ${student.rollNum} (${student.sclassName?.sclassName})`} />
                         </MenuItem>
                       ))
                     )}
                   </Select>
                 </FormControl>
 
-                {/* UPDATED: Grade field moved to top for emphasis */}
                 <FormControl fullWidth margin="normal" required>
-                  <InputLabel>Grade *</InputLabel>
+                  <InputLabel>Grade</InputLabel>
                   <Select
                     value={pastExamGrade}
                     onChange={e => setPastExamGrade(e.target.value)}
-                    label="Grade *"
-                    error={!pastExamGrade}
+                    label="Grade"
                   >
                     {grades.map(grade => (
                       <MenuItem key={grade} value={grade}>
@@ -660,7 +714,7 @@ const UploadResult = ({ onUploadSuccess }) => {
                   onChange={e => setPastExamDescription(e.target.value)}
                   multiline
                   rows={2}
-                  placeholder="e.g., Chapter 1-5, Advanced level..."
+                  placeholder="e.g., Previous year board paper, Important questions..."
                 />
 
                 <Box sx={{ mt: 2, mb: 2 }}>
@@ -684,7 +738,7 @@ const UploadResult = ({ onUploadSuccess }) => {
                 <Button 
                   type="submit" 
                   variant="contained" 
-                  color="success"
+                  color="info"
                   fullWidth
                   disabled={pastExamUploading}
                   startIcon={<UploadFileIcon />}

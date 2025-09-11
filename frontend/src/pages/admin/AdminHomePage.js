@@ -29,62 +29,74 @@ const AdminHomePage = () => {
     const numberOfTeachers = teachersList?.length || 0;
 
     return (
-        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-            {/* Welcome Banner */}
-            <Box sx={{ mb: 4, textAlign: "center" }}>
-                <Typography variant="h4" fontWeight="bold" gutterBottom>
-                    Welcome back, {currentUser?.name || "Admin"} 👋
-                </Typography>
-                <Typography variant="subtitle1" color="text.secondary">
-                    Here’s a quick overview of your school’s activity today
-                </Typography>
-            </Box>
+        <Box sx={{ 
+            background: 'linear-gradient(135deg, #047e59ff 0%, #2e9713ff 100%)',
+            minHeight: '100vh',
+            py: 4
+        }}>
+            <Container maxWidth="xl">
+                {/* Welcome Banner */}
+                <Box sx={{ mb: 4, textAlign: "center" }}>
+                    <Typography variant="h4" fontWeight="bold" gutterBottom>
+                        Welcome back, {currentUser?.name || "Admin"} 👋
+                    </Typography>
+                    <Typography variant="subtitle1" color="text.secondary">
+                        Here's a quick overview of your school's activity today
+                    </Typography>
+                </Box>
 
-            <Grid container spacing={4} justifyContent="center">
-                {/* Students */}
-                <Grid item xs={12} sm={6} md={3}>
-                    <StyledPaper color="#81c784">
-                        <StyledIcon>
-                            <Groups fontSize="large" />
-                        </StyledIcon>
-                        <Title>Total Students</Title>
-                        <Data start={0} end={numberOfStudents} duration={2.5} />
-                    </StyledPaper>
-                </Grid>
+                <Grid container spacing={4} justifyContent="center">
+                    {/* Students */}
+                    <Grid item xs={12} sm={6} md={3}>
+                        <StyledPaper color="#7869a1ff">
+                            <StyledIcon>
+                                <Groups fontSize="large" />
+                            </StyledIcon>
+                            <Title>Total Students</Title>
+                            <Data start={0} end={numberOfStudents} duration={2.5} />
+                        </StyledPaper>
+                    </Grid>
 
-                {/* Classes */}
-                <Grid item xs={12} sm={6} md={3}>
-                    <StyledPaper color="#64b5f6">
-                        <StyledIcon>
-                            <Class fontSize="large" />
-                        </StyledIcon>
-                        <Title>Total Classes</Title>
-                        <Data start={0} end={numberOfClasses} duration={2.5} />
-                    </StyledPaper>
-                </Grid>
+                    {/* Classes */}
+                    <Grid item xs={12} sm={6} md={3}>
+                        <StyledPaper color="#64b5f6">
+                            <StyledIcon>
+                                <Class fontSize="large" />
+                            </StyledIcon>
+                            <Title>Total Classes</Title>
+                            <Data start={0} end={numberOfClasses} duration={2.5} />
+                        </StyledPaper>
+                    </Grid>
 
-                {/* Teachers */}
-                <Grid item xs={12} sm={6} md={3}>
-                    <StyledPaper color="#ffb74d">
-                        <StyledIcon>
-                            <School fontSize="large" />
-                        </StyledIcon>
-                        <Title>Total Teachers</Title>
-                        <Data start={0} end={numberOfTeachers} duration={2.5} />
-                    </StyledPaper>
-                </Grid>
+                    {/* Teachers */}
+                    <Grid item xs={12} sm={6} md={3}>
+                        <StyledPaper color="#ffb74d">
+                            <StyledIcon>
+                                <School fontSize="large" />
+                            </StyledIcon>
+                            <Title>Total Teachers</Title>
+                            <Data start={0} end={numberOfTeachers} duration={2.5} />
+                        </StyledPaper>
+                    </Grid>
 
-                {/* Notices */}
-                <Grid item xs={12}>
-                    <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 4 }}>
-                        <Typography variant="h6" fontWeight="bold" mb={2}>
-                            <Announcement sx={{ verticalAlign: 'middle', mr: 1 }} /> Latest Notices
-                        </Typography>
-                        <SeeNotice />
-                    </Paper>
+                    {/* Notices */}
+                    <Grid item xs={12}>
+                        <Paper sx={{ 
+                            p: 3, 
+                            borderRadius: 3, 
+                            boxShadow: 4,
+                            background: 'rgba(243, 201, 201, 0.9)',
+                            backdropFilter: 'blur(10px)'
+                        }}>
+                            <Typography variant="h6" fontWeight="bold" mb={2}>
+                                <Announcement sx={{ verticalAlign: 'middle', mr: 1 }} /> Latest Notices
+                            </Typography>
+                            <SeeNotice />
+                        </Paper>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </Container>
+            </Container>
+        </Box>
     );
 };
 
@@ -100,7 +112,7 @@ const StyledPaper = styled(Paper)`
   border-radius: 20px !important;
   box-shadow: 0 4px 15px rgba(0,0,0,0.08);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  background-color: ${(props) => props.color || '#f0f0f0'};
+  background-color: '#349ccce7'};
   color: #333;
 
   &:hover {

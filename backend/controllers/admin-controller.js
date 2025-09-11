@@ -65,57 +65,213 @@ const uploadPastExam = multer({
     }
 });
 
-// ===== Admin Controllers =====
+// ===== UPDATED Admin Controllers =====
+
+// Check if admin exists (for registration prevention)
+const checkAdminExists = async (req, res) => {
+    try {
+        const existingAdmin = await Admin.findOne({});
+        res.json({ exists: !!existingAdmin });
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+// Admin Registration - Enhanced Security
 const adminRegister = async (req, res) => {
     try {
-        // Step 1: check if any admin already exists
+        const { name, email, password, schoolName, adminKey } = req.body;
+
+        // Check for special admin key (optional security measure)
+        const ADMIN_REGISTRATION_KEY = process.env.ADMIN_REGISTRATION_KEY || "ADMIN_2024";
+        if (adminKey !== ADMIN_REGISTRATION_KEY) {
+            return res.status(403).json({ 
+                message: 'Invalid admin registration key. Admin registration is restricted.' 
+            });
+        }
+
+        // Check if any admin already exists
         const existingAdmin = await Admin.findOne({});
         if (existingAdmin) {
-            return res.status(400).send({ message: 'You can not register as an admin' });
+            return res.status(400).json({ 
+                message: 'You cannot register as an admin. There is only one admin allowed.' 
+            });
         }
 
-        // Step 2: create the very first admin
-        const admin = new Admin({ ...req.body });
-        let result = await admin.save();
-        result.password = undefined;
+        // Validate input
+        if (!name || !email || !password || !schoolName) {
+            return res.status(400).json({ 
+                message: 'All fields (name, email, password, schoolName) are required' 
+            });
+        }
 
-        res.send(result);
+        // Hash password before saving
+        const saltRounds = 12;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // Create the admin
+        const admin = new Admin({ 
+            name, 
+            email, 
+            password: hashedPassword, 
+            schoolName,
+            role: "Admin",
+            createdAt: new Date(),
+            lastPasswordChange: new Date()
+        });
+
+        let result = await admin.save();
+        result.password = undefined; // Don't send password back
+
+        res.status(201).json({
+            success: true,
+            message: "Admin registered successfully",
+            admin: result
+        });
 
     } catch (err) {
-        res.status(500).json(err);
+        console.error('Admin registration error:', err);
+        res.status(500).json({ 
+            message: "Failed to register admin", 
+            error: err.message 
+        });
     }
 };
 
+// Simple Admin Login - No password hashing, direct comparison
 const adminLogIn = async (req, res) => {
-    if (req.body.email && req.body.password) {
-        let admin = await Admin.findOne({ email: req.body.email });
-        if (admin) {
-            if (req.body.password === admin.password) {
-                admin.password = undefined;
-                res.send(admin);
-            } else {
-                res.send({ message: "Invalid password" });
-            }
-        } else {
-            res.send({ message: "User not found" });
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ 
+                success: false,
+                message: "Email and password are required" 
+            });
         }
-    } else {
-        res.send({ message: "Email and password are required" });
+
+        // Find admin by email directly (bypass validation)
+        let admin = await Admin.findOne({ email: email.trim() }).lean();
+
+        if (!admin) {
+            console.log('Admin not found for email:', email);
+            return res.status(401).json({ 
+                success: false,
+                message: "Invalid credentials" 
+            });
+        }
+
+        console.log('Admin found:', admin.name);
+        console.log('Checking password...');
+
+        // Direct password comparison (no hashing)
+        if (password.trim() !== admin.password) {
+            console.log('Password mismatch');
+            return res.status(401).json({ 
+                success: false,
+                message: "Invalid credentials" 
+            });
+        }
+
+        console.log('Password match! Login successful');
+
+        // Remove password from response
+        delete admin.password;
+
+        res.json({
+            success: true,
+            message: "Login successful",
+            ...admin,
+            role: "Admin"
+        });
+
+    } catch (err) {
+        console.error('Admin login error:', err);
+        res.status(500).json({ 
+            success: false,
+            message: "Login failed", 
+            error: err.message 
+        });
     }
 };
 
+// Change Admin Password
+const changeAdminPassword = async (req, res) => {
+    try {
+        const { adminId, currentPassword, newPassword } = req.body;
+
+        if (!adminId || !currentPassword || !newPassword) {
+            return res.status(400).json({ 
+                message: "Admin ID, current password, and new password are required" 
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ 
+                message: "New password must be at least 6 characters long" 
+            });
+        }
+
+        // Find admin
+        const admin = await Admin.findById(adminId);
+        if (!admin) {
+            return res.status(404).json({ 
+                message: "Admin not found" 
+            });
+        }
+
+        // Verify current password
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, admin.password);
+        if (!isCurrentPasswordValid) {
+            return res.status(401).json({ 
+                message: "Current password is incorrect" 
+            });
+        }
+
+        // Hash new password
+        const saltRounds = 12;
+        const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+        // Update password
+        admin.password = hashedNewPassword;
+        admin.lastPasswordChange = new Date();
+        await admin.save();
+
+        res.json({
+            success: true,
+            message: "Password changed successfully",
+            lastPasswordChange: admin.lastPasswordChange
+        });
+
+    } catch (err) {
+        console.error('Change password error:', err);
+        res.status(500).json({ 
+            message: "Failed to change password", 
+            error: err.message 
+        });
+    }
+};
+
+// Get Admin Details
 const getAdminDetail = async (req, res) => {
     try {
         let admin = await Admin.findById(req.params.id);
         if (admin) {
-            admin.password = undefined;
-            res.send(admin);
-        }
-        else {
-            res.send({ message: "No admin found" });
+            admin.password = undefined; // Never send password
+            res.json({
+                success: true,
+                admin: admin
+            });
+        } else {
+            res.status(404).json({ 
+                message: "No admin found" 
+            });
         }
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ 
+            message: "Failed to get admin details", 
+            error: err.message 
+        });
     }
 };
 
@@ -160,9 +316,8 @@ const uploadResultForParent = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-// Add this to your admin-controller.js file
 
-// ===== Get Parent Results (Organized by Subject → Semester) =====
+// Get Parent Results (Organized by Subject → Semester)
 const getParentResults = async (req, res) => {
     try {
         const parentId = req.params.parentId;
@@ -214,7 +369,7 @@ const getParentResults = async (req, res) => {
     }
 };
 
-// ===== Upload Worksheet/Assignment for Student =====
+// Upload Worksheet/Assignment for Student
 const uploadWorksheetForStudent = async (req, res) => {
     try {
         const { studentId, uploadType, description, subject } = req.body;
@@ -268,7 +423,7 @@ const uploadWorksheetForStudent = async (req, res) => {
     }
 };
 
-// ===== Upload Past Exam for Student =====
+// Upload Past Exam for Student
 const uploadPastExamForStudent = async (req, res) => {
     try {
         const { studentId, subject, year, examType, description, grade } = req.body;
@@ -339,7 +494,7 @@ const uploadPastExamForStudent = async (req, res) => {
     }
 };
 
-// ===== NEW: Get Past Exams Organized by Grade → Subject → Year =====
+// Get Past Exams Organized by Grade → Subject → Year
 const getStudentPastExams = async (req, res) => {
     try {
         const studentId = req.params.studentId;
@@ -433,18 +588,101 @@ const getStudentWorksheets = async (req, res) => {
         res.status(500).json({ message: "Server error fetching worksheets" });
     }
 };
+// Add this function to your admin-controller.js file
+
+// Reset Admin Password - Works with plain-text passwords
+const resetAdminPassword = async (req, res) => {
+    try {
+        const { email, currentPassword, secretKey, newPassword } = req.body;
+
+        if (!email || !currentPassword || !secretKey || !newPassword) {
+            return res.status(400).json({ 
+                success: false,
+                message: "All fields are required" 
+            });
+        }
+
+        // Simple secret key check
+        if (secretKey !== "ADMIN_RESET_2024") {
+            return res.status(401).json({ 
+                success: false,
+                message: "Invalid secret key" 
+            });
+        }
+
+        // Find admin
+        const admin = await Admin.findOne({ email: email.trim() });
+        if (!admin) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Admin not found" 
+            });
+        }
+
+        // Verify current password
+        if (currentPassword.trim() !== admin.password) {
+            return res.status(401).json({ 
+                success: false,
+                message: "Current password is incorrect" 
+            });
+        }
+
+        // Check if new password is different
+        if (newPassword.trim() === admin.password) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be different from current password"
+            });
+        }
+
+        // Update password without triggering email validation
+        await Admin.updateOne(
+            { _id: admin._id },
+            { 
+                $set: { 
+                    password: newPassword.trim(), 
+                    lastPasswordChange: new Date() 
+                } 
+            }
+        );
+
+        console.log(`Admin password reset successfully for: ${email}`);
+
+        res.json({
+            success: true,
+            message: "Password reset successfully. Please login with your new password.",
+            lastPasswordChange: new Date()
+        });
+
+    } catch (err) {
+        console.error("Reset admin password error:", err);
+        res.status(500).json({ 
+            success: false,
+            message: "Failed to reset password", 
+            error: err.message 
+        });
+    }
+};
+
+
+
+// Don't forget to export this function in your module.exports
+// Add this line
 
 module.exports = { 
     adminRegister, 
     adminLogIn, 
     getAdminDetail,
+    checkAdminExists,        // Check if admin exists
+    changeAdminPassword,     // Change admin password
+    resetAdminPassword,      // NEW: Reset admin password with security verification
     uploadPastExamForStudent,
-    uploadResult,  // Multer middleware for results
-    uploadWorksheet, // Multer middleware for worksheets
+    uploadResult,            // Multer middleware for results
+    uploadWorksheet,         // Multer middleware for worksheets
     uploadResultForParent,
     uploadPastExam,
     uploadWorksheetForStudent,
     getParentResults,
     getStudentWorksheets,
-    getStudentPastExams // NEW: API endpoint for organized past exams
+    getStudentPastExams
 };

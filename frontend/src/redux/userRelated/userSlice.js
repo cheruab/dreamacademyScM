@@ -54,10 +54,7 @@ const userSlice = createSlice({
             state.status = 'failed';
             state.response = action.payload;
         },
-        authError: (state, action) => {
-            state.status = 'error';
-            state.error = action.payload;
-        },
+        
         authLogout: (state) => {
             localStorage.removeItem('user');
             state.currentUser = null;
@@ -89,15 +86,51 @@ const userSlice = createSlice({
             state.error = action.payload;
             state.status = 'failed';
         },
-        getError: (state, action) => {
-            state.loading = false;
-            state.error = action.payload;
-            state.status = 'error';
-        },
+        
         
         toggleDarkMode: (state) => {
             state.darkMode = !state.darkMode;
         },
+
+        // In userSlice.js, update the authError reducer:
+authError: (state, action) => {
+    state.status = 'error';
+    // Extract only the serializable parts of the error
+    if (action.payload && action.payload.isAxiosError) {
+        // For Axios errors, extract only the serializable information
+        state.error = {
+            message: action.payload.message,
+            code: action.payload.code,
+            status: action.payload.response?.status,
+            statusText: action.payload.response?.statusText,
+            data: action.payload.response?.data
+        };
+    } else {
+        // For regular errors, just store the message
+        state.error = {
+            message: action.payload?.message || String(action.payload)
+        };
+    }
+},
+
+// Also update getError reducer:
+getError: (state, action) => {
+    state.loading = false;
+    if (action.payload && action.payload.isAxiosError) {
+        state.error = {
+            message: action.payload.message,
+            code: action.payload.code,
+            status: action.payload.response?.status,
+            statusText: action.payload.response?.statusText,
+            data: action.payload.response?.data
+        };
+    } else {
+        state.error = {
+            message: action.payload?.message || String(action.payload)
+        };
+    }
+    state.status = 'error';
+},
 
         // ==========================
         // Complaints reducers - FIXED
@@ -141,6 +174,8 @@ const userSlice = createSlice({
         },
     },
 });
+
+
 
 export const {
     authRequest,

@@ -16,13 +16,101 @@ import {
     complainsFail 
 } from './userSlice';
 
+// ===== UPDATED ADMIN-SPECIFIC FUNCTIONS =====
 
+// Check if admin exists
+export const checkAdminExists = () => async (dispatch) => {
+    try {
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/admin/check-exists`);
+        return result.data.exists;
+    } catch (error) {
+        console.error('Error checking admin existence:', error);
+        return false;
+    }
+};
+
+// Admin registration with enhanced security
+export const adminRegister = (fields) => async (dispatch) => {
+    dispatch(authRequest());
+
+    try {
+        const result = await axios.post(`${process.env.REACT_APP_BASE_URL}/AdminReg`, fields, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (result.data.success) {
+            dispatch(authSuccess(result.data.admin));
+            localStorage.removeItem('parentId'); // Ensure no parent data
+        } else {
+            dispatch(authFailed(result.data.message));
+        }
+    } catch (error) {
+        console.error('Admin registration error:', error);
+        dispatch(authError(error.response?.data?.message || error.message));
+    }
+};
+
+// Admin login with enhanced security
+export const adminLogin = (fields) => async (dispatch) => {
+    dispatch(authRequest());
+
+    try {
+        const result = await axios.post(`${process.env.REACT_APP_BASE_URL}/AdminLogin`, fields, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (result.data.success && result.data.role === 'Admin') {
+            dispatch(authSuccess(result.data));
+            localStorage.removeItem('parentId'); // Ensure no parent data
+        } else {
+            dispatch(authFailed(result.data.message || 'Invalid admin credentials'));
+        }
+    } catch (error) {
+        console.error('Admin login error:', error);
+        dispatch(authError(error.response?.data?.message || error.message));
+    }
+};
+
+// Change admin password
+export const changeAdminPassword = (passwordData) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.post(`${process.env.REACT_APP_BASE_URL}/admin/change-password`, passwordData, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (result.data.success) {
+            // Password changed successfully - logout user for security
+            dispatch(authLogout());
+            return { success: true, message: result.data.message };
+        } else {
+            dispatch(getFailed(result.data.message));
+            return { success: false, message: result.data.message };
+        }
+    } catch (error) {
+        console.error('Change password error:', error);
+        const errorMessage = error.response?.data?.message || 'Failed to change password';
+        dispatch(getError(errorMessage));
+        return { success: false, message: errorMessage };
+    }
+};
+
+// ===== EXISTING USER FUNCTIONS (keeping separate from admin) =====
 
 export const loginUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
-        const result = await axios.post(`${process.env.REACT_APP_BASE_URL}/${role}Login`, fields, {
+        // Use different endpoints for different roles
+        let endpoint = `${process.env.REACT_APP_BASE_URL}/${role}Login`;
+        
+        // Admin uses the enhanced login function above
+        if (role === 'Admin') {
+            return dispatch(adminLogin(fields));
+        }
+
+        const result = await axios.post(endpoint, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
 
@@ -50,16 +138,20 @@ export const registerUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
+        // Admin uses the enhanced registration function above
+        if (role === 'Admin') {
+            return dispatch(adminRegister(fields));
+        }
+
         const result = await axios.post(`${process.env.REACT_APP_BASE_URL}/${role}Reg`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
+
         if (result.data.schoolName) {
             dispatch(authSuccess(result.data));
-        }
-        else if (result.data.school) {
+        } else if (result.data.school) {
             dispatch(stuffAdded());
-        }
-        else {
+        } else {
             dispatch(authFailed(result.data.message));
         }
     } catch (error) {
@@ -85,22 +177,20 @@ export const getUserDetails = (id, address) => async (dispatch) => {
     }
 }
 
-// In your userHandle.js or wherever getComplains is defined
-// In your userHandle.js or wherever getComplains is defined
-// In your userHandle.js
 export const getComplains = (userId) => async (dispatch) => {
-  try {
-    dispatch(complainsRequest()); // Use complainsRequest instead of USER_COMPLAINS_REQUEST
+    try {
+        dispatch(complainsRequest());
 
-    const { data } = await axios.get(`${process.env.REACT_APP_BASE_URL}/ComplainsByUser/${userId}`);
-    console.log('API response:', data);
+        const { data } = await axios.get(`${process.env.REACT_APP_BASE_URL}/ComplainsByUser/${userId}`);
+        console.log('API response:', data);
 
-    dispatch(complainsSuccess(data)); // Use complainsSuccess instead of USER_COMPLAINS_SUCCESS
-  } catch (error) {
-    console.error('Error fetching complaints:', error);
-    dispatch(complainsFail(error.response?.data?.message || error.message)); // Use complainsFail
-  }
+        dispatch(complainsSuccess(data));
+    } catch (error) {
+        console.error('Error fetching complaints:', error);
+        dispatch(complainsFail(error.response?.data?.message || error.message));
+    }
 };
+
 export const updateUser = (fields, id, address) => async (dispatch) => {
     dispatch(getRequest());
 
@@ -110,8 +200,7 @@ export const updateUser = (fields, id, address) => async (dispatch) => {
         });
         if (result.data.schoolName) {
             dispatch(authSuccess(result.data));
-        }
-        else {
+        } else {
             dispatch(doneSuccess(result.data));
         }
     } catch (error) {
@@ -132,8 +221,6 @@ export const updateTeacherSubject = (fields) => async (dispatch) => {
     }
 };
 
-// ✅ Add exam
-// ✅ Add exam - Fixed version
 export const addExam = (fields) => async (dispatch) => {
     dispatch(getRequest());
     try {
@@ -158,35 +245,33 @@ export const addExam = (fields) => async (dispatch) => {
     }
 };
 
-// Get exams by subject - Fixed version
-// Get exams by subject - With debug logs
 export const getExams = (subjectId) => async (dispatch) => {
-    console.log("getExams called with subjectId:", subjectId); // Debug log
+    console.log("getExams called with subjectId:", subjectId);
     dispatch(getRequest());
     try {
         const url = `${process.env.REACT_APP_BASE_URL}/exams/subject/${subjectId}`;
 
-        console.log("Making request to:", url); // Debug log
+        console.log("Making request to:", url);
         
         const res = await axios.get(url);
         
-        console.log("Get exams response:", res.data); // Debug log
-        console.log("Response status:", res.status); // Debug log
+        console.log("Get exams response:", res.data);
+        console.log("Response status:", res.status);
         
         if (res.data.success) {
-            console.log("Success! Dispatching exams:", res.data.exams); // Debug log
+            console.log("Success! Dispatching exams:", res.data.exams);
             dispatch(doneSuccess({ 
                 status: 'examsFetched', 
                 exams: res.data.exams,
                 count: res.data.count 
             }));
         } else {
-            console.log("API returned success: false"); // Debug log
+            console.log("API returned success: false");
             dispatch(getFailed(res.data.error));
         }
     } catch (err) {
-        console.log("Get exams error:", err.response?.data); // Debug log
-        console.log("Full error:", err); // Debug log
+        console.log("Get exams error:", err.response?.data);
+        console.log("Full error:", err);
         dispatch(getError(err.response?.data?.error || err.message));
     }
 };
@@ -208,13 +293,7 @@ export const addStuff = (fields, address) => async (dispatch) => {
         dispatch(authError(error));
     }
 };
-// Add these new actions to your existing userHandle.js file
 
-
-// Get student's exam results
-// Add/Update these functions in your userHandle.js
-
-// Get student's exam results - Fixed version
 export const getStudentExamResults = (studentId) => async (dispatch) => {
     console.log("getStudentExamResults called with studentId:", studentId);
     dispatch(getRequest());
@@ -238,7 +317,6 @@ export const getStudentExamResults = (studentId) => async (dispatch) => {
     }
 };
 
-// Get class subjects with better error handling
 export const getClassSubjects = (classId) => async (dispatch) => {
     console.log("getClassSubjects called with classId:", classId);
     dispatch(getRequest());
@@ -248,7 +326,6 @@ export const getClassSubjects = (classId) => async (dispatch) => {
         console.log("Class subjects response:", result.data);
         
         if (result.data && result.data.message) {
-            // API returned a message (like "No subjects found")
             dispatch(doneSuccess({ 
                 status: 'subjectsFetched', 
                 subjects: [],
@@ -276,12 +353,9 @@ export const getClassSubjects = (classId) => async (dispatch) => {
         }
     }
 };
-// Get exam by ID
-// Fixed getExamById Redux action
-// Fixed getExamById Redux action
-// Fixed getExamById Redux action - using existing reducers
+
 export const getExamById = (examId) => async (dispatch) => {
-    dispatch(getRequest()); // Use your existing getRequest action
+    dispatch(getRequest());
     
     try {
         const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/exam/${examId}`);
@@ -290,10 +364,9 @@ export const getExamById = (examId) => async (dispatch) => {
         console.log('API Response in Redux:', data);
 
         if (data.success) {
-            // Use your existing doneSuccess reducer
             dispatch(doneSuccess({ 
                 status: 'examFetched',
-                exam: data, // The exam data
+                exam: data,
                 message: data.message
             }));
         } else {
@@ -304,7 +377,7 @@ export const getExamById = (examId) => async (dispatch) => {
         dispatch(getError(error.message || 'Failed to fetch exam'));
     }
 };
-// Fixed submitExamResult Redux action
+
 export const submitExamResult = (submissionData) => async (dispatch) => {
     dispatch({ type: 'LOADING', payload: true });
     
@@ -315,8 +388,6 @@ export const submitExamResult = (submissionData) => async (dispatch) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // Add authorization header if needed
-                // 'Authorization': `Bearer ${getState().user.token}`
             },
             body: JSON.stringify(submissionData)
         });
@@ -350,7 +421,6 @@ export const submitExamResult = (submissionData) => async (dispatch) => {
     }
 };
 
-// Check if student has completed exam
 export const checkExamCompletion = (studentId, examId) => async (dispatch) => {
     dispatch(getRequest());
     try {
@@ -368,9 +438,7 @@ export const checkExamCompletion = (studentId, examId) => async (dispatch) => {
         dispatch(getError(err.response?.data?.error || err.message));
     }
 };
-// Add these functions to your userHandle.js file
 
-// Get specific exam result by resultId or examId + studentId
 export const getExamResult = (examId, studentId) => async (dispatch) => {
     dispatch(getRequest());
     try {
@@ -389,7 +457,6 @@ export const getExamResult = (examId, studentId) => async (dispatch) => {
     }
 };
 
-// Alternative: Get exam result by result ID
 export const getExamResultById = (resultId) => async (dispatch) => {
     dispatch(getRequest());
     try {
@@ -399,7 +466,7 @@ export const getExamResultById = (resultId) => async (dispatch) => {
             dispatch(doneSuccess({ 
                 status: 'examResultFetched', 
                 examResult: result.data.examResult,
-                exam: result.data.exam // Include exam details if available
+                exam: result.data.exam
             }));
         } else {
             dispatch(getFailed(result.data.error || 'Failed to fetch exam result'));
@@ -409,7 +476,6 @@ export const getExamResultById = (resultId) => async (dispatch) => {
     }
 };
 
-// Get exam with questions (detailed exam info)
 export const getExamWithQuestions = (examId) => async (dispatch) => {
     dispatch(getRequest());
     try {
@@ -427,17 +493,48 @@ export const getExamWithQuestions = (examId) => async (dispatch) => {
         dispatch(getError(err.response?.data?.error || err.message));
     }
 };
-export const deleteUser = (id, address) => async (dispatch) => {
-     dispatch(getRequest());
 
-     try {
-         const result = await axios.delete(`${process.env.REACT_APP_BASE_URL}/${address}/${id}`);
-         if (result.data.message) {
-             dispatch(getFailed(result.data.message));
-         } else {
-             dispatch(getDeleteSuccess());
-         }
-     } catch (error) {
-         dispatch(getError(error));
-     }
- };
+export const deleteUser = (id, address) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.delete(`${process.env.REACT_APP_BASE_URL}/${address}/${id}`);
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            dispatch(getDeleteSuccess());
+        }
+    } catch (error) {
+        dispatch(getError(error));
+    }
+};
+
+// Here's exactly where to add the resetAdminPassword function in your existing userHandle.js file:
+// Add this function right after the changeAdminPassword function in the ADMIN-SPECIFIC FUNCTIONS section
+
+// Reset admin password with security verification
+export const resetAdminPassword = (resetData) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.post(`${process.env.REACT_APP_BASE_URL}/admin/reset-password`, resetData, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (result.data.success) {
+            return { success: true, message: result.data.message };
+        } else {
+            dispatch(getFailed(result.data.message));
+            return { success: false, message: result.data.message };
+        }
+    } catch (error) {
+        console.error('Reset admin password error:', error);
+        const errorMessage = error.response?.data?.message || 'Failed to reset password';
+        dispatch(getError(errorMessage));
+        return { success: false, message: errorMessage };
+    }
+};
+
+// The function should be placed right after this existing function in your userHandle.js:
+
+// Change admin password
