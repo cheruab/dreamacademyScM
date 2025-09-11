@@ -68,7 +68,7 @@ const UploadResult = ({ onUploadSuccess }) => {
   const { currentUser } = useSelector(state => state.user);
 
   const examTypes = [
-    'Mid-term Exam', 'Final Exam', 'Quiz', 'Unit Test', 'Practice Test',
+    'Mid-Exam', 'Final Exam', 'Quiz', 'Unit Test', 'Practice Test',
     'Mock Exam', 'Sample Paper', 'Previous Year Paper', 'Monthly Test',
     'Class Test', 'Annual Exam', 'Pre-board Exam'
   ];
@@ -83,7 +83,7 @@ const UploadResult = ({ onUploadSuccess }) => {
   const grades = [
     'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
     'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12',
-    'Kindergarten', 'Pre-K', 'Nursery'
+    'UKG', 'LKG', 'Nursery'
   ];
 
   // Generate years (current year and 10 years back)
@@ -322,7 +322,7 @@ const UploadResult = ({ onUploadSuccess }) => {
       <Grid container spacing={4}>
         {/* Parent Upload Section */}
         <Grid item xs={12} lg={4}>
-          <Card sx={{ height: '100%', boxShadow: 3 }}>
+          <Card sx={{ height: '100%', boxShadow: 3}}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <PersonIcon sx={{ mr: 1, color: 'primary.main' }} />

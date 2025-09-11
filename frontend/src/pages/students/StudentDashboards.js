@@ -32,6 +32,7 @@ import { AppBar, Drawer } from '../../components/styles';
 import axios from 'axios';
 import ViewStdAttendances from './ViewStdAttendances';
 import ParentResultsView from './ParentResultsView';
+import DreamAcademyPackages from './DreamAcademyPackages';
 
 
 
@@ -165,7 +166,7 @@ const StudentDashboards = () => {
         <>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar open={open} position='absolute'>
+                <AppBar open={open} position='absolute' sx={{ backgroundColor: "#3b6894ff" }}>
                     <Toolbar sx={{ pr: '24px' }}>
                         <IconButton
                             edge="start"
@@ -276,6 +277,8 @@ const StudentDashboards = () => {
                         <Route path="/Parent/complain" element={<StudentComplains child={childData} />} />
 
                         <Route path="/Parent/results" element={<ParentResultsView />} />
+                        <Route path="/Parent/packages" element={<DreamAcademyPackages />} />
+
 
                         <Route path="/logout" element={<Logout />} />
                     </Routes>

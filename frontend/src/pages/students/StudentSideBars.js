@@ -2,68 +2,145 @@ import * as React from 'react';
 import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 
-import HomeIcon from '@mui/icons-material/Home';
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
-import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
-import AssignmentIcon from '@mui/icons-material/Assignment';
+// Updated icons
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import LogoutIcon from "@mui/icons-material/Logout";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import SchoolIcon from '@mui/icons-material/School';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 const StudentSideBars = () => {
     const location = useLocation();
     return (
-        <>
+        <div style={{ 
+            backgroundColor: '#1a1f2e', 
+            minHeight: '100vh', 
+            color: '#e2e8f0',
+            borderRight: '1px solid #334155'
+        }}>
             <React.Fragment>
-                <ListItemButton component={Link} to="/Parent/dashboard">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Parent/dashboard"
+                    sx={{ 
+                        color: '#e2e8f0',
+                        '&:hover': { backgroundColor: '#334155' }
+                    }}
+                >
                     <ListItemIcon>
-                        <HomeIcon color={location.pathname === ("/" || "/Parent/dashboard") ? 'primary' : 'inherit'} />
+                        <DashboardIcon sx={{ color: location.pathname === ("/" || "/Parent/dashboard") ? '#60a5fa' : '#94a3b8' }} />
                     </ListItemIcon>
-                    <ListItemText primary="Dashboard" />
+                    <ListItemText primary="Dashboard" sx={{ color: '#e2e8f0' }} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Parent/child-subjects">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Parent/child-subjects"
+                    sx={{ 
+                        color: '#e2e8f0',
+                        '&:hover': { backgroundColor: '#334155' }
+                    }}
+                >
                     <ListItemIcon>
-                        <AssignmentIcon color={location.pathname.startsWith("/Parent/child-subjects") ? 'primary' : 'inherit'} />
+                        <SchoolIcon sx={{ color: location.pathname.startsWith("/Parent/child-subjects") ? '#60a5fa' : '#94a3b8' }} />
                     </ListItemIcon>
-                    <ListItemText primary="Child's Subjects" />
+                    <ListItemText primary="Child's Subjects" sx={{ color: '#e2e8f0' }} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Parent/child-attendance">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Parent/child-attendance"
+                    sx={{ 
+                        color: '#e2e8f0',
+                        '&:hover': { backgroundColor: '#334155' }
+                    }}
+                >
                     <ListItemIcon>
-                        <ClassOutlinedIcon color={location.pathname.startsWith("/Parent/child-attendance") ? 'primary' : 'inherit'} />
+                        <EventAvailableIcon sx={{ color: location.pathname.startsWith("/Parent/child-attendance") ? '#60a5fa' : '#94a3b8' }} />
                     </ListItemIcon>
-                    <ListItemText primary="Child's Attendance" />
+                    <ListItemText primary="Child's Attendance" sx={{ color: '#e2e8f0' }} />
                 </ListItemButton>
-                        <ListItemButton component={Link} to="/Parent/results">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Parent/results"
+                    sx={{ 
+                        color: '#e2e8f0',
+                        '&:hover': { backgroundColor: '#334155' }
+                    }}
+                >
                     <ListItemIcon>
-                        <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Parent/results") ? 'primary' : 'inherit'} />
+                        <AssessmentIcon sx={{ color: location.pathname.startsWith("/Parent/results") ? '#60a5fa' : '#94a3b8' }} />
                     </ListItemIcon>
-                    <ListItemText primary="School Exam results" />
+                    <ListItemText primary="School Exam results" sx={{ color: '#e2e8f0' }} />
+                </ListItemButton> 
+                <ListItemButton 
+                    component={Link} 
+                    to="/Parent/packages"
+                    sx={{ 
+                        color: '#e2e8f0',
+                        '&:hover': { backgroundColor: '#334155' }
+                    }}
+                >
+                    <ListItemIcon>
+                        <LocalOfferIcon sx={{ color: location.pathname.startsWith("/Parent/packages") ? '#60a5fa' : '#94a3b8' }} />
+                    </ListItemIcon>
+                    <ListItemText primary="Our Packages" sx={{ color: '#e2e8f0' }} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Parent/complain">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Parent/complain"
+                    sx={{ 
+                        color: '#e2e8f0',
+                        '&:hover': { backgroundColor: '#334155' }
+                    }}
+                >
                     <ListItemIcon>
-                        <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Parent/complain") ? 'primary' : 'inherit'} />
+                        <ReportProblemIcon sx={{ color: location.pathname.startsWith("/Parent/complain") ? '#60a5fa' : '#94a3b8' }} />
                     </ListItemIcon>
-                    <ListItemText primary="Complaints" />
+                    <ListItemText primary="Complaints" sx={{ color: '#e2e8f0' }} />
                 </ListItemButton>
             </React.Fragment>
-            <Divider sx={{ my: 1 }} />
+            <Divider sx={{ my: 1, backgroundColor: '#475569' }} />
             <React.Fragment>
-                <ListSubheader component="div" inset>
+                <ListSubheader 
+                    component="div" 
+                    inset
+                    sx={{ 
+                        backgroundColor: 'transparent',
+                        color: '#94a3b8'
+                    }}
+                >
                     User
                 </ListSubheader>
-                <ListItemButton component={Link} to="/Parent/child-profile">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Parent/child-profile"
+                    sx={{ 
+                        color: '#e2e8f0',
+                        '&:hover': { backgroundColor: '#334155' }
+                    }}
+                >
                     <ListItemIcon>
-                        <AccountCircleOutlinedIcon color={location.pathname.startsWith("/Parent/child-profile") ? 'primary' : 'inherit'} />
+                        <AccountCircleIcon sx={{ color: location.pathname.startsWith("/Parent/child-profile") ? '#60a5fa' : '#94a3b8' }} />
                     </ListItemIcon>
-                    <ListItemText primary="Child's Profile" />
+                    <ListItemText primary="Child's Profile" sx={{ color: '#e2e8f0' }} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/logout">
+                <ListItemButton 
+                    component={Link} 
+                    to="/logout"
+                    sx={{ 
+                        color: '#e2e8f0',
+                        '&:hover': { backgroundColor: '#334155' }
+                    }}
+                >
                     <ListItemIcon>
-                        <ExitToAppIcon color={location.pathname.startsWith("/logout") ? 'primary' : 'inherit'} />
+                        <LogoutIcon sx={{ color: location.pathname.startsWith("/logout") ? '#60a5fa' : '#94a3b8' }} />
                     </ListItemIcon>
-                    <ListItemText primary="Logout" />
+                    <ListItemText primary="Logout" sx={{ color: '#e2e8f0' }} />
                 </ListItemButton>
             </React.Fragment>
-        </>
+        </div>
     )
 }
 

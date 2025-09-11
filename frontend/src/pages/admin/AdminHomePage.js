@@ -30,17 +30,17 @@ const AdminHomePage = () => {
 
     return (
         <Box sx={{ 
-            background: 'linear-gradient(135deg, #047e59ff 0%, #2e9713ff 100%)',
+            background: 'linear-gradient(135deg, #190888ff 0%, #170992ff 100%)',
             minHeight: '100vh',
             py: 4
         }}>
             <Container maxWidth="xl">
                 {/* Welcome Banner */}
                 <Box sx={{ mb: 4, textAlign: "center" }}>
-                    <Typography variant="h4" fontWeight="bold" gutterBottom>
+                    <Typography variant="h4" fontWeight="bold" gutterBottom color="white">
                         Welcome back, {currentUser?.name || "Admin"} 👋
                     </Typography>
-                    <Typography variant="subtitle1" color="text.secondary">
+                    <Typography variant="subtitle1" color="white">
                         Here's a quick overview of your school's activity today
                     </Typography>
                 </Box>
@@ -110,14 +110,14 @@ const StyledPaper = styled(Paper)`
   text-align: center;
   height: 180px;
   border-radius: 20px !important;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 15px rgba(243, 240, 240, 1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   background-color: '#349ccce7'};
-  color: #333;
+  color: #faf2f2ff;
 
   &:hover {
     transform: translateY(-6px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 30px rgba(243, 232, 232, 1);
   }
 `;
 
