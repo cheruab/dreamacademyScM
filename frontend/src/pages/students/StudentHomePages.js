@@ -20,6 +20,7 @@ import BookIcon from '@mui/icons-material/Book';
 import EventIcon from '@mui/icons-material/Event';
 import FeedbackIcon from '@mui/icons-material/Feedback';
 import axios from 'axios';
+import DreamAcademyPackages from "./DreamAcademyPackages";
 
 const StudentHomePages = ({ child, parent }) => {
   const [examResults, setExamResults] = useState([]);
@@ -248,6 +249,36 @@ const StudentHomePages = ({ child, parent }) => {
             </Box>
             <CardContent>
               <ViewStdAttendances childData={child} />
+            </CardContent>
+          </Card>
+        </Grid>
+
+                {/* Packages Section */}
+        <Grid item xs={12}>
+          <Card
+            sx={{
+              borderRadius: 3,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              backgroundColor: "#ffffff",
+              width: { xs: "100%", sm: "95%", md: "85%" },
+              margin: "0 auto",
+              overflow: 'hidden'
+            }}
+          >
+            <Box sx={{
+              background: 'linear-gradient(90deg, #4caf50 0%, #81c784 100%)',
+              color: 'white',
+              p: 2
+            }}>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center' }}
+              >
+                📊 Our Packages
+              </Typography>
+            </Box>
+            <CardContent>
+              <DreamAcademyPackages  />
             </CardContent>
           </Card>
         </Grid>
